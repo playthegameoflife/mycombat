@@ -20,6 +20,19 @@ import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
+import { useFonts, Barlow_400Regular, Barlow_500Medium, Barlow_600SemiBold, Barlow_700Bold } from '@expo-google-fonts/barlow';
+import { BarlowCondensed_500Medium, BarlowCondensed_600SemiBold, BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed';
+
+// ---------- Typography (Barlow Condensed = sports/athletic headings, Barlow = body) ----------
+const FONT = {
+  heading: 'BarlowCondensed_700Bold',
+  headingSemi: 'BarlowCondensed_600SemiBold',
+  headingMed: 'BarlowCondensed_500Medium',
+  body: 'Barlow_400Regular',
+  bodyMed: 'Barlow_500Medium',
+  bodySemi: 'Barlow_600SemiBold',
+  bodyBold: 'Barlow_700Bold',
+};
 
 const { width, height } = Dimensions.get('window');
 
@@ -271,22 +284,22 @@ const swapStance = (text) => {
 // ---------- Theme ----------
 const THEMES = {
   dark: {
-    bgTop: '#1a1a2e', bgBottom: '#16213e', container: '#1a1a2e', text: '#fff', textMuted: '#bbb',
-    cardBg: 'rgba(255,255,255,0.1)', cardBgSelected: 'rgba(255,255,255,0.15)',
-    cardGradSelected: ['#4a90e2', '#357abd'], cardGradNormal: ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)'],
-    taskContainer: 'rgba(0,0,0,0.2)', iconButton: 'rgba(255,255,255,0.1)', buttonDefault: 'rgba(255,255,255,0.1)',
-    modalBg: '#1a1a2e', overlay: 'rgba(0,0,0,0.5)', accent: '#4a90e2', accentDark: '#357abd',
-    success: '#4CAF50', danger: '#f44336', test: '#6c5ce7', timerPanel: 'rgba(255,255,255,0.05)',
-    toggleOff: 'rgba(255,255,255,0.1)', shadowColor: '#000',
+    bgTop: '#0F172A', bgBottom: '#1F2937', container: '#0F172A', text: '#F8FAFC', textMuted: '#94A3B8',
+    cardBg: 'rgba(255,255,255,0.06)', cardBgSelected: 'rgba(255,255,255,0.12)',
+    cardGradSelected: ['#F97316', '#EA580C'], cardGradNormal: ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)'],
+    taskContainer: 'rgba(0,0,0,0.25)', iconButton: 'rgba(255,255,255,0.08)', buttonDefault: 'rgba(255,255,255,0.08)',
+    modalBg: '#1F2937', overlay: 'rgba(0,0,0,0.6)', accent: '#F97316', accentDark: '#EA580C',
+    success: '#22C55E', danger: '#EF4444', test: '#8B5CF6', timerPanel: 'rgba(255,255,255,0.04)',
+    toggleOff: 'rgba(255,255,255,0.1)', shadowColor: '#000', border: '#374151',
   },
   light: {
-    bgTop: '#eef1f6', bgBottom: '#dfe5ee', container: '#eef1f6', text: '#1a1a2e', textMuted: '#555',
-    cardBg: 'rgba(255,255,255,0.65)', cardBgSelected: 'rgba(255,255,255,0.9)',
-    cardGradSelected: ['#4a90e2', '#357abd'], cardGradNormal: ['rgba(255,255,255,0.8)', 'rgba(255,255,255,0.55)'],
-    taskContainer: 'rgba(0,0,0,0.05)', iconButton: 'rgba(0,0,0,0.08)', buttonDefault: 'rgba(0,0,0,0.08)',
-    modalBg: '#f5f7fb', overlay: 'rgba(0,0,0,0.4)', accent: '#4a90e2', accentDark: '#357abd',
-    success: '#2e9e4f', danger: '#d93a3a', test: '#6c5ce7', timerPanel: 'rgba(0,0,0,0.04)',
-    toggleOff: 'rgba(0,0,0,0.1)', shadowColor: '#000',
+    bgTop: '#F8FAFC', bgBottom: '#E2E8F0', container: '#F8FAFC', text: '#0F172A', textMuted: '#64748B',
+    cardBg: 'rgba(255,255,255,0.7)', cardBgSelected: 'rgba(255,255,255,0.95)',
+    cardGradSelected: ['#F97316', '#EA580C'], cardGradNormal: ['rgba(255,255,255,0.85)', 'rgba(255,255,255,0.6)'],
+    taskContainer: 'rgba(0,0,0,0.05)', iconButton: 'rgba(0,0,0,0.06)', buttonDefault: 'rgba(0,0,0,0.06)',
+    modalBg: '#FFFFFF', overlay: 'rgba(0,0,0,0.45)', accent: '#EA580C', accentDark: '#C2410C',
+    success: '#16A34A', danger: '#DC2626', test: '#7C3AED', timerPanel: 'rgba(0,0,0,0.03)',
+    toggleOff: 'rgba(0,0,0,0.08)', shadowColor: '#000', border: '#CBD5E1',
   },
 };
 
@@ -347,6 +360,10 @@ const pickRandomTask = (style, styles, difficultyFilter) => {
 };
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Barlow_400Regular, Barlow_500Medium, Barlow_600SemiBold, Barlow_700Bold,
+    BarlowCondensed_500Medium, BarlowCondensed_600SemiBold, BarlowCondensed_700Bold,
+  });
   const [generatedTasks, setGeneratedTasks] = usePersistedState('generatedTasks', {});
 
   // Settings
@@ -869,7 +886,7 @@ export default function App() {
   };
   const difficultyColor = (cat, task) => {
     const diff = difficultyOf(cat, comboLevelOf(cat, task));
-    return diff === 'beginner' ? theme.success : diff === 'intermediate' ? '#FFA726' : theme.danger;
+    return diff === 'beginner' ? theme.success : diff === 'intermediate' ? '#FB923C' : theme.danger;
   };
 
   const CategoryCard = ({ category }) => {
@@ -905,6 +922,8 @@ export default function App() {
               </View>
               <TouchableOpacity
                 style={styles.favButton}
+                accessibilityRole="button"
+                accessibilityLabel={fav ? `Remove ${category} from favorites` : `Add ${category} to favorites`}
                 onPress={() => task && toggleFavorite(category, task)}
               >
                 <Ionicons name={fav ? 'star' : 'star-outline'} size={22} color={fav ? '#FFD700' : theme.textMuted} />
@@ -924,33 +943,39 @@ export default function App() {
               </Animated.Text>
             </View>
             <View style={styles.cardControls}>
-              <TouchableOpacity style={styles.controlButton} onPress={() => generateTask(category)}>
+              <TouchableOpacity style={styles.controlButton} accessibilityRole="button" accessibilityLabel={`New ${category} combination`} onPress={() => generateTask(category)}>
                 <Ionicons name="refresh" size={22} color="#fff" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.controlButton, { backgroundColor: theme.accent }]}
+                accessibilityRole="button"
+                accessibilityLabel={`Build a ${category} combo`}
                 onPress={() => openBuilder(category)}
               >
                 <Ionicons name="hammer" size={22} color="#fff" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.controlButton, { backgroundColor: theme.test }]}
+                accessibilityRole="button"
+                accessibilityLabel={`Drill ${category} combination`}
                 onPress={() => task && startDrill(category, task)}
               >
                 <Ionicons name="target" size={22} color="#fff" />
               </TouchableOpacity>
               {!isTraining && !timerActive ? (
-                <TouchableOpacity style={[styles.controlButton, { backgroundColor: theme.success }]} onPress={() => startTrainingSession(category)}>
+                <TouchableOpacity style={[styles.controlButton, { backgroundColor: theme.success }]} accessibilityRole="button" accessibilityLabel={`Start ${category} training`} onPress={() => startTrainingSession(category)}>
                   <Ionicons name="play" size={22} color="#fff" />
                 </TouchableOpacity>
               ) : currentStyle === category && isTraining ? (
-                <TouchableOpacity style={[styles.controlButton, { backgroundColor: theme.danger }]} onPress={stopTrainingSession}>
+                <TouchableOpacity style={[styles.controlButton, { backgroundColor: theme.danger }]} accessibilityRole="button" accessibilityLabel="Stop training" onPress={stopTrainingSession}>
                   <Ionicons name="stop" size={22} color="#fff" />
                 </TouchableOpacity>
               ) : null}
             </View>
             <TouchableOpacity
               style={[styles.learnButton, { borderColor: theme.accent }]}
+              accessibilityRole="button"
+              accessibilityLabel={task ? `Learn ${category} combo breakdown` : `Learn ${category} techniques`}
               onPress={() => setLearnModal({ visible: true, style: category, combo: task })}
             >
               <Ionicons name="book-outline" size={18} color={theme.accent} />
@@ -964,6 +989,10 @@ export default function App() {
     );
   };
 
+  if (!fontsLoaded) {
+    return <SafeAreaView style={{ flex: 1, backgroundColor: theme.container }} />;
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.container }]}>
       <StatusBar barStyle={themeName === 'dark' ? 'light-content' : 'dark-content'} />
@@ -972,7 +1001,12 @@ export default function App() {
           <View>
             <Text style={[styles.headerTitle, { color: theme.text }]}>Martial Arts Training</Text>
             <View style={styles.headerMeta}>
-              {streak > 0 && <Text style={[styles.streakText, { color: '#FFA726' }]}>🔥 {streak} day{streak > 1 ? 's' : ''}</Text>}
+              {streak > 0 && (
+                <View style={styles.streakRow}>
+                  <Ionicons name="flame" size={16} color="#F97316" />
+                  <Text style={[styles.streakText, { color: '#F97316' }]}>{streak} day{streak > 1 ? 's' : ''}</Text>
+                </View>
+              )}
               {difficultyFilter !== 'all' && (
                 <Text style={[styles.filterBadge, { color: theme.accent }]}>{DIFFICULTY_LABELS[difficultyFilter]}</Text>
               )}
@@ -980,19 +1014,19 @@ export default function App() {
             </View>
           </View>
           <View style={styles.headerControls}>
-            <TouchableOpacity style={styles.iconButton} onPress={() => { hapticIf('light'); setArsenalView(!arsenalView); }}>
+            <TouchableOpacity style={styles.iconButton} accessibilityRole="button" accessibilityLabel={arsenalView ? "Show all styles" : "Show favorites"} onPress={() => { hapticIf('light'); setArsenalView(!arsenalView); }}>
               <Ionicons name={arsenalView ? 'star' : 'star-outline'} size={22} color={arsenalView ? '#FFD700' : theme.text} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={() => { hapticIf('light'); setIsSettingsVisible(true); }}>
+            <TouchableOpacity style={styles.iconButton} accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => { hapticIf('light'); setIsSettingsVisible(true); }}>
               <Ionicons name="settings-outline" size={24} color={theme.text} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={() => { hapticIf('light'); setThemeName(themeName === 'dark' ? 'light' : 'dark'); }}>
+            <TouchableOpacity style={styles.iconButton} accessibilityRole="button" accessibilityLabel="Toggle light or dark theme" onPress={() => { hapticIf('light'); setThemeName(themeName === 'dark' ? 'light' : 'dark'); }}>
               <Ionicons name={themeName === 'dark' ? 'sunny-outline' : 'moon-outline'} size={24} color={theme.text} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={handleZoomOut}>
+            <TouchableOpacity style={styles.iconButton} accessibilityRole="button" accessibilityLabel="Decrease text size" onPress={handleZoomOut}>
               <Ionicons name="remove-outline" size={24} color={theme.text} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={handleZoomIn}>
+            <TouchableOpacity style={styles.iconButton} accessibilityRole="button" accessibilityLabel="Increase text size" onPress={handleZoomIn}>
               <Ionicons name="add-outline" size={24} color={theme.text} />
             </TouchableOpacity>
           </View>
@@ -1001,13 +1035,13 @@ export default function App() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {!arsenalView && <TimerDisplay />}
           <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
-            {arsenalView ? '★ My Arsenal' : (difficultyFilter !== 'all' ? `Showing ${DIFFICULTY_LABELS[difficultyFilter].toLowerCase()} combos` : 'All Styles')}
+            {arsenalView ? 'My Arsenal' : (difficultyFilter !== 'all' ? `Showing ${DIFFICULTY_LABELS[difficultyFilter].toLowerCase()} combos` : 'All Styles')}
           </Text>
           {orderedStyles.map((category) => (
             <CategoryCard key={category} category={category} />
           ))}
           {arsenalView && favorites.length === 0 && (
-            <Text style={styles.emptyText}>No favorites yet. Tap the ⭐ on any combo.</Text>
+            <Text style={styles.emptyText}>No favorites yet. Tap the star on any combo.</Text>
           )}
           {orderedStyles.length === 0 && (
             <Text style={styles.emptyText}>No styles. Create one in Settings.</Text>
@@ -1284,7 +1318,10 @@ export default function App() {
                     );
                   })()
                 ) : (
-                  <Text style={[styles.learnMoveHow, { color: theme.success }]}>🏆 Curriculum complete!</Text>
+                  <View style={styles.completeRow}>
+                    <Ionicons name="trophy" size={20} color={theme.success} />
+                    <Text style={[styles.learnMoveHow, { color: theme.success }]}>Curriculum complete!</Text>
+                  </View>
                 )}
 
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Technique Library</Text>
@@ -1361,77 +1398,79 @@ const createStyles = (theme) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  headerTitle: { fontSize: 24, fontWeight: 'bold' },
+  headerTitle: { fontSize: 26, fontFamily: FONT.heading, color: theme.text, letterSpacing: 0.5 },
   headerMeta: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  streakText: { fontSize: 14, fontWeight: 'bold' },
-  filterBadge: { fontSize: 12, fontWeight: 'bold', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  headerControls: { flexDirection: 'row', gap: 10 },
+  streakText: { fontSize: 14, fontFamily: FONT.bodySemi, color: '#F97316' },
+  filterBadge: { fontSize: 12, fontFamily: FONT.bodySemi, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: theme.buttonDefault },
+  headerControls: { flexDirection: 'row', gap: 8 },
   iconButton: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: theme.iconButton,
+    width: 44, height: 44, borderRadius: 22, backgroundColor: theme.iconButton,
     justifyContent: 'center', alignItems: 'center',
   },
   scrollContent: { padding: 20, gap: 20 },
-  sectionLabel: { fontSize: 14, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
-  categoryCard: { borderRadius: 16, overflow: 'hidden', elevation: 5, shadowColor: theme.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84 },
+  sectionLabel: { fontSize: 13, fontFamily: FONT.headingSemi, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 1.5 },
+  categoryCard: { borderRadius: 16, overflow: 'hidden', elevation: 5, shadowColor: theme.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, borderWidth: 1, borderColor: theme.border },
   categoryGradient: { padding: 20 },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
   cardTitleGroup: { flex: 1, marginRight: 10 },
-  categoryTitle: { fontSize: 20, fontWeight: 'bold' },
-  progressText: { fontSize: 12, marginTop: 2 },
-  favButton: { padding: 4 },
-  taskContainer: { borderRadius: 12, padding: 15, marginBottom: 15, minHeight: 80, justifyContent: 'center' },
-  taskText: { fontSize: 16, textAlign: 'center' },
+  categoryTitle: { fontSize: 24, fontFamily: FONT.heading, color: theme.text, letterSpacing: 0.3 },
+  progressText: { fontSize: 12, fontFamily: FONT.body, color: theme.textMuted, marginTop: 2 },
+  favButton: { padding: 8, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  taskContainer: { borderRadius: 12, padding: 15, marginBottom: 15, minHeight: 80, justifyContent: 'center', backgroundColor: theme.taskContainer },
+  taskText: { fontSize: 16, fontFamily: FONT.body, color: theme.text, textAlign: 'center' },
   diffRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 6 },
   diffDot: { width: 8, height: 8, borderRadius: 4 },
-  diffLabel: { fontSize: 12, fontWeight: 'bold' },
-  cardControls: { flexDirection: 'row', justifyContent: 'center', gap: 15 },
-  controlButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
-  learnButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderRadius: 20, paddingVertical: 8, marginTop: 12 },
-  learnButtonText: { fontSize: 14, fontWeight: 'bold' },
+  diffLabel: { fontSize: 12, fontFamily: FONT.bodySemi, color: theme.textMuted },
+  cardControls: { flexDirection: 'row', justifyContent: 'center', gap: 12 },
+  controlButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: theme.buttonDefault, justifyContent: 'center', alignItems: 'center' },
+  learnButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderRadius: 20, paddingVertical: 8, marginTop: 12, borderColor: theme.accent },
+  learnButtonText: { fontSize: 14, fontFamily: FONT.bodySemi, color: theme.accent },
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.overlay },
-  modalContent: { width: '90%', borderRadius: 20, padding: 25, paddingBottom: 15, alignItems: 'center', elevation: 5, shadowColor: theme.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, maxHeight: '85%' },
+  modalContent: { width: '90%', borderRadius: 20, padding: 25, paddingBottom: 15, alignItems: 'center', elevation: 5, shadowColor: theme.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, maxHeight: '85%', backgroundColor: theme.modalBg, borderWidth: 1, borderColor: theme.border },
   modalScroll: { width: '100%', maxHeight: '80%' },
   modalScrollContent: { paddingBottom: 10 },
-  modalTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-  modalSubtitle: { fontSize: 16, marginBottom: 15, alignSelf: 'flex-start', fontWeight: 'bold' },
+  modalTitle: { fontSize: 26, fontFamily: FONT.heading, color: theme.text, marginBottom: 20, letterSpacing: 0.5 },
+  modalSubtitle: { fontSize: 17, fontFamily: FONT.headingSemi, color: theme.text, marginBottom: 15, alignSelf: 'flex-start' },
   restButtons: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, marginBottom: 25 },
-  restButton: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 25, backgroundColor: theme.buttonDefault, minWidth: 70, alignItems: 'center' },
+  restButton: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 25, backgroundColor: theme.buttonDefault, minWidth: 70, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   restButtonActive: { backgroundColor: theme.accent },
-  restButtonText: { color: theme.text, fontSize: 16 },
-  restButtonTextActive: { fontWeight: 'bold' },
+  restButtonText: { color: theme.text, fontSize: 16, fontFamily: FONT.bodySemi },
+  restButtonTextActive: { color: '#fff', fontFamily: FONT.bodyBold },
   voiceButton: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: theme.buttonDefault, maxWidth: '45%', alignItems: 'center' },
-  closeButton: { backgroundColor: theme.accent, paddingVertical: 12, paddingHorizontal: 30, borderRadius: 25, marginTop: 10 },
-  closeButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  timerContainer: { alignItems: 'center', marginVertical: 20, backgroundColor: theme.timerPanel, borderRadius: 16, padding: 20 },
-  drillBadge: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, letterSpacing: 2 },
+  closeButton: { backgroundColor: theme.accent, paddingVertical: 12, paddingHorizontal: 30, borderRadius: 25, marginTop: 10, minHeight: 48, justifyContent: 'center' },
+  closeButtonText: { color: '#fff', fontSize: 16, fontFamily: FONT.bodyBold },
+  timerContainer: { alignItems: 'center', marginVertical: 20, backgroundColor: theme.timerPanel, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: theme.border },
+  drillBadge: { fontSize: 16, fontFamily: FONT.headingSemi, color: theme.test, marginBottom: 10, letterSpacing: 2 },
   drillTaskBox: { backgroundColor: theme.taskContainer, borderRadius: 12, padding: 12, marginBottom: 10, width: '100%', alignItems: 'center' },
   drillTaskText: { color: theme.text, textAlign: 'center' },
   timerCircle: { width: 150, height: 150, borderRadius: 75, borderWidth: 5, justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
-  timerText: { fontSize: 36, fontWeight: 'bold' },
-  timerModeText: { fontSize: 18, fontWeight: 'bold', marginTop: 5 },
-  roundsText: { fontSize: 16, fontWeight: 'bold', marginBottom: 15 },
+  timerText: { fontSize: 44, fontFamily: FONT.heading, fontWeight: 'bold' },
+  timerModeText: { fontSize: 18, fontFamily: FONT.headingSemi, marginTop: 5 },
+  roundsText: { fontSize: 16, fontFamily: FONT.bodySemi, color: theme.text, marginBottom: 15 },
   timerControls: { flexDirection: 'row', justifyContent: 'center' },
-  settingLabel: { fontSize: 14, alignSelf: 'flex-start', marginTop: 15, marginBottom: 8 },
-  testButton: { paddingVertical: 8, paddingHorizontal: 15, borderRadius: 20, marginTop: 10 },
-  testButtonText: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
+  settingLabel: { fontSize: 14, fontFamily: FONT.body, color: theme.textMuted, alignSelf: 'flex-start', marginTop: 15, marginBottom: 8 },
+  testButton: { paddingVertical: 10, paddingHorizontal: 15, borderRadius: 20, marginTop: 10, minHeight: 44, justifyContent: 'center' },
+  testButtonText: { color: '#fff', fontSize: 14, fontFamily: FONT.bodyBold },
   toggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 10 },
-  toggleLabel: { fontSize: 16 },
-  toggleButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 15, backgroundColor: theme.toggleOff },
+  toggleLabel: { fontSize: 16, fontFamily: FONT.body, color: theme.text },
+  toggleButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 15, backgroundColor: theme.toggleOff, minWidth: 56, minHeight: 36, alignItems: 'center', justifyContent: 'center' },
   toggleActive: { backgroundColor: theme.accent },
-  toggleText: { color: theme.text, fontWeight: 'bold' },
-  customStyleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: theme.textMuted },
-  customStyleName: { fontSize: 16, flex: 1, marginRight: 10 },
-  textInput: { width: '100%', borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 15, fontSize: 16 },
-  textInputMultiline: { width: '100%', borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 15, fontSize: 16, minHeight: 120, textAlignVertical: 'top' },
-  emptyText: { color: theme.textMuted, textAlign: 'center', marginTop: 40, fontSize: 16 },
-  learnComboText: { fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 15 },
-  learnMoveCard: { borderRadius: 12, padding: 12, marginBottom: 10, width: '100%' },
-  learnMoveName: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-  learnMoveHow: { fontSize: 14, lineHeight: 20 },
-  cueButton: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12, marginTop: 8, alignSelf: 'flex-start' },
-  cueButtonText: { fontSize: 13, fontWeight: 'bold' },
+  toggleText: { color: theme.text, fontWeight: 'bold', fontFamily: FONT.bodyBold },
+  customStyleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: theme.border },
+  customStyleName: { fontSize: 16, fontFamily: FONT.body, color: theme.text, flex: 1, marginRight: 10 },
+  textInput: { width: '100%', borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 15, fontSize: 16, fontFamily: FONT.body, color: theme.text, borderColor: theme.border },
+  textInputMultiline: { width: '100%', borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 15, fontSize: 16, minHeight: 120, textAlignVertical: 'top', fontFamily: FONT.body, color: theme.text, borderColor: theme.border },
+  emptyText: { color: theme.textMuted, textAlign: 'center', marginTop: 40, fontSize: 16, fontFamily: FONT.body },
+  learnComboText: { fontSize: 18, fontFamily: FONT.headingSemi, color: theme.text, textAlign: 'center', marginBottom: 15 },
+  learnMoveCard: { borderRadius: 12, padding: 12, marginBottom: 10, width: '100%', backgroundColor: theme.taskContainer, borderWidth: 1, borderColor: theme.border },
+  learnMoveName: { fontSize: 16, fontFamily: FONT.bodySemi, color: theme.text, marginBottom: 4 },
+  learnMoveHow: { fontSize: 14, fontFamily: FONT.body, color: theme.textMuted, lineHeight: 20 },
+  cueButton: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12, marginTop: 8, alignSelf: 'flex-start', borderColor: theme.test },
+  cueButtonText: { fontSize: 13, fontFamily: FONT.bodySemi, color: theme.test },
   builderScroll: { maxHeight: 200, width: '100%' },
-  builderChip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, alignItems: 'center' },
-  builderChipText: { fontSize: 14, fontWeight: 'bold' },
+  builderChip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, alignItems: 'center', borderColor: theme.accent },
+  builderChipText: { fontSize: 14, fontFamily: FONT.bodySemi, color: theme.text },
   builderControls: { flexDirection: 'row', gap: 10, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' },
+  streakRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  completeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });
