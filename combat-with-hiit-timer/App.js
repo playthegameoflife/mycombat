@@ -767,13 +767,39 @@ export default function App() {
   };
   const BILLING_TIER_NAMES = { monthly: 'Monthly', annual: 'Annual', lifetime: 'Lifetime' };
 
+  // NitroModules availability probe — non-throwing. react-native-iap v16 is
+  // Nitro-based and its module factory throws at require-time in Expo Go
+  // (native NitroModules missing). We must NEVER require it there — checking
+  // first keeps the whole app alive; the feature simply no-ops.
+  const nitroAvailable = (() => {
+    try {
+      const { TurboModuleRegistry } = require('react-native');
+      return TurboModuleRegistry.get('NitroModules') != null;
+    } catch (e) {
+      return false;
+    }
+  })();
+  const getRNIap = () => {
+    if (!nitroAvailable) return null;
+    try {
+      // NOTE: must stay a static require() — Metro needs it to bundle the
+      // module for dev builds. The nitroAvailable gate above ensures it never
+      // RUNS in Expo Go (module factory only evaluates on first require call,
+      // and we return before calling it). try/catch is belt-and-suspenders.
+      const RNIap = require('react-native-iap');
+      return RNIap && typeof RNIap.initConnection === 'function' ? RNIap : null;
+    } catch (e) {
+      return null;
+    }
+  };
+
   // Initialize the billing connection on mount (dev builds only — Expo Go has no native module).
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const RNIap = require('react-native-iap');
-        if (!RNIap || typeof RNIap.initConnection !== 'function') {
+        const RNIap = getRNIap();
+        if (!RNIap) {
           setBillingAvailable(false);
           return;
         }
@@ -793,7 +819,7 @@ export default function App() {
         setBillingReady(true);
       }
     })();
-    return () => { cancelled = true; try { const RNIap = require('react-native-iap'); RNIap.endConnection && RNIap.endConnection(); } catch (e) {} };
+    return () => { cancelled = true; try { const RNIap = getRNIap(); RNIap && RNIap.endConnection && RNIap.endConnection(); } catch (e) {} };
   }, []);
 
   // Purchase flow: request the Play Billing sheet for a tier, then grant Pro.
@@ -817,7 +843,8 @@ export default function App() {
     }
     try {
       setPurchasing(true);
-      const RNIap = require('react-native-iap');
+      const RNIap = getRNIap();
+      if (!RNIap) throw new Error('billing unavailable');
       const purchase = await RNIap.requestPurchase({ sku: productId });
       const receipt = purchase?.transactionReceipt || purchase?.purchaseToken || null;
       await RNIap.finishTransaction({ purchase, isConsumable: false });
@@ -852,7 +879,8 @@ export default function App() {
     }
     try {
       setRestoring(true);
-      const RNIap = require('react-native-iap');
+      const RNIap = getRNIap();
+      if (!RNIap) throw new Error('billing unavailable');
       const purchases = await RNIap.getAvailablePurchases();
       const owned = purchases.some(p => p.productId && Object.values(BILLING_PRODUCTS).includes(p.productId));
       if (owned) {
