@@ -34,59 +34,263 @@ const taskDifficulties = {
     'Wrestling': { 1: "Double leg takedown to side control", 2: "Single leg takedown to half guard", 3: "Arm drag to rear naked choke", 4: "Clinch to hip throw", 5: "Sprawl to front headlock", 6: "Ankle pick to knee on belly", 7: "Snap down to guillotine choke", 8: "Body lock to suplex", 9: "Underhook to trip takedown", 10: "Collar tie to knee strike", 11: "Arm wrap to back take", 12: "Duck under to waist lock takedown", 13: "Overhook to lateral drop", 14: "Wrist control to arm drag", 15: "Leg lace to calf slicer", 16: "Fireman's carry to armbar", 17: "Shoulder throw to mount", 18: "Ankle sweep to kneebar", 19: "Arm trap to hip toss", 20: "Headlock to throw", 21: "Foot sweep to side control", 22: "Arm spin to back mount", 23: "Knee tap to north-south position", 24: "Whizzer to outside trip", 25: "Collar drag to anaconda choke", 26: "Leg hook to sweep", 27: "Arm control to kimura", 28: "Clinch to knee tap", 29: "Wrist lock to takedown", 30: "Snap down to front choke", 31: "Arm bar from guard", 32: "Double underhooks to body lock takedown", 33: "Single collar tie to elbow strike", 34: "Leg ride to calf crush", 35: "Arm triangle from mount", 36: "Butterfly sweep to mount", 37: "Ankle pick to leg lace", 38: "Arm drag to single leg", 39: "Collar tie to Russian tie", 40: "Underhook to back take", 41: "Snap down to cradle", 42: "Arm wrap to suplex", 43: "Wrist control to standing kimura", 44: "Knee shield to sweep", 45: "Arm trap to shoulder lock", 46: "Head and arm control to throw", 47: "Ankle pick to single leg X-guard", 48: "Clinch to inside trip", 49: "Arm drag to body lock", 50: "Collar tie to head snap", 51: "Underhook to outside trip", 52: "Wrist control to Russian arm drag", 53: "Knee tap to side control", 54: "Arm wrap to back take", 55: "Snap down to arm triangle", 56: "Double leg to mount", 57: "Single leg to back take", 58: "Arm drag to duck under", 59: "Clinch to foot sweep", 60: "Sprawl to spin behind", 61: "Ankle pick to back control", 62: "Snap down to d'arce choke", 63: "Body lock to mat return", 64: "Underhook to lateral drop", 65: "Collar tie to snap down", 66: "Arm wrap to hip throw", 67: "Duck under to rear bodylock", 68: "Overhook to headlock throw", 69: "Wrist control to single leg", 70: "Leg lace to back take", 71: "Fireman's carry to side control", 72: "Shoulder throw to armbar", 73: "Ankle sweep to leg lock", 74: "Arm trap to sacrifice throw", 75: "Headlock to arm triangle", 76: "Foot sweep to mount", 77: "Arm spin to kimura trap", 78: "Knee tap to crucifix", 79: "Whizzer to hip toss", 80: "Collar drag to back mount", 81: "Leg hook to back take", 82: "Arm control to omoplata", 83: "Clinch to suplex", 84: "Wrist lock to arm drag", 85: "Snap down to rear naked choke", 86: "Guard pull to sweep", 87: "Double underhooks to high crotch", 88: "Single collar tie to level change", 89: "Leg ride to turk", 90: "Arm triangle to mount", 91: "Butterfly guard to X-guard", 92: "Ankle pick to single leg", 93: "Arm drag to clinch", 94: "Collar tie to arm drag", 95: "Underhook to knee tap", 96: "Snap down to front headlock", 97: "Arm wrap to inside trip", 98: "Wrist control to duck under", 99: "Knee shield to back take", 100: "Arm trap to double leg" },
     'Judo': { 1: "O Goshi (Major Hip Throw)", 2: "Seoi Nage (Shoulder Throw)", 3: "Uchi Mata (Inner Thigh Throw)", 4: "Tai Otoshi (Body Drop)", 5: "Koshi Guruma (Hip Wheel)", 6: "Harai Goshi (Hip Sweep)", 7: "Sumi Gaeshi (Corner Reversal)", 8: "Ippon Seoi Nage (One-Arm Shoulder Throw)", 9: "Osoto Gari (Large Outer Reap)", 10: "Osoto Otoshi (Large Outer Drop)", 11: "Ashi Guruma (Foot Wheel)", 12: "De Ashi Barai (Advanced Foot Sweep)", 13: "Okuri Ashi Barai (Sliding Foot Sweep)", 14: "Sasae Tsurikomi Ashi (Supporting Foot Lift Sweep)", 15: "Hiza Guruma (Knee Wheel)", 16: "Uchi Ashi Barai (Inner Foot Sweep)", 17: "Kouchi Gari (Small Inner Reap)", 18: "Kouchi Barai (Small Inner Sweep)", 19: "Ashi Tori Zemi (Foot Catching)", 20: "Tsurikomi Ashi (Lifting Foot Sweep)", 21: "Tomoe Nage (Circle Throw)", 22: "Ura Nage (Back Throw)", 23: "Yoko Gake (Side Hook)", 24: "Yoko Otoshi (Side Drop)", 25: "Hane Goshi (Spring Hip Throw)", 26: "Kani Basami (Crab Leg Sweep)", 27: "Tani Otoshi (Valley Drop)", 28: "Ashi Garami (Leg Trap)", 29: "Uchi Mata Sukashi (Inner Thigh Reversal)", 30: "Kesa Gatame (Scarf Hold)", 31: "Yoko Shiho Gatame (Side Four Corner Hold)", 32: "Tate Shiho Gatame (Top Four Corner Hold)", 33: "Kami Shiho Gatame (Upper Four Corner Hold)", 34: "Juji Gatame (Armbar)", 35: "Ude Garami (Entangled Arm)", 36: "Shime Waza (Strangulation Techniques)", 37: "Kata Gatame (Shoulder Hold)", 38: "Ashi Garami (Leg Entanglement)", 39: "Hiza Gatame (Knee Hold)", 40: "Atemi Waza (Striking Techniques)", 41: "Kansetsu Waza (Joint Locks)", 42: "Ashi Uke (Foot Block)", 43: "Waki Gatame (Armpit Arm Lock)", 44: "Atemi (Striking with the Open Hand)", 45: "Ude Hishigi Juji Gatame (Armbar in Cross Position)", 46: "Ashi Hishigi (Foot Lock)", 47: "Ude Hishigi Ura (Reverse Arm Lock)", 48: "Kote Hishigi (Wrist Lock)", 49: "Kansetsu Waza Kata Gatame (Shoulder Lock)" },};
 
-// ---------- Theme ----------
-const THEMES = {
-  dark: {
-    bgTop: '#1a1a2e',
-    bgBottom: '#16213e',
-    container: '#1a1a2e',
-    text: '#fff',
-    textMuted: '#bbb',
-    cardBg: 'rgba(255,255,255,0.1)',
-    cardBgSelected: 'rgba(255,255,255,0.15)',
-    cardGradSelected: ['#4a90e2', '#357abd'],
-    cardGradNormal: ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)'],
-    taskContainer: 'rgba(0,0,0,0.2)',
-    iconButton: 'rgba(255,255,255,0.1)',
-    buttonDefault: 'rgba(255,255,255,0.1)',
-    modalBg: '#1a1a2e',
-    overlay: 'rgba(0,0,0,0.5)',
-    accent: '#4a90e2',
-    accentDark: '#357abd',
-    success: '#4CAF50',
-    danger: '#f44336',
-    test: '#6c5ce7',
-    timerPanel: 'rgba(255,255,255,0.05)',
-    toggleOff: 'rgba(255,255,255,0.1)',
-    shadowColor: '#000',
+// ---------- Difficulty tiers (per style: which level numbers are beginner/intermediate/advanced) ----------
+const DIFFICULTY_TIERS = {
+  'Boxing': { beginner: 12, intermediate: 28, advanced: 40 },
+  'Kickboxing': { beginner: 33, intermediate: 66, advanced: 100 },
+  'Muay Thai': { beginner: 30, intermediate: 60, advanced: 91 },
+  'MMA': { beginner: 33, intermediate: 66, advanced: 100 },
+  'Combat Sambo': { beginner: 33, intermediate: 66, advanced: 100 },
+  'BJJ': { beginner: 50, intermediate: 100, advanced: 150 },
+  'Wrestling': { beginner: 33, intermediate: 66, advanced: 100 },
+  'Judo': { beginner: 16, intermediate: 32, advanced: 49 },
+};
+const DIFFICULTY_ORDER = ['beginner', 'intermediate', 'advanced'];
+const DIFFICULTY_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' };
+const difficultyOf = (style, level) => {
+  const t = DIFFICULTY_TIERS[style] || { beginner: 33, intermediate: 66, advanced: 100 };
+  if (level <= t.beginner) return 'beginner';
+  if (level <= t.intermediate) return 'intermediate';
+  return 'advanced';
+};
+
+// ---------- Technique library (Learn Mode + form cues) ----------
+const TECHNIQUES = {
+  'Boxing': {
+    'jab': { how: 'Snap your lead hand straight from your chin, rotate your fist palm-down at extension, and return it immediately to guard.', cue: 'Snap it, don\'t push it. Return fast.' },
+    'cross': { how: 'Pivot your back foot, rotate hips and shoulders, and drive the rear hand straight down the line. Recover to guard.', cue: 'Pivot the back foot. Full hip turn.' },
+    'hook': { how: 'Pivot the lead foot, turn the hips, and swing the lead arm in a horizontal arc with a 90-degree elbow. Keep the wrist straight.', cue: 'Turn the hip. Elbow at 90.' },
+    'uppercut': { how: 'Dip slightly, bend the knees, then drive up through the hips, palm facing you, landing under the chin.', cue: 'Dip and drive up. Hips first.' },
+    'overhand': { how: 'Loop the rear hand up and over the opponent\'s guard with a wide arc, dropping your weight into the punch.', cue: 'Loop it over. Drop the weight.' },
+    'slip': { how: 'Move your head slightly off the center line by bending at the knees and rotating the shoulders — never by leaning back.', cue: 'Small movement. Bend the knees.' },
+    'roll': { how: 'Bend the knees and trace a U-shape with your head under the incoming shot, keeping your eyes on the opponent.', cue: 'Tuck the chin, trace the U.' },
+    'pull counter': { how: 'Pull your head and torso straight back off the line of the punch, then fire a counter cross as they retract.', cue: 'Pull straight back, fire the counter.' },
+    'shoulder roll': { how: 'Raise the lead shoulder to cover your chin and turn your torso slightly, letting the punch slide off your shoulder.', cue: 'Shoulder up, turn the torso.' },
+    'pivot': { how: 'Pivot on the lead foot, stepping the rear foot around to change your angle while keeping your guard up.', cue: 'Step the rear foot around.' },
+    'footwork': { how: 'Move in small steps — push off the back foot to advance, push off the front to retreat. Never cross your feet.', cue: 'Small steps. Don\'t cross the feet.' },
+    'duck': { how: 'Drop your level by bending both knees, keeping your back straight and eyes up, slipping under the punch.', cue: 'Bend both knees. Back straight.' },
+    'feint': { how: 'Throw a short, partial motion that sells a punch without committing, to draw a reaction you can counter.', cue: 'Short and sharp. Sell it.' },
+    'body shot': { how: 'Drop your level and fire into the ribs or liver, keeping your guard high to protect against the counter.', cue: 'Drop level, keep the guard up.' },
   },
-  light: {
-    bgTop: '#eef1f6',
-    bgBottom: '#dfe5ee',
-    container: '#eef1f6',
-    text: '#1a1a2e',
-    textMuted: '#555',
-    cardBg: 'rgba(255,255,255,0.65)',
-    cardBgSelected: 'rgba(255,255,255,0.9)',
-    cardGradSelected: ['#4a90e2', '#357abd'],
-    cardGradNormal: ['rgba(255,255,255,0.8)', 'rgba(255,255,255,0.55)'],
-    taskContainer: 'rgba(0,0,0,0.05)',
-    iconButton: 'rgba(0,0,0,0.08)',
-    buttonDefault: 'rgba(0,0,0,0.08)',
-    modalBg: '#f5f7fb',
-    overlay: 'rgba(0,0,0,0.4)',
-    accent: '#4a90e2',
-    accentDark: '#357abd',
-    success: '#2e9e4f',
-    danger: '#d93a3a',
-    test: '#6c5ce7',
-    timerPanel: 'rgba(0,0,0,0.04)',
-    toggleOff: 'rgba(0,0,0,0.1)',
-    shadowColor: '#000',
+  'Kickboxing': {
+    'jab': { how: 'Snap the lead hand straight out from the chin with a small step, rotating the fist at the end. Return to guard.', cue: 'Snap and return.' },
+    'cross': { how: 'Pivot the rear foot and drive the rear hand straight through, rotating the hips for power.', cue: 'Hip turn, full extension.' },
+    'hook': { how: 'Pivot the lead foot and swing the lead arm horizontally with a bent elbow, turning through the hips.', cue: 'Turn through the hips.' },
+    'low kick': { how: 'Step off at an angle and swing the shin into the opponent\'s thigh or calf, pivoting on the standing foot.', cue: 'Shin to the leg. Pivot hard.' },
+    'body kick': { how: 'Pivot the standing foot, drive the hip forward, and land the shin into the ribs. Chamber the leg first.', cue: 'Chamber, then drive the hip.' },
+    'head kick': { how: 'Swing the leg high with a whipping motion, pivoting fully on the standing foot and reaching with the hip.', cue: 'Whip it high. Full pivot.' },
+    'roundhouse': { how: 'Pivot the standing leg, raise the knee, then rotate the hips to snap the shin through the target.', cue: 'Knee up, hips through.' },
+    'uppercut': { how: 'Bend the knees, then drive up through the hips with the palm facing you, landing under the chin.', cue: 'Dip and drive.' },
+    'elbow': { how: 'Tighten the arm and slice the elbow in a horizontal or downward arc, turning the hips for power.', cue: 'Slice it tight.' },
+    'knee': { how: 'Drive the knee straight up the middle, grabbing the neck or clinching to control distance.', cue: 'Drive the knee up.' },
+    'teep': { how: 'Push the ball of your foot into the opponent\'s midsection with a slight hip thrust, controlling range.', cue: 'Push through the hip.' },
+    'spinning backfist': { how: 'Pivot 180 degrees on the lead foot and whip the rear arm around, striking with the back of the fist.', cue: 'Spin, then whip.' },
+  },
+  'Muay Thai': {
+    'jab': { how: 'Snap the lead hand out from the guard with a half-step, then bring it straight back to your chin.', cue: 'Snap out, back to the chin.' },
+    'cross': { how: 'Pivot the rear foot and drive the rear hand through the target with full hip rotation.', cue: 'Pivot and drive.' },
+    'roundhouse': { how: 'Swing the leg in a horizontal arc, pivoting on the standing foot and landing with the shin.', cue: 'Pivot, shin through.' },
+    'teep': { how: 'Extend the lead or rear leg forward, pushing with the ball of the foot to control distance.', cue: 'Push with the ball of the foot.' },
+    'low kick': { how: 'Chop the shin into the opponent\'s leg just above the knee, pivoting the standing foot.', cue: 'Chop above the knee.' },
+    'knee': { how: 'Grab the clinch and drive the knee up the middle into the body or chin.', cue: 'Pull and drive.' },
+    'elbow': { how: 'Slice the elbow in tight arcs — horizontal, diagonal, or upward — turning the hips.', cue: 'Tight arcs, hip turn.' },
+    'clinch': { how: 'Cup the back of the opponent\'s head with both hands, control the posture, and work knees.', cue: 'Control the head, stay tall.' },
+    'plum clinch': { how: 'Lock both hands behind the opponent\'s head, pull the head down, and fire knees up the middle.', cue: 'Lock, pull, knee.' },
+    'lead uppercut': { how: 'Drop the weight and drive the lead hand up under the chin, palm facing you.', cue: 'Drop and drive up.' },
+    'superman punch': { how: 'Fake a front kick, then launch forward off the back leg with a straight rear-hand punch.', cue: 'Fake the kick, launch the punch.' },
+    'switch kick': { how: 'Quickly switch stance to bring the rear leg to the front, then immediately fire a roundhouse from the new lead leg.', cue: 'Switch, then fire.' },
+  },
+  'MMA': {
+    'jab': { how: 'Snap the lead hand from a bladed stance to measure range and set up everything else.', cue: 'Snap it out, bring it back.' },
+    'cross': { how: 'Pivot and drive the rear hand straight through, loading the hips behind it.', cue: 'Pivot and drive.' },
+    'head kick': { how: 'Swing the lead or rear leg high, pivoting the standing foot and reaching with the hip.', cue: 'Reach with the hip.' },
+    'body kick': { how: 'Drive the shin into the ribs with a hip turn, keeping your hands up against the counter.', cue: 'Hip turn, hands up.' },
+    'takedown': { how: 'Drop your level, close the distance, and drive through the hips to bring the fight to the ground.', cue: 'Drop level, drive the hips.' },
+    'double leg': { how: 'Shoot in by stepping deep, wrapping both arms around the legs, and driving forward while lifting.', cue: 'Step deep, drive forward.' },
+    'single leg': { how: 'Grab one leg, pinch it tight to your chest, and chain to a finish while keeping your head inside.', cue: 'Pinch it tight, head inside.' },
+    'rear naked choke': { how: 'From the back, slide your arm under the chin and squeeze the biceps together, closing the grip.', cue: 'Arm under the chin, squeeze.' },
+    'guillotine': { how: 'Wrap the arm around the neck from the front, close your hands, and pull up while cutting an angle.', cue: 'Wrap, close, angle.' },
+    'kimura': { how: 'Grab the wrist, thread the other arm under the elbow, and crank the shoulder with your body weight.', cue: 'Thread, crank the shoulder.' },
+    'teep': { how: 'Push the opponent back with the ball of the foot to create space or set up the takedown.', cue: 'Push, create space.' },
+    'clinch': { how: 'Control the neck or overhooks and work knees and short strikes while breaking their posture.', cue: 'Control, break posture.' },
+  },
+  'Combat Sambo': {
+    'jab': { how: 'Snap the lead hand from a balanced stance to set up entries.', cue: 'Snap and return.' },
+    'cross': { how: 'Pivot the rear foot and drive the rear hand through, keeping your chin tucked.', cue: 'Pivot, chin tucked.' },
+    'knee': { how: 'Drive the knee up the middle in the clinch, using your grip to pull them into it.', cue: 'Pull and drive.' },
+    'double leg': { how: 'Shoot deep, drive through the hips, and lift while stepping to finish the takedown.', cue: 'Shoot deep, drive.' },
+    'hip throw': { how: 'Step in, turn your hips underneath, and throw over your hip with a strong grip.', cue: 'Hips under, throw.' },
+    'foot sweep': { how: 'Sweep the opponent\'s foot as you pull their upper body, breaking their balance.', cue: 'Sweep as you pull.' },
+    'rear naked choke': { how: 'From the back, slide the arm under the chin and squeeze the grip together.', cue: 'Under the chin, squeeze.' },
+    'armbar': { how: 'Isolate the arm, control the wrist, and extend the elbow across your body.', cue: 'Control the wrist, extend.' },
+    'ground and pound': { how: 'From mount or side control, post your weight and fire short, controlled strikes.', cue: 'Post, short strikes.' },
+    'clinch': { how: 'Use collar and sleeve grips to control posture and set up throws.', cue: 'Control the grips.' },
+    'guillotine': { how: 'Wrap the neck from the front and pull up while cutting an angle.', cue: 'Wrap, pull up.' },
+    'spinning back kick': { how: 'Pivot 180 degrees and drive the heel straight back into the body.', cue: 'Pivot, drive the heel.' },
+  },
+  'BJJ': {
+    'guard pull': { how: 'Sit down and wrap your legs around the opponent, controlling distance with grips.', cue: 'Sit, wrap the legs.' },
+    'sweep': { how: 'Break the opponent\'s base with grips and momentum, then roll them over you.', cue: 'Break base, roll.' },
+    'armbar': { how: 'Isolate the arm, control the wrist and elbow, and extend the joint across your body.', cue: 'Isolate, extend.' },
+    'kimura': { how: 'Control the wrist, thread the other arm under the elbow, and crank the shoulder.', cue: 'Thread, crank.' },
+    'triangle': { how: 'From guard, swing your leg over the shoulder, lock the ankle, and squeeze with the legs.', cue: 'Leg over, lock, squeeze.' },
+    'rear naked choke': { how: 'From the back, slide the arm under the chin and squeeze the grip together.', cue: 'Under the chin, squeeze.' },
+    'mount': { how: 'Control the hips from top position, keep your weight heavy, and isolate an attack.', cue: 'Control the hips.' },
+    'side control': { how: 'Pin the opponent\'s near hip and shoulder from the side, chest-to-chest.', cue: 'Pin the hip and shoulder.' },
+    'guard pass': { how: 'Control the legs, keep your head low, and step around to side control.', cue: 'Head low, step around.' },
+    'back take': { how: 'Work to the opponent\'s back and secure both hooks.', cue: 'Both hooks in.' },
+    'omoplata': { how: 'From guard, swing a leg over the shoulder and rotate to attack the shoulder joint.', cue: 'Leg over, rotate.' },
+    'sweep to mount': { how: 'Execute a sweep and immediately follow through to establish mount.', cue: 'Sweep, follow through.' },
+  },
+  'Wrestling': {
+    'double leg': { how: 'Drop level, step deep, wrap both legs, and drive forward while lifting.', cue: 'Drop, step, drive.' },
+    'single leg': { how: 'Grab one leg, pinch it to your chest, and work the finish with your head inside.', cue: 'Pinch, head inside.' },
+    'arm drag': { how: 'Pull the opponent\'s arm across their body to clear their defenses and take the back.', cue: 'Pull across, clear.' },
+    'sprawl': { how: 'Kick both legs back and drop your hips onto the opponent\'s head when they shoot.', cue: 'Kick back, hips down.' },
+    'front headlock': { how: 'Snap the head down and control the neck with both hands.', cue: 'Snap, control the neck.' },
+    'takedown': { how: 'Attack the legs with a level change and finish by driving through the hips.', cue: 'Level change, drive.' },
+    'trip': { how: 'Break balance with an upper-body pull and sweep the leg to the mat.', cue: 'Pull, sweep the leg.' },
+    'hip toss': { how: 'Turn your hips in, load them onto your hip, and throw over with a grip.', cue: 'Hips in, throw.' },
+    'ankle pick': { how: 'Snap the head down and reach for the ankle, pulling it out from under them.', cue: 'Snap, grab the ankle.' },
+    'cradle': { how: 'Lock the head and near leg together and roll the opponent to their back.', cue: 'Lock head and leg.' },
+    'sit out': { how: 'From a defensive base, sit through your hips to escape and create space.', cue: 'Sit through, escape.' },
+    'mat return': { how: 'Lift and return the opponent to the mat, landing in control.', cue: 'Lift, return in control.' },
+  },
+  'Judo': {
+    'ogoshi': { how: 'Step in, turn your hips underneath the opponent, and throw them over your hip.', cue: 'Hips under, throw.' },
+    'seoi nage': { how: 'Turn your back, load the opponent on your shoulder, and throw them over.', cue: 'Turn, load, throw.' },
+    'uchi mata': { how: 'Sweep the inner thigh with your leg while pulling the opponent\'s upper body forward.', cue: 'Sweep the thigh, pull.' },
+    'osoto gari': { how: 'Reap the opponent\'s outer leg with your leg while driving them backward.', cue: 'Reap, drive back.' },
+    'harai goshi': { how: 'Sweep the opponent\'s leg with your own as you rotate the hips into a throw.', cue: 'Sweep as you turn.' },
+    'tai otoshi': { how: 'Drop your weight and extend your leg to block while throwing the opponent over it.', cue: 'Drop, block, throw.' },
+    'ippon seoi nage': { how: 'Grab the sleeve and collar, turn, and throw the opponent over your shoulder.', cue: 'Grip, turn, throw.' },
+    'kesa gatame': { how: 'Hold the opponent\'s head and arm from the side, pinning them with your weight.', cue: 'Hold head and arm.' },
+    'juji gatame': { how: 'Control the arm, straddle the chest, and extend the elbow across your body.', cue: 'Control, extend.' },
+    'tomoe nage': { how: 'Place your foot on the opponent\'s belly and roll backward, throwing them over your head.', cue: 'Foot on the belly, roll.' },
+    'foot sweep': { how: 'Sweep the opponent\'s foot as you pull their upper body off balance.', cue: 'Sweep as you pull.' },
+    'hold down': { how: 'Secure a pin with your weight centered and the opponent flat on their back.', cue: 'Center the weight.' },
   },
 };
 
-// ---------- Persistence helper (replaces 8 copy-pasted storage pairs) ----------
+// Shared striking techniques — available as fallback for every style
+const SHARED_TECHNIQUES = {
+  'jab': { how: 'Snap the lead hand straight from your chin, rotate the fist at extension, and return immediately to guard.', cue: 'Snap it, return fast.' },
+  'cross': { how: 'Pivot the rear foot and drive the rear hand straight through the target with full hip rotation.', cue: 'Pivot, drive, recover.' },
+  'hook': { how: 'Pivot the lead foot and swing the lead arm horizontally with a 90-degree elbow, turning through the hips.', cue: 'Turn the hip, elbow at 90.' },
+  'uppercut': { how: 'Bend the knees, then drive up through the hips with the palm facing you, landing under the chin.', cue: 'Dip and drive up.' },
+  'overhand': { how: 'Loop the rear hand up and over the guard with a wide arc, dropping your weight into it.', cue: 'Loop over, drop weight.' },
+  'slip': { how: 'Move your head off the center line by bending the knees and rotating the shoulders, never leaning back.', cue: 'Small movement, bend knees.' },
+  'duck': { how: 'Drop your level by bending both knees, keeping the back straight and eyes up.', cue: 'Bend both knees.' },
+  'roll': { how: 'Bend the knees and trace a U-shape with your head under the incoming shot.', cue: 'Tuck chin, trace the U.' },
+  'teep': { how: 'Push the ball of the foot into the opponent\'s midsection to control range.', cue: 'Push through the hip.' },
+  'knee': { how: 'Drive the knee straight up the middle, using the clinch or grip to control distance.', cue: 'Drive the knee up.' },
+  'elbow': { how: 'Slice the elbow in tight arcs, turning the hips for power.', cue: 'Tight arcs, hip turn.' },
+  'low kick': { how: 'Chop the shin into the opponent\'s leg, pivoting the standing foot.', cue: 'Chop the leg, pivot.' },
+  'body kick': { how: 'Drive the shin into the ribs with a hip turn, keeping your hands up.', cue: 'Hip turn, hands up.' },
+  'head kick': { how: 'Swing the leg high with a whipping motion, pivoting fully on the standing foot.', cue: 'Whip it high, full pivot.' },
+  'roundhouse': { how: 'Pivot the standing leg, raise the knee, and rotate the hips to snap the shin through the target.', cue: 'Knee up, hips through.' },
+  'spinning backfist': { how: 'Pivot 180 degrees on the lead foot and whip the rear arm around with the back of the fist.', cue: 'Spin, then whip.' },
+  'feint': { how: 'Throw a short, partial motion that sells a punch without committing.', cue: 'Short and sharp.' },
+  'pivot': { how: 'Pivot on the lead foot and step the rear foot around to change your angle.', cue: 'Step around, keep guard.' },
+  'parry': { how: 'Deflect the incoming punch with a light hand motion off the center line.', cue: 'Light deflection.' },
+  'takedown': { how: 'Drop your level, close distance, and drive through the hips to bring the fight down.', cue: 'Drop level, drive hips.' },
+  'clinch': { how: 'Control the opponent\'s posture with grips and work short strikes or throws.', cue: 'Control posture.' },
+  'ground and pound': { how: 'From top position, post your weight and fire short, controlled strikes.', cue: 'Post, short strikes.' },
+};
+
+// Curriculum: ordered technique names to learn per style
+const CURRICULUM = {
+  'Boxing': ['jab', 'cross', 'hook', 'slip', 'uppercut', 'roll', 'footwork', 'feint', 'pivot', 'body shot', 'pull counter', 'shoulder roll', 'duck', 'overhand'],
+  'Kickboxing': ['jab', 'cross', 'low kick', 'hook', 'roundhouse', 'body kick', 'teep', 'uppercut', 'knee', 'elbow', 'head kick', 'spinning backfist'],
+  'Muay Thai': ['jab', 'cross', 'roundhouse', 'teep', 'low kick', 'knee', 'clinch', 'elbow', 'plum clinch', 'lead uppercut', 'switch kick', 'superman punch'],
+  'MMA': ['jab', 'cross', 'takedown', 'double leg', 'single leg', 'rear naked choke', 'body kick', 'head kick', 'guillotine', 'kimura', 'teep', 'clinch'],
+  'Combat Sambo': ['jab', 'cross', 'double leg', 'hip throw', 'knee', 'rear naked choke', 'armbar', 'foot sweep', 'clinch', 'guillotine', 'ground and pound', 'spinning back kick'],
+  'BJJ': ['guard pull', 'sweep', 'mount', 'side control', 'guard pass', 'armbar', 'rear naked choke', 'kimura', 'triangle', 'back take', 'omoplata', 'sweep to mount'],
+  'Wrestling': ['double leg', 'single leg', 'arm drag', 'sprawl', 'front headlock', 'takedown', 'trip', 'hip toss', 'ankle pick', 'cradle', 'sit out', 'mat return'],
+  'Judo': ['ogoshi', 'seoi nage', 'osoto gari', 'harai goshi', 'uchi mata', 'tai otoshi', 'ippon seoi nage', 'foot sweep', 'tomoe nage', 'kesa gatame', 'juji gatame', 'hold down'],
+};
+
+// Normalize a combo move name to look up in the technique library
+const normalizeMove = (move) => {
+  let s = move
+    .toLowerCase()
+    .replace(/\b(left|right|lead|rear)\s*/g, '')
+    .replace(/['’]/g, '')
+    .replace(/[^a-z ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // Target-aware mapping so "kick to the head" -> "head kick" etc.
+  s = s
+    .replace(/kick to (?:the )?head/, 'head kick')
+    .replace(/kick to (?:the )?(body|liver|solar plexus)/, 'body kick')
+    .replace(/ to (?:the )?(head|body|liver|chin|solar plexus)/g, '');
+  // Synonym aliases used across styles
+  const aliases = {
+    'leg kick': 'low kick',
+    'high kick': 'head kick',
+    'roundhouse kick': 'roundhouse',
+    'body hook': 'hook',
+    'head hook': 'hook',
+    'lead uppercut': 'uppercut',
+    'shovel hook': 'hook',
+    'backfist': 'spinning backfist',
+    'spinning back fist': 'spinning backfist',
+    'front kick': 'teep',
+    'push kick': 'teep',
+    'teep kick': 'teep',
+    'superman': 'superman punch',
+    'double jab': 'jab',
+    'naked choke': 'rear naked choke',
+    'knee strike': 'knee',
+    'knee strikes': 'knee',
+    'up elbow': 'elbow',
+    'spinning elbow': 'elbow',
+    'horizontal elbow': 'elbow',
+    'duck under': 'duck',
+    'inside leg kick': 'low kick',
+    'fake cross': 'cross',
+    'feint jab': 'feint',
+    'throw': 'hip throw',
+    'jab': 'jab',
+  };
+  if (aliases[s]) return aliases[s];
+  // "double leg takedown" -> "double leg"
+  s = s.replace(' leg takedown', ' leg').replace(' takedown', '');
+  return s;
+};
+
+const splitCombo = (combo) => combo.split(/\s*(?:>|→|,)\s*/).map(s => s.trim()).filter(Boolean);
+
+// Southpaw: swap left/right + lead/rear in a combo string
+const swapStance = (text) => {
+  return text
+    .replace(/Left/g, '§R§').replace(/Right/g, '§L§').replace(/§R§/g, 'Right').replace(/§L§/g, 'Left')
+    .replace(/Lead/g, '§r§').replace(/Rear/g, '§l§').replace(/§r§/g, 'Rear').replace(/§l§/g, 'Lead');
+};
+
+// ---------- Theme ----------
+const THEMES = {
+  dark: {
+    bgTop: '#1a1a2e', bgBottom: '#16213e', container: '#1a1a2e', text: '#fff', textMuted: '#bbb',
+    cardBg: 'rgba(255,255,255,0.1)', cardBgSelected: 'rgba(255,255,255,0.15)',
+    cardGradSelected: ['#4a90e2', '#357abd'], cardGradNormal: ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)'],
+    taskContainer: 'rgba(0,0,0,0.2)', iconButton: 'rgba(255,255,255,0.1)', buttonDefault: 'rgba(255,255,255,0.1)',
+    modalBg: '#1a1a2e', overlay: 'rgba(0,0,0,0.5)', accent: '#4a90e2', accentDark: '#357abd',
+    success: '#4CAF50', danger: '#f44336', test: '#6c5ce7', timerPanel: 'rgba(255,255,255,0.05)',
+    toggleOff: 'rgba(255,255,255,0.1)', shadowColor: '#000',
+  },
+  light: {
+    bgTop: '#eef1f6', bgBottom: '#dfe5ee', container: '#eef1f6', text: '#1a1a2e', textMuted: '#555',
+    cardBg: 'rgba(255,255,255,0.65)', cardBgSelected: 'rgba(255,255,255,0.9)',
+    cardGradSelected: ['#4a90e2', '#357abd'], cardGradNormal: ['rgba(255,255,255,0.8)', 'rgba(255,255,255,0.55)'],
+    taskContainer: 'rgba(0,0,0,0.05)', iconButton: 'rgba(0,0,0,0.08)', buttonDefault: 'rgba(0,0,0,0.08)',
+    modalBg: '#f5f7fb', overlay: 'rgba(0,0,0,0.4)', accent: '#4a90e2', accentDark: '#357abd',
+    success: '#2e9e4f', danger: '#d93a3a', test: '#6c5ce7', timerPanel: 'rgba(0,0,0,0.04)',
+    toggleOff: 'rgba(0,0,0,0.1)', shadowColor: '#000',
+  },
+};
+
+// ---------- Persistence helper ----------
 const usePersistedState = (key, initial) => {
   const [value, setValue] = useState(initial);
   const loaded = useRef(false);
@@ -116,19 +320,26 @@ const haptic = (type = 'light') => {
   } catch (e) { /* haptics optional */ }
 };
 
-// ---------- Weighted random task picker ----------
-// Levels 1-12 are the fundamental core; draw them 70% of the time so
-// beginners get the basics. Styles without a basicLevels entry stay uniform.
+// ---------- Weighted random task picker (respects difficulty filter) ----------
 const basicLevels = { 'Boxing': 12 };
-const pickRandomTask = (style, styles) => {
+const pickRandomTask = (style, styles, difficultyFilter) => {
   const tasks = styles[style];
   if (!tasks) return null;
-  const taskLevels = Object.keys(tasks);
+  let taskLevels = Object.keys(tasks).map(Number);
+  if (difficultyFilter && difficultyFilter !== 'all') {
+    const filtered = taskLevels.filter(lv => difficultyOf(style, lv) === difficultyFilter);
+    if (filtered.length > 0) taskLevels = filtered;
+  }
   if (taskLevels.length === 0) return null;
   const basicCount = basicLevels[style] || 0;
   let randomLevel;
   if (basicCount > 0 && Math.random() < 0.7) {
-    randomLevel = taskLevels[Math.floor(Math.random() * basicCount)];
+    const basics = taskLevels.filter(lv => lv <= basicCount);
+    if (basics.length > 0) {
+      randomLevel = basics[Math.floor(Math.random() * basics.length)];
+    } else {
+      randomLevel = taskLevels[Math.floor(Math.random() * taskLevels.length)];
+    }
   } else {
     randomLevel = taskLevels[Math.floor(Math.random() * taskLevels.length)];
   }
@@ -149,17 +360,31 @@ export default function App() {
   const theme = THEMES[themeName] || THEMES.dark;
   const styles = createStyles(theme);
 
-  // Speech settings
+  // Voice options
   const [timerSpeechPaused, setTimerSpeechPaused] = usePersistedState('timerSpeechPaused', false);
   const [comboSpeechPaused, setComboSpeechPaused] = usePersistedState('comboSpeechPaused', false);
-  const [speechVoice, setSpeechVoice] = usePersistedState('speechVoice', null);
+  const [speechVoice, setSpeechVoice] = usePersistedState('speechVoice', null);       // command voice (combos/timer)
+  const [techniqueVoice, setTechniqueVoice] = usePersistedState('techniqueVoice', null); // technique/form-cue voice
   const [speechRate, setSpeechRate] = usePersistedState('speechRate', 0.9);
   const [speechPitch, setSpeechPitch] = usePersistedState('speechPitch', 1.0);
   const [availableVoices, setAvailableVoices] = useState([]);
 
+  // Difficulty filter: 'all' | 'beginner' | 'intermediate' | 'advanced'
+  const [difficultyFilter, setDifficultyFilter] = usePersistedState('difficultyFilter', 'all');
+  // Curriculum progress: { [style]: index into CURRICULUM[style] (number of techniques learned) }
+  const [curriculumProgress, setCurriculumProgress] = usePersistedState('curriculumProgress', {});
+  // Form cues between sets
+  const [formCuesEnabled, setFormCuesEnabled] = usePersistedState('formCuesEnabled', true);
+  // Southpaw stance
+  const [southpaw, setSouthpaw] = usePersistedState('southpaw', false);
+  // Workout history + streak: { dates: ['YYYY-MM-DD', ...] }
+  const [workoutDates, setWorkoutDates] = usePersistedState('workoutDates', []);
+  // Haptics toggle
+  const [hapticsEnabled, setHapticsEnabled] = usePersistedState('hapticsEnabled', true);
+  const hapticIf = (type) => { if (hapticsEnabled) haptic(type); };
+
   // Custom styles: { name: [combo, ...] }
   const [customStyles, setCustomStyles] = usePersistedState('customStyles', {});
-  // Style order for the main screen (reorder via settings arrows)
   const [styleOrder, setStyleOrder] = usePersistedState('styleOrder', null);
   // Favorites: array of `${category}::${task}`
   const [favorites, setFavorites] = usePersistedState('favorites', []);
@@ -172,8 +397,14 @@ export default function App() {
   const [trainingInterval, setTrainingInterval] = useState(null);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  // Arsenal view: only show favorites
+  const [arsenalView, setArsenalView] = usePersistedState('arsenalView', false);
+  // Learn mode: { style, combo, visible }
+  const [learnModal, setLearnModal] = useState({ visible: false, style: null, combo: null });
+  // Combo builder: { visible, style, sequence }
+  const [builder, setBuilder] = useState({ visible: false, style: null, sequence: [] });
 
-  // Timer state (ref-based, single source of truth)
+  // Timer state (ref-based)
   const timerRef = useRef({ mode: 'rest', round: 1, remaining: 0 });
   const [timerMode, setTimerMode] = useState('rest');
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -189,7 +420,7 @@ export default function App() {
   const currentTaskRef = useRef(null);
   const repeatCounterRef = useRef(0);
 
-  // All styles = built-in + custom (custom entries are arrays -> object map)
+  // All styles = built-in + custom
   const allStyles = useMemo(() => {
     const merged = { ...taskDifficulties };
     Object.entries(customStyles).forEach(([name, combos]) => {
@@ -207,11 +438,55 @@ export default function App() {
     return names.filter(n => allStyles[n]);
   }, [styleOrder, allStyles]);
 
+  // Display text with southpaw swap applied
+  const displayText = (text) => southpaw ? swapStance(text) : text;
+
   const isFavorite = (category, task) => favorites.includes(`${category}::${task}`);
   const toggleFavorite = (category, task) => {
-    haptic('medium');
+    hapticIf('medium');
     const key = `${category}::${task}`;
     setFavorites(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
+
+  // ---------- Streak ----------
+  const todayStr = () => new Date().toISOString().slice(0, 10);
+  const yesterdayStr = () => {
+    const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10);
+  };
+  const streak = useMemo(() => {
+    const dates = new Set(workoutDates);
+    let count = 0;
+    let cursor = todayStr();
+    if (!dates.has(cursor)) cursor = yesterdayStr();
+    while (dates.has(cursor)) {
+      count += 1;
+      const d = new Date(cursor); d.setDate(d.getDate() - 1);
+      cursor = d.toISOString().slice(0, 10);
+    }
+    return count;
+  }, [workoutDates]);
+
+  const recordWorkout = () => {
+    const today = todayStr();
+    setWorkoutDates(prev => prev.includes(today) ? prev : [...prev, today]);
+  };
+
+  // ---------- Curriculum ----------
+  const learnedCount = (style) => curriculumProgress[style] || 0;
+  const learnedTechniques = (style) => (CURRICULUM[style] || []).slice(0, learnedCount(style));
+  const nextTechnique = (style) => {
+    const list = CURRICULUM[style] || [];
+    const idx = learnedCount(style);
+    return idx < list.length ? list[idx] : null;
+  };
+  const curriculumTotal = (style) => (CURRICULUM[style] || []).length;
+  const markTechniqueLearned = (style) => {
+    hapticIf('medium');
+    setCurriculumProgress(prev => {
+      const list = CURRICULUM[style] || [];
+      const next = Math.min((prev[style] || 0) + 1, list.length);
+      return { ...prev, [style]: next };
+    });
   };
 
   // ---------- Speech queue ----------
@@ -223,10 +498,12 @@ export default function App() {
         try {
           const rate = speechItem.type === 'combo' ? speechRate * 0.8 : speechRate;
           const speakText = speechItem.text.replace(/\s*[>→]\s*/g, ', ').replace(/\s+/g, ' ').trim();
+          // Technique/coaching uses the technique voice; combos/timer use the command voice
+          const voice = speechItem.type === 'technique' ? techniqueVoice : speechVoice;
           await Speech.speak(speakText, {
             rate,
             pitch: speechPitch,
-            ...(speechVoice ? { voice: speechVoice } : {}),
+            ...(voice ? { voice } : {}),
             onDone: () => { setSpeechQueue(prev => prev.slice(1)); setIsSpeaking(false); },
             onError: () => { setSpeechQueue(prev => prev.slice(1)); setIsSpeaking(false); }
           });
@@ -238,14 +515,13 @@ export default function App() {
       }
     };
     processSpeechQueue();
-  }, [speechQueue, isSpeaking, speechRate, speechPitch, speechVoice]);
+  }, [speechQueue, isSpeaking, speechRate, speechPitch, speechVoice, techniqueVoice]);
 
   const addToSpeechQueue = useCallback((text, type = 'timer') => {
     const shouldAdd = type === 'timer' ? !timerSpeechPaused : !comboSpeechPaused;
     if (!shouldAdd) return;
-    // Functional update: priority decision made inside the updater (no stale closure)
     setSpeechQueue(prev => {
-      if (type === 'combo' && prev.length > 0) return [{ text, type }, ...prev];
+      if ((type === 'combo' || type === 'technique') && prev.length > 0) return [{ text, type }, ...prev];
       return [...prev, { text, type }];
     });
   }, [timerSpeechPaused, comboSpeechPaused]);
@@ -254,6 +530,20 @@ export default function App() {
     addToSpeechQueue(combination, 'combo');
     return true;
   }, [addToSpeechQueue]);
+
+  // Form cue between sets: speak a random technique cue for the current style
+  const speakFormCue = (style) => {
+    if (!formCuesEnabled) return;
+    const list = CURRICULUM[style] || [];
+    const learned = learnedTechniques(style);
+    const pool = learned.length > 0 ? learned : list;
+    if (pool.length === 0) return;
+    const name = pool[Math.floor(Math.random() * pool.length)];
+    const tech = TECHNIQUES[style] && TECHNIQUES[style][name];
+    if (tech && tech.cue) {
+      addToSpeechQueue(`Form: ${tech.cue}`, 'technique');
+    }
+  };
 
   const loadAvailableVoices = async () => {
     try {
@@ -291,26 +581,30 @@ export default function App() {
         if (s.mode === 'work') {
           if (s.round >= totalRounds) {
             addToSpeechQueue("Workout complete!", 'timer');
+            hapticIf('heavy');
             active = false;
             round = 1;
             next = 0;
+            recordWorkout();
           } else {
             mode = 'rest';
             addToSpeechQueue("Rest now", 'timer');
+            hapticIf('light');
             next = hiitRestPeriod;
           }
         } else {
           mode = 'work';
           round = s.round + 1;
+          hapticIf('medium');
           if (isDrilling && drillTask) {
-            // Drill mode: re-announce the same combo each round
-            addToSpeechQueue(drillTask, 'combo');
+            addToSpeechQueue(displayText(drillTask), 'combo');
           }
           addToSpeechQueue(`Round ${round}`, 'timer');
           next = workPeriod;
         }
       } else if (next <= 3 && next > 0) {
         addToSpeechQueue(String(next), 'timer');
+        hapticIf('light');
       }
 
       timerRef.current = { mode, round, remaining: next };
@@ -324,11 +618,10 @@ export default function App() {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [timerActive, workPeriod, hiitRestPeriod, totalRounds, isDrilling, drillTask, addToSpeechQueue]);
+  }, [timerActive, workPeriod, hiitRestPeriod, totalRounds, isDrilling, drillTask, addToSpeechQueue, formCuesEnabled, southpaw]);
 
   const startHiitTimer = () => {
-    haptic('medium');
-    // Can't run combo training and the timer simultaneously
+    hapticIf('medium');
     if (isTraining) stopTrainingSession();
     timerRef.current = { mode: 'work', round: 1, remaining: workPeriod };
     setTimerMode('work');
@@ -339,7 +632,7 @@ export default function App() {
   };
 
   const stopHiitTimer = () => {
-    haptic('light');
+    hapticIf('light');
     setTimerActive(false);
     setIsDrilling(false);
     setDrillTask(null);
@@ -350,7 +643,7 @@ export default function App() {
 
   // Drill mode: repeat ONE combo for totalRounds rounds
   const startDrill = (style, task) => {
-    haptic('medium');
+    hapticIf('medium');
     if (isTraining) stopTrainingSession();
     setDrillTask(task);
     setIsDrilling(true);
@@ -359,14 +652,13 @@ export default function App() {
     setCurrentRound(1);
     setTimeRemaining(workPeriod);
     setTimerActive(true);
-    addToSpeechQueue(task, 'combo');
+    addToSpeechQueue(displayText(task), 'combo');
     addToSpeechQueue('Drill. Round 1', 'timer');
   };
 
   // ---------- Combo training session ----------
   const startTrainingSession = (style) => {
-    haptic('medium');
-    // Can't run the timer and combo training simultaneously
+    hapticIf('medium');
     if (timerActive) stopHiitTimer();
     setIsTraining(true);
     setCurrentStyle(style);
@@ -375,15 +667,17 @@ export default function App() {
 
     const generateAndSpeak = () => {
       if (!currentTaskRef.current || repeatCounterRef.current >= comboRepeatCount) {
-        const task = pickRandomTask(style, allStyles);
+        const task = pickRandomTask(style, allStyles, difficultyFilter);
         currentTaskRef.current = task;
         repeatCounterRef.current = 1;
         setGeneratedTasks(prev => ({ ...prev, [style]: task }));
         animateTaskGeneration();
-        speakCombination(task);
+        speakCombination(displayText(task));
       } else {
         repeatCounterRef.current += 1;
-        speakCombination(currentTaskRef.current);
+        speakCombination(displayText(currentTaskRef.current));
+        // Form cue on every 3rd repeat of the same combo
+        if (repeatCounterRef.current % 3 === 0) speakFormCue(style);
       }
     };
 
@@ -394,6 +688,7 @@ export default function App() {
 
   const stopTrainingSession = () => {
     setIsTraining(false);
+    recordWorkout();
     Speech.stop();
     if (trainingInterval) {
       clearInterval(trainingInterval);
@@ -402,9 +697,8 @@ export default function App() {
   };
 
   const generateTask = (stat) => {
-    haptic('light');
-    const task = pickRandomTask(stat, allStyles);
-    // Functional update: no stale closure
+    hapticIf('light');
+    const task = pickRandomTask(stat, allStyles, difficultyFilter);
     setGeneratedTasks(prev => ({ ...prev, [stat]: task }));
     animateTaskGeneration();
   };
@@ -415,12 +709,12 @@ export default function App() {
   };
 
   const handleZoomIn = () => {
-    haptic('light');
+    hapticIf('light');
     const newFontSize = Math.min(fontSize + (fontSize * 0.1), width / 5);
     setFontSize(newFontSize);
   };
   const handleZoomOut = () => {
-    haptic('light');
+    hapticIf('light');
     const newFontSize = Math.max(fontSize - (fontSize * 0.1), 12);
     setFontSize(newFontSize);
   };
@@ -435,7 +729,7 @@ export default function App() {
     const combos = customStyleCombos.split('\n').map(c => c.trim()).filter(Boolean);
     if (!name) { Alert.alert('Style name required'); return; }
     if (combos.length === 0) { Alert.alert('Add at least one combo'); return; }
-    haptic('medium');
+    hapticIf('medium');
     setCustomStyles(prev => ({ ...prev, [name]: combos }));
     setCustomStyleName('');
     setCustomStyleCombos('');
@@ -443,7 +737,7 @@ export default function App() {
   };
 
   const deleteCustomStyle = (name) => {
-    haptic('medium');
+    hapticIf('medium');
     setCustomStyles(prev => {
       const next = { ...prev };
       delete next[name];
@@ -451,9 +745,62 @@ export default function App() {
     });
   };
 
+  // ---------- Combo builder ----------
+  const builderTechniques = () => {
+    if (!builder.style) return [];
+    const techs = TECHNIQUES[builder.style] || {};
+    return Object.keys(techs);
+  };
+  const openBuilder = (style) => setBuilder({ visible: true, style, sequence: [] });
+  const closeBuilder = () => setBuilder({ visible: false, style: null, sequence: [] });
+  const builderAddTechnique = (name) => {
+    hapticIf('light');
+    setBuilder(prev => ({ ...prev, sequence: [...prev.sequence, name] }));
+  };
+  const builderRemoveLast = () => {
+    hapticIf('light');
+    setBuilder(prev => ({ ...prev, sequence: prev.sequence.slice(0, -1) }));
+  };
+  const builderSaveCombo = () => {
+    if (builder.sequence.length === 0) return;
+    const combo = builder.sequence.map(n => {
+      const tech = TECHNIQUES[builder.style] && TECHNIQUES[builder.style][n];
+      return tech ? n.charAt(0).toUpperCase() + n.slice(1) : n;
+    }).join(' > ');
+    hapticIf('medium');
+    // Save to a "My Combos" custom style
+    setCustomStyles(prev => ({
+      ...prev,
+      'My Combos': [...(prev['My Combos'] || []), combo],
+    }));
+    setGeneratedTasks(prev => ({ ...prev, [builder.style]: combo }));
+    closeBuilder();
+    Alert.alert('Combo saved', `Added to "My Combos": ${combo}`);
+  };
+
+  // ---------- Learn mode ----------
+  const learnMoves = () => {
+    if (!learnModal.combo) return [];
+    return splitCombo(learnModal.combo).map(move => {
+      const norm = normalizeMove(move);
+      const techs = TECHNIQUES[learnModal.style] || {};
+      let tech = techs[norm] || SHARED_TECHNIQUES[norm];
+      // Fallbacks: strip 'double/single' prefixes, or try the first two words
+      if (!tech) {
+        const stripped = norm.replace(/^(double|single|triple)\s+/, '');
+        tech = techs[stripped] || SHARED_TECHNIQUES[stripped];
+      }
+      if (!tech) {
+        const firstTwo = norm.split(' ').slice(0, 2).join(' ');
+        tech = techs[firstTwo] || SHARED_TECHNIQUES[firstTwo];
+      }
+      return { move, norm, tech };
+    });
+  };
+
   // ---------- Style reorder ----------
   const moveStyle = (index, dir) => {
-    haptic('light');
+    hapticIf('light');
     setStyleOrder(prev => {
       const list = (prev && prev.length ? prev : Object.keys(allStyles)).filter(n => allStyles[n]);
       const target = index + dir;
@@ -465,7 +812,7 @@ export default function App() {
   };
 
   const updateSetting = (setter, value) => {
-    haptic('light');
+    hapticIf('light');
     setter(value);
   };
 
@@ -494,7 +841,7 @@ export default function App() {
         </Text>
         {isDrilling && drillTask ? (
           <View style={styles.drillTaskBox}>
-            <Text style={[styles.drillTaskText, { fontSize }]}>{drillTask}</Text>
+            <Text style={[styles.drillTaskText, { fontSize }]}>{displayText(drillTask)}</Text>
           </View>
         ) : null}
         <View style={styles.timerControls}>
@@ -508,11 +855,21 @@ export default function App() {
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity style={[styles.testButton, { backgroundColor: theme.test }]} onPress={() => { haptic('light'); addToSpeechQueue("Test voice announcement", 'timer'); }}>
+        <TouchableOpacity style={[styles.testButton, { backgroundColor: theme.test }]} onPress={() => { hapticIf('light'); addToSpeechQueue("Test voice announcement", 'timer'); }}>
           <Text style={styles.testButtonText}>Test Voice</Text>
         </TouchableOpacity>
       </View>
     );
+  };
+
+  const comboLevelOf = (cat, task) => {
+    const levels = allStyles[cat] || {};
+    const lv = Object.keys(levels).find(l => levels[l] === task);
+    return lv ? Number(lv) : 1;
+  };
+  const difficultyColor = (cat, task) => {
+    const diff = difficultyOf(cat, comboLevelOf(cat, task));
+    return diff === 'beginner' ? theme.success : diff === 'intermediate' ? '#FFA726' : theme.danger;
   };
 
   const CategoryCard = ({ category }) => {
@@ -520,20 +877,32 @@ export default function App() {
     const isSelected = selectedCategory === category;
     const cardScale = useRef(new Animated.Value(1)).current;
     const fav = isFavorite(category, task);
+    const learnCount = learnedCount(category);
+    const total = curriculumTotal(category);
+    const showCard = arsenalView ? (task && isFavorite(category, task)) : true;
 
     useEffect(() => {
       Animated.spring(cardScale, { toValue: isSelected ? 1.05 : 1, friction: 3, useNativeDriver: true }).start();
     }, [isSelected]);
 
+    if (!showCard) return null;
+
     return (
-      <TouchableOpacity onPress={() => { haptic('light'); setSelectedCategory(category); }} activeOpacity={0.9}>
+      <TouchableOpacity onPress={() => { hapticIf('light'); setSelectedCategory(category); }} activeOpacity={0.9}>
         <Animated.View style={[styles.categoryCard, { transform: [{ scale: cardScale }], backgroundColor: isSelected ? theme.cardBgSelected : theme.cardBg }]}>
           <LinearGradient
             colors={isSelected ? theme.cardGradSelected : theme.cardGradNormal}
             style={styles.categoryGradient}
           >
             <View style={styles.cardHeaderRow}>
-              <Text style={[styles.categoryTitle, { color: theme.text }]}>{category}</Text>
+              <View style={styles.cardTitleGroup}>
+                <Text style={[styles.categoryTitle, { color: theme.text }]}>{category}</Text>
+                {total > 0 && (
+                  <Text style={[styles.progressText, { color: theme.textMuted }]}>
+                    Learned {learnCount}/{total}
+                  </Text>
+                )}
+              </View>
               <TouchableOpacity
                 style={styles.favButton}
                 onPress={() => task && toggleFavorite(category, task)}
@@ -542,13 +911,27 @@ export default function App() {
               </TouchableOpacity>
             </View>
             <View style={[styles.taskContainer, { backgroundColor: theme.taskContainer }]}>
+              {task && (
+                <View style={styles.diffRow}>
+                  <View style={[styles.diffDot, { backgroundColor: difficultyColor(category, task) }]} />
+                  <Text style={[styles.diffLabel, { color: theme.textMuted }]}>
+                    {DIFFICULTY_LABELS[difficultyOf(category, comboLevelOf(category, task))]}
+                  </Text>
+                </View>
+              )}
               <Animated.Text style={[styles.taskText, { fontSize, color: theme.text, opacity: taskOpacity }]}>
-                {task || 'Tap refresh to generate'}
+                {task ? displayText(task) : 'Tap refresh to generate'}
               </Animated.Text>
             </View>
             <View style={styles.cardControls}>
               <TouchableOpacity style={styles.controlButton} onPress={() => generateTask(category)}>
                 <Ionicons name="refresh" size={22} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.controlButton, { backgroundColor: theme.accent }]}
+                onPress={() => openBuilder(category)}
+              >
+                <Ionicons name="hammer" size={22} color="#fff" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.controlButton, { backgroundColor: theme.test }]}
@@ -566,6 +949,15 @@ export default function App() {
                 </TouchableOpacity>
               ) : null}
             </View>
+            <TouchableOpacity
+              style={[styles.learnButton, { borderColor: theme.accent }]}
+              onPress={() => setLearnModal({ visible: true, style: category, combo: task })}
+            >
+              <Ionicons name="book-outline" size={18} color={theme.accent} />
+              <Text style={[styles.learnButtonText, { color: theme.accent }]}>
+                {task ? 'Learn This Combo' : 'Learn Techniques'}
+              </Text>
+            </TouchableOpacity>
           </LinearGradient>
         </Animated.View>
       </TouchableOpacity>
@@ -577,12 +969,24 @@ export default function App() {
       <StatusBar barStyle={themeName === 'dark' ? 'light-content' : 'dark-content'} />
       <LinearGradient colors={[theme.bgTop, theme.bgBottom]} style={styles.gradient}>
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Martial Arts Training</Text>
+          <View>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>Martial Arts Training</Text>
+            <View style={styles.headerMeta}>
+              {streak > 0 && <Text style={[styles.streakText, { color: '#FFA726' }]}>🔥 {streak} day{streak > 1 ? 's' : ''}</Text>}
+              {difficultyFilter !== 'all' && (
+                <Text style={[styles.filterBadge, { color: theme.accent }]}>{DIFFICULTY_LABELS[difficultyFilter]}</Text>
+              )}
+              {southpaw && <Text style={[styles.filterBadge, { color: theme.test }]}>Southpaw</Text>}
+            </View>
+          </View>
           <View style={styles.headerControls}>
-            <TouchableOpacity style={styles.iconButton} onPress={() => { haptic('light'); setIsSettingsVisible(true); }}>
+            <TouchableOpacity style={styles.iconButton} onPress={() => { hapticIf('light'); setArsenalView(!arsenalView); }}>
+              <Ionicons name={arsenalView ? 'star' : 'star-outline'} size={22} color={arsenalView ? '#FFD700' : theme.text} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton} onPress={() => { hapticIf('light'); setIsSettingsVisible(true); }}>
               <Ionicons name="settings-outline" size={24} color={theme.text} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={() => { haptic('light'); setThemeName(themeName === 'dark' ? 'light' : 'dark'); }}>
+            <TouchableOpacity style={styles.iconButton} onPress={() => { hapticIf('light'); setThemeName(themeName === 'dark' ? 'light' : 'dark'); }}>
               <Ionicons name={themeName === 'dark' ? 'sunny-outline' : 'moon-outline'} size={24} color={theme.text} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={handleZoomOut}>
@@ -595,10 +999,16 @@ export default function App() {
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <TimerDisplay />
+          {!arsenalView && <TimerDisplay />}
+          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
+            {arsenalView ? '★ My Arsenal' : (difficultyFilter !== 'all' ? `Showing ${DIFFICULTY_LABELS[difficultyFilter].toLowerCase()} combos` : 'All Styles')}
+          </Text>
           {orderedStyles.map((category) => (
             <CategoryCard key={category} category={category} />
           ))}
+          {arsenalView && favorites.length === 0 && (
+            <Text style={styles.emptyText}>No favorites yet. Tap the ⭐ on any combo.</Text>
+          )}
           {orderedStyles.length === 0 && (
             <Text style={styles.emptyText}>No styles. Create one in Settings.</Text>
           )}
@@ -609,6 +1019,15 @@ export default function App() {
             <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
               <Text style={[styles.modalTitle, { color: theme.text }]}>Training Settings</Text>
               <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={true}>
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Difficulty</Text>
+                <View style={styles.restButtons}>
+                  {[{ label: 'All', value: 'all' }, { label: 'Beginner', value: 'beginner' }, { label: 'Intermediate', value: 'intermediate' }, { label: 'Advanced', value: 'advanced' }].map((opt) => (
+                    <TouchableOpacity key={opt.value} style={[styles.restButton, difficultyFilter === opt.value && styles.restButtonActive]} onPress={() => updateSetting(setDifficultyFilter, opt.value)}>
+                      <Text style={[styles.restButtonText, difficultyFilter === opt.value && styles.restButtonTextActive]}>{opt.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Combinations Settings</Text>
 
                 <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Combinations Rest Period</Text>
@@ -627,6 +1046,22 @@ export default function App() {
                       <Text style={[styles.restButtonText, comboRepeatCount === count && styles.restButtonTextActive]}>{count === 1 ? 'Once' : `${count}x`}</Text>
                     </TouchableOpacity>
                   ))}
+                </View>
+
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Form Cues Between Sets</Text>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Speak technique cues every 3rd repeat</Text>
+                  <TouchableOpacity style={[styles.toggleButton, formCuesEnabled && styles.toggleActive]} onPress={() => { hapticIf('light'); setFormCuesEnabled(!formCuesEnabled); }}>
+                    <Text style={styles.toggleText}>{formCuesEnabled ? 'ON' : 'OFF'}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Stance</Text>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Southpaw (swap left/right)</Text>
+                  <TouchableOpacity style={[styles.toggleButton, southpaw && styles.toggleActive]} onPress={() => { hapticIf('light'); setSouthpaw(!southpaw); }}>
+                    <Text style={styles.toggleText}>{southpaw ? 'ON' : 'OFF'}</Text>
+                  </TouchableOpacity>
                 </View>
 
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>HIIT Timer Settings</Text>
@@ -660,7 +1095,7 @@ export default function App() {
 
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Custom Styles</Text>
                 <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Create your own style and combos</Text>
-                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.test }]} onPress={() => { haptic('light'); setIsCustomStyleModalVisible(true); }}>
+                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.test }]} onPress={() => { hapticIf('light'); setIsCustomStyleModalVisible(true); }}>
                   <Text style={styles.closeButtonText}>+ New Custom Style</Text>
                 </TouchableOpacity>
                 {Object.entries(customStyles).map(([name, combos]) => (
@@ -688,32 +1123,55 @@ export default function App() {
                   </View>
                 ))}
 
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Workout History</Text>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>
+                  {workoutDates.length} workout{workoutDates.length === 1 ? '' : 's'} · {streak} day streak
+                </Text>
+                {workoutDates.slice(-7).reverse().map((d) => (
+                  <View key={d} style={styles.customStyleRow}>
+                    <Text style={[styles.customStyleName, { color: theme.text }]}>{d}</Text>
+                    <Ionicons name="checkmark-circle" size={20} color={theme.success} />
+                  </View>
+                ))}
+
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Speech Settings</Text>
 
                 <View style={styles.toggleRow}>
                   <Text style={[styles.toggleLabel, { color: theme.text }]}>Timer Announcements</Text>
-                  <TouchableOpacity style={[styles.toggleButton, !timerSpeechPaused && styles.toggleActive]} onPress={() => { haptic('light'); setTimerSpeechPaused(!timerSpeechPaused); }}>
+                  <TouchableOpacity style={[styles.toggleButton, !timerSpeechPaused && styles.toggleActive]} onPress={() => { hapticIf('light'); setTimerSpeechPaused(!timerSpeechPaused); }}>
                     <Text style={styles.toggleText}>{timerSpeechPaused ? 'OFF' : 'ON'}</Text>
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.toggleRow}>
                   <Text style={[styles.toggleLabel, { color: theme.text }]}>Combination Announcements</Text>
-                  <TouchableOpacity style={[styles.toggleButton, !comboSpeechPaused && styles.toggleActive]} onPress={() => { haptic('light'); setComboSpeechPaused(!comboSpeechPaused); }}>
+                  <TouchableOpacity style={[styles.toggleButton, !comboSpeechPaused && styles.toggleActive]} onPress={() => { hapticIf('light'); setComboSpeechPaused(!comboSpeechPaused); }}>
                     <Text style={styles.toggleText}>{comboSpeechPaused ? 'OFF' : 'ON'}</Text>
                   </TouchableOpacity>
                 </View>
 
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Voice Options</Text>
 
-                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Coach Voice</Text>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Command Voice (combos & timer)</Text>
                 <View style={styles.restButtons}>
                   <TouchableOpacity style={[styles.restButton, !speechVoice && styles.restButtonActive]} onPress={() => updateSetting(setSpeechVoice, null)}>
                     <Text style={[styles.restButtonText, !speechVoice && styles.restButtonTextActive]}>Default</Text>
                   </TouchableOpacity>
-                  {availableVoices.slice(0, 12).map((voice) => (
-                    <TouchableOpacity key={voice.identifier} style={[styles.voiceButton, speechVoice === voice.identifier && styles.restButtonActive]} onPress={() => updateSetting(setSpeechVoice, voice.identifier)}>
+                  {availableVoices.slice(0, 10).map((voice) => (
+                    <TouchableOpacity key={`cmd-${voice.identifier}`} style={[styles.voiceButton, speechVoice === voice.identifier && styles.restButtonActive]} onPress={() => updateSetting(setSpeechVoice, voice.identifier)}>
                       <Text style={[styles.restButtonText, speechVoice === voice.identifier && styles.restButtonTextActive]} numberOfLines={1}>{voice.name || voice.language}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Technique Voice (form cues & learning)</Text>
+                <View style={styles.restButtons}>
+                  <TouchableOpacity style={[styles.restButton, !techniqueVoice && styles.restButtonActive]} onPress={() => updateSetting(setTechniqueVoice, null)}>
+                    <Text style={[styles.restButtonText, !techniqueVoice && styles.restButtonTextActive]}>Default</Text>
+                  </TouchableOpacity>
+                  {availableVoices.slice(0, 10).map((voice) => (
+                    <TouchableOpacity key={`tech-${voice.identifier}`} style={[styles.voiceButton, techniqueVoice === voice.identifier && styles.restButtonActive]} onPress={() => updateSetting(setTechniqueVoice, voice.identifier)}>
+                      <Text style={[styles.restButtonText, techniqueVoice === voice.identifier && styles.restButtonTextActive]} numberOfLines={1}>{voice.name || voice.language}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -734,6 +1192,14 @@ export default function App() {
                       <Text style={[styles.restButtonText, speechPitch === opt.value && styles.restButtonTextActive]}>{opt.label}</Text>
                     </TouchableOpacity>
                   ))}
+                </View>
+
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Haptics</Text>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Vibration feedback</Text>
+                  <TouchableOpacity style={[styles.toggleButton, hapticsEnabled && styles.toggleActive]} onPress={() => { setHapticsEnabled(!hapticsEnabled); }}>
+                    <Text style={styles.toggleText}>{hapticsEnabled ? 'ON' : 'OFF'}</Text>
+                  </TouchableOpacity>
                 </View>
               </ScrollView>
 
@@ -775,6 +1241,110 @@ export default function App() {
             </View>
           </View>
         </Modal>
+
+        {/* Learn modal */}
+        <Modal animationType="slide" transparent={true} visible={learnModal.visible} onRequestClose={() => setLearnModal({ visible: false, style: null, combo: null })}>
+          <View style={styles.modalContainer}>
+            <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Learn — {learnModal.style}</Text>
+              <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent}>
+                {learnModal.combo ? (
+                  <>
+                    <Text style={[styles.learnComboText, { color: theme.text }]}>{displayText(learnModal.combo)}</Text>
+                    <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Move breakdown:</Text>
+                    {learnMoves().map(({ move, tech }, idx) => (
+                      <View key={idx} style={[styles.learnMoveCard, { backgroundColor: theme.taskContainer }]}>
+                        <Text style={[styles.learnMoveName, { color: theme.text }]}>{displayText(move)}</Text>
+                        {tech ? (
+                          <Text style={[styles.learnMoveHow, { color: theme.textMuted }]}>{tech.how}</Text>
+                        ) : (
+                          <Text style={[styles.learnMoveHow, { color: theme.textMuted }]}>No technique entry yet for this move.</Text>
+                        )}
+                      </View>
+                    ))}
+                  </>
+                ) : null}
+
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Curriculum</Text>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>
+                  Learned {learnedCount(learnModal.style)}/{curriculumTotal(learnModal.style)} techniques
+                </Text>
+                {nextTechnique(learnModal.style) ? (
+                  (() => {
+                    const next = nextTechnique(learnModal.style);
+                    const tech = TECHNIQUES[learnModal.style] && TECHNIQUES[learnModal.style][next];
+                    return (
+                      <View style={[styles.learnMoveCard, { backgroundColor: theme.taskContainer }]}>
+                        <Text style={[styles.learnMoveName, { color: theme.text }]}>Next: {next.charAt(0).toUpperCase() + next.slice(1)}</Text>
+                        {tech && <Text style={[styles.learnMoveHow, { color: theme.textMuted }]}>{tech.how}</Text>}
+                        <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.success }]} onPress={() => markTechniqueLearned(learnModal.style)}>
+                          <Text style={styles.closeButtonText}>✓ Mark Learned</Text>
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })()
+                ) : (
+                  <Text style={[styles.learnMoveHow, { color: theme.success }]}>🏆 Curriculum complete!</Text>
+                )}
+
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Technique Library</Text>
+                {Object.entries(TECHNIQUES[learnModal.style] || {}).map(([name, tech]) => (
+                  <View key={name} style={[styles.learnMoveCard, { backgroundColor: theme.taskContainer }]}>
+                    <Text style={[styles.learnMoveName, { color: theme.text }]}>{name.charAt(0).toUpperCase() + name.slice(1)}</Text>
+                    <Text style={[styles.learnMoveHow, { color: theme.textMuted }]}>{tech.how}</Text>
+                    <TouchableOpacity
+                      style={[styles.cueButton, { borderColor: theme.test }]}
+                      onPress={() => addToSpeechQueue(`Form: ${tech.cue}`, 'technique')}
+                    >
+                      <Ionicons name="volume-high" size={16} color={theme.test} />
+                      <Text style={[styles.cueButtonText, { color: theme.test }]}>Hear cue</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setLearnModal({ visible: false, style: null, combo: null })}>
+                <Text style={styles.closeButtonText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Combo builder modal */}
+        <Modal animationType="slide" transparent={true} visible={builder.visible} onRequestClose={closeBuilder}>
+          <View style={styles.modalContainer}>
+            <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Combo Builder — {builder.style}</Text>
+              <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Tap techniques to build a combo</Text>
+              <View style={[styles.taskContainer, { backgroundColor: theme.taskContainer }]}>
+                <Text style={[styles.taskText, { color: theme.text }]}>
+                  {builder.sequence.length > 0
+                    ? builder.sequence.map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' > ')
+                    : 'Tap below to add moves'}
+                </Text>
+              </View>
+              <ScrollView style={styles.builderScroll}>
+                <View style={styles.restButtons}>
+                  {builderTechniques().map((name) => (
+                    <TouchableOpacity key={name} style={[styles.builderChip, { borderColor: theme.accent }]} onPress={() => builderAddTechnique(name)}>
+                      <Text style={[styles.builderChipText, { color: theme.text }]}>{name.charAt(0).toUpperCase() + name.slice(1)}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+              <View style={styles.builderControls}>
+                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.danger }]} onPress={builderRemoveLast}>
+                  <Text style={styles.closeButtonText}>Undo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.success }]} onPress={builderSaveCombo}>
+                  <Text style={styles.closeButtonText}>Save Combo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.textMuted }]} onPress={closeBuilder}>
+                  <Text style={styles.closeButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -792,21 +1362,32 @@ const createStyles = (theme) => StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: { fontSize: 24, fontWeight: 'bold' },
+  headerMeta: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  streakText: { fontSize: 14, fontWeight: 'bold' },
+  filterBadge: { fontSize: 12, fontWeight: 'bold', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
   headerControls: { flexDirection: 'row', gap: 10 },
   iconButton: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: theme.iconButton,
     justifyContent: 'center', alignItems: 'center',
   },
   scrollContent: { padding: 20, gap: 20 },
+  sectionLabel: { fontSize: 14, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
   categoryCard: { borderRadius: 16, overflow: 'hidden', elevation: 5, shadowColor: theme.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84 },
   categoryGradient: { padding: 20 },
-  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  cardTitleGroup: { flex: 1, marginRight: 10 },
   categoryTitle: { fontSize: 20, fontWeight: 'bold' },
+  progressText: { fontSize: 12, marginTop: 2 },
   favButton: { padding: 4 },
   taskContainer: { borderRadius: 12, padding: 15, marginBottom: 15, minHeight: 80, justifyContent: 'center' },
   taskText: { fontSize: 16, textAlign: 'center' },
+  diffRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 6 },
+  diffDot: { width: 8, height: 8, borderRadius: 4 },
+  diffLabel: { fontSize: 12, fontWeight: 'bold' },
   cardControls: { flexDirection: 'row', justifyContent: 'center', gap: 15 },
   controlButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
+  learnButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderRadius: 20, paddingVertical: 8, marginTop: 12 },
+  learnButtonText: { fontSize: 14, fontWeight: 'bold' },
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.overlay },
   modalContent: { width: '90%', borderRadius: 20, padding: 25, paddingBottom: 15, alignItems: 'center', elevation: 5, shadowColor: theme.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, maxHeight: '85%' },
   modalScroll: { width: '100%', maxHeight: '80%' },
@@ -843,4 +1424,14 @@ const createStyles = (theme) => StyleSheet.create({
   textInput: { width: '100%', borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 15, fontSize: 16 },
   textInputMultiline: { width: '100%', borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 15, fontSize: 16, minHeight: 120, textAlignVertical: 'top' },
   emptyText: { color: theme.textMuted, textAlign: 'center', marginTop: 40, fontSize: 16 },
+  learnComboText: { fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 15 },
+  learnMoveCard: { borderRadius: 12, padding: 12, marginBottom: 10, width: '100%' },
+  learnMoveName: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  learnMoveHow: { fontSize: 14, lineHeight: 20 },
+  cueButton: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12, marginTop: 8, alignSelf: 'flex-start' },
+  cueButtonText: { fontSize: 13, fontWeight: 'bold' },
+  builderScroll: { maxHeight: 200, width: '100%' },
+  builderChip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, alignItems: 'center' },
+  builderChipText: { fontSize: 14, fontWeight: 'bold' },
+  builderControls: { flexDirection: 'row', gap: 10, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' },
 });
