@@ -24,161 +24,47 @@ const taskDifficulties = {
 
 
     'Boxing': {
-          1: "Jab > Right cross",  
-      2: "Jab > Right cross > Left hook",  
-      3: "Jab > Right cross > Left hook > Right cross",  
-      4: "Double jab > Right cross",  
-      5: "Jab > Right cross > Slip > Right cross",  
-      6: "Jab > Jab > Right cross > Left uppercut > Right cross",  
-      7: "Jab > Right cross > Left hook > Right cross > Slip > Left hook",  
-      8: "Jab > Right uppercut > Left hook > Right cross",  
-      9: "Jab > Right cross > Right uppercut > Left hook",  
-      10: "Jab > Left hook > Right uppercut > Right cross",  
-      11: "Jab > Right hook to body > Left hook to head",  
-      12: "Jab > Right cross > Left hook to body > Right hook to head",  
-      13: "Jab > Right cross > Left hook to body > Right cross",  
-      14: "Jab > Right cross > Right hook to body > Left hook",  
-      15: "Right uppercut to body > Left hook to head > Right cross",  
-      16: "Fake jab > Slip back > Right cross (Pull counter)",  
-      17: "Shoulder roll > Right uppercut > Left hook",  
-      18: "Slip > Right cross > Left hook",  
-      19: "Shoulder roll > Right hook to body > Left hook to head",  
-      20: "Pull counter > Right cross > Left hook > Right cross",  
-      21: "Jab > Slip left > Left hook",  
-      22: "Jab > Slip right > Right uppercut",  
-      23: "Jab > Pivot left > Right cross",  
-      24: "Jab > Pivot right > Left hook",  
-      25: "Jab > Right cross > Step back > Right cross",  
-      26: "Left hook to body > Right uppercut > Left hook",  
-      27: "Right uppercut > Left hook > Right hook",  
-      28: "Left hook to body > Left hook to head > Right cross",  
-      29: "Jab > Right uppercut > Left hook > Right uppercut",  
-      30: "Right uppercut > Left hook > Left uppercut > Right hook",  
-      31: "Jab > Right cross > Right hook > Left hook",  
-      32: "Jab > Right uppercut > Left hook > Right cross",  
-      33: "Jab > Right cross > Slip outside > Right hook to body",  
-      34: "Jab > Step right > Left hook > Right uppercut",  
-      35: "Jab > Right hook to body > Right cross",  
-      36: "Block > Right cross > Left hook > Right uppercut",  
-      37: "Jab > Fake right cross > Slip left > Left hook",  
-      38: "Bait jab > Shoulder roll > Right cross",  
-      39: "Jab > Slip inside > Left hook to body > Right hook",  
-      40: "Pull counter > Right uppercut > Left hook",  
-      41: "Jab > Right cross > Left hook > Right uppercut > Left hook",  
-      42: "Right cross > Left hook > Right hook > Left uppercut",  
-      43: "Jab > Right uppercut > Left hook > Right cross > Left hook",  
-      44: "Jab > Right cross > Right hook > Left hook > Right cross",  
-      45: "Jab > Right cross > Right uppercut > Left hook > Right cross",  
-      46: "Double jab > Right cross > Left hook > Right uppercut > Left hook",  
-      47: "Jab > Right cross > Left hook > Right hook to body > Left hook to head",  
-      48: "Right uppercut > Left hook > Right cross > Left hook > Right hook",  
-      49: "Jab > Right cross > Step right > Left hook > Right uppercut",  
-      50: "Jab > Right cross > Left hook > Right hook > Left hook",
-      51: "Left jab > Right cross > Left hook",
-  52: "Right feint > Left jab > Right overhand",
-  53: "Left body jab > Right uppercut > Left hook",
-  54: "Right cross > Left hook > Right cross",
-  55: "Left jab > Left hook > Right cross",
-  56: "Right body shot > Left hook to head > Right uppercut",
-  57: "Left jab > Right hook > Left uppercut > Right cross",
-  58: "Left hook > Right uppercut > Left hook",
-  59: "Right cross > Left hook to body > Right uppercut",
-  60: "Left jab > Right cross > Left hook to body > Right hook",
-  61: "Left hook to body > Right uppercut > Left hook to head",
-  62: "Right feint > Left jab > Right cross > Left hook",
-  63: "Left jab > Right body shot > Left hook > Right cross",
-  64: "Right uppercut > Left hook > Right cross",
-  65: "Left hook > Right uppercut > Left hook to body",
-  66: "Right cross > Left hook > Right uppercut > Left cross",
-  67: "Left jab > Right cross > Left uppercut > Right hook",
-  68: "Right body shot > Left hook > Right cross > Left hook",
-  69: "Left jab > Right uppercut > Left hook > Right cross",
-  70: "Right cross > Left hook to body > Right uppercut > Left hook",
-  71: "Left hook > Right body shot > Left uppercut",
-  72: "Right feint > Left jab > Right cross > Left hook to body",
-  73: "Left uppercut > Right hook > Left cross",
-  74: "Right cross > Left body hook > Right uppercut > Left hook",
-  75: "Left jab > Right cross > Left hook to body > Right uppercut",
-  76: "Right uppercut > Left hook > Right cross > Left uppercut",
-  77: "Left hook to body > Right cross > Left hook to head",
-  78: "Right body shot > Left hook > Right uppercut > Left cross",
-  79: "Left jab > Right cross > Left uppercut > Right body shot",
-  80: "Right hook > Left uppercut > Right cross",
-  81: "Left body jab > Right cross > Left hook > Right uppercut",
-  82: "Right feint > Left hook > Right uppercut > Left cross",
-  83: "Left jab > Right body shot > Left hook > Right cross > Left uppercut",
-  84: "Right cross > Left hook > Right uppercut > Left body shot",
-  85: "Left hook > Right cross > Left uppercut > Right hook",
-  86: "Right uppercut > Left hook > Right cross > Left hook to body",
-  87: "Left jab > Right cross > Left hook > Right uppercut > Left cross",
-  88: "Right body feint > Left hook > Right uppercut > Left cross",
-  89: "Left hook to body > Right cross > Left uppercut > Right hook",
-  90: "Right cross > Left uppercut > Right hook > Left cross",
-  91: "Left jab > Right body shot > Left hook > Right uppercut > Left cross",
-  92: "Right feint > Left hook > Right cross > Left uppercut > Right hook",
-  93: "Left body jab > Right cross > Left hook > Right uppercut > Left cross",
-  94: "Right uppercut > Left hook > Right cross > Left body shot > Right hook",
-  95: "Left hook > Right cross > Left uppercut > Right hook > Left cross",
-  96: "Right body shot > Left hook > Right uppercut > Left cross > Right hook",
-  97: "Left jab > Right cross > Left hook > Right body shot > Left uppercut",
-  98: "Right feint > Left uppercut > Right hook > Left cross > Right uppercut",
-  99: "Left hook to body > Right cross > Left uppercut > Right hook > Left cross",
-  100: "Right cross > Left hook > Right uppercut > Left cross > Right hook",
-      101: "Jab > Feint jab > Left hook",
-    102: "Tap jab > Tap jab > Power right cross",
-    103: "Jab > Slow right cross > Fast left hook",
-    104: "Jab > Right cross > Duck > Right cross",
-    105: "Jab > Right cross > Shift lead foot (Switch stance) > Southpaw cross",
-    106: "Right overhand > Shift (Switch stance) > Lead hook",
-    107: "Jab > Pivot 90 degrees right > Double left hook",
-    108: "Jab > Left shovel hook to body",
-    109: "Left hook to head > Left hook to body",
-    110: "Forearm post > Right uppercut > Left hook",
-    111: "Jab > Right cross > Pull > Right overhand",
-    112: "Jab to body > Up-jab to head",
-    113: "Shoulder roll > Right cross > Left shovel hook to body",
-    114: "Jab > Slip outside > Right cross to body > Left hook to head",
-    115: "Double jab > Right hook to body > Right uppercut",
-    116: "Jab > Right cross > Slip right > Right cross > Left hook",
-    117: "Double jab > Right cross > Duck > Right uppercut > Left hook",
-    118: "Jab > Left hook to head > Left hook to body > Right cross",
-    119: "Right cross > Left hook > Right cross > Slip left > Left uppercut",
-    120: "Jab > Right hook to body > Right hook to head > Left hook",
-    121: "Jab > Right cross > Pivot left > Left hook > Right cross",
-    122: "Lead uppercut > Lead hook > Right cross",
-    123: "Jab > Step left > Right overhand > Left hook",
-    124: "Right cross > Left hook to body > Left uppercut > Right cross",
-    125: "Fake right cross > Left hook to head > Right cross > Left hook",
-    126: "Jab > Jab > Right uppercut > Left hook > Right hook to body",
-    127: "Slip left > Left hook to body > Left hook to head > Right cross",
-    128: "Right cross > Duck > Left hook to head > Right uppercut",
-    129: "Jab > Right cross > Step back > Right overhand",
-    130: "Left hook > Right hook > Left uppercut > Right cross",
-    131: "Jab > Step left > Jab > Right cross",
-    132: "Jab > Right cross > Pivot left 90 > Left hook",
-    133: "Double jab (advancing) > Right cross > Step back",
-    134: "Right cross > Left hook > Step right > Right cross",
-    135: "Jab > Slip right > Right cross > Roll left > Left hook",
-    136: "Left hook > Right cross > Pivot right > Right cross",
-    137: "Jab > Right cross > Step back (Draw) > Right cross (Counter)",
-    138: "Jab > Left hook to body > Pivot left > Left hook to head",
-    139: "Double jab (retreating) > Right cross",
-    140: "Jab > Right cross > Slip left > Left uppercut > Pivot left",
-    141: "Fake jab > Step right > Right cross to body > Left hook",
-    142: "Jab > Right cross > Step left > Right overhand",
-    143: "Left hook > Roll right > Right uppercut > Left hook",
-    144: "Jab > Right cross > Left hook > Step back > Right cross > Left hook",
-    145: "Right cross (advancing) > Left hook > Pivot left > Right cross",
-    146: "Jab > Jab > Step right > Left hook > Right cross",
-    147: "Lead hook to head > Lead hook to body > Step left > Right cross",
-    148: "Jab > Slip right > Right uppercut > Pivot right > Left hook",
-    149: "Right cross > Duck > Step forward > Left hook (The Shift)",
-    150: "Double jab > Right cross > Step back > Right cross > Left hook"
-        
+      1: "Jab > Right cross",
+      2: "Jab > Jab > Right cross",
+      3: "Double jab > Right cross",
+      4: "Jab > Right cross > Left hook",
+      5: "Jab > Right cross > Left hook > Right cross",
+      6: "Jab > Left hook > Right cross",
+      7: "Right cross > Left hook > Right cross",
+      8: "Jab > Jab > Left hook > Right cross",
+      9: "Jab > Right cross > Left hook to the body > Left hook to the head",
+      10: "Jab to the body > Right cross to the head",
+      11: "Jab > Right hook to the body > Left hook to the head",
+      12: "Jab > Right cross > Slip left > Right cross",
+      13: "Jab > Right uppercut > Left hook > Right cross",
+      14: "Jab > Right cross > Left hook > Right uppercut",
+      15: "Jab > Left hook to the body > Right uppercut > Left hook",
+      16: "Right uppercut > Left hook > Right cross",
+      17: "Left hook to the body > Right cross > Left hook to the head",
+      18: "Jab > Right cross > Left hook to the body > Right cross",
+      19: "Jab > Slip right > Right uppercut",
+      20: "Jab > Slip left > Left hook",
+      21: "Jab > Right cross > Slip right > Right cross > Left hook",
+      22: "Jab > Right cross > Duck > Right uppercut > Left hook",
+      23: "Right cross > Duck > Left hook to the head > Right uppercut",
+      24: "Jab > Fake right cross > Slip left > Left hook",
+      25: "Jab > Right cross > Pivot left > Left hook > Right cross",
+      26: "Left hook > Right cross > Pivot right > Right cross",
+      27: "Jab > Step left > Jab > Right cross",
+      28: "Jab > Right cross > Left hook to the body > Right hook to the head",
+      29: "Fake jab > Slip back > Right cross (Pull counter)",
+      30: "Shoulder roll > Right uppercut > Left hook",
+      31: "Pull counter > Right cross > Left hook > Right cross",
+      32: "Jab > Right cross > Left hook > Right hook to the body > Left hook to the head",
+      33: "Double jab > Right cross > Left hook > Right uppercut > Left hook",
+      34: "Jab > Right cross > Step back (Draw) > Right cross (Counter)",
+      35: "Jab > Right cross > Shift lead foot (Switch stance) > Southpaw cross",
+      36: "Right overhand > Shift (Switch stance) > Lead hook",
+      37: "Shoulder roll > Right cross > Left shovel hook to the body",
+      38: "Jab > Pivot 90 degrees right > Double left hook",
+      39: "Jab > Right cross > Left hook > Step back > Right cross > Left hook",
+      40: "Right cross > Duck > Step forward > Left hook (The Shift)"
     },
-
-
-
 
     'Kickboxing': {
     1: "Jab, Cross, Left Hook, Right Low Kick",
@@ -332,266 +218,267 @@ const taskDifficulties = {
       43: "Cross > Left Hook > Overhand Right",
       44: "Right Uppercut > Left Hook > Overhand Right",
       45: "Right Low Kick > Left Hook > Overhand Right",
-        51: "Jab, Cross, Left Hook, Right Low Kick",
-      52: "Jab, Cross, Left Hook, Right Elbow",
-      53: "Jab, Left Hook, Right Uppercut, Right Elbow",
-      54: "Cross, Left Hook, Right Hook, Left Kick",
-      55: "Right Low Kick, Left Hook, Right Cross",
-      56: "Jab, Left Hook, Right Cross, Left Knee",
-      57: "Left Hook, Right Hook, Left Knee, Right Hook",
-      58: "Left Hook, Right Elbow, Right Kick",
-      59: "Jab, Left Hook, Right Cross, Right Elbow",
-      60: "Right Low Kick, Left Hook, Right Hook, Left High Kick",
-      61: "Left Hook, Right Hook, Left Elbow, Right Cross",
-      62: "Cross, Left Hook, Left Low Kick, Right Elbow",
-      63: "Right Low Kick, Left Hook, Right Hook",
-      64: "Left Hook, Right Cross, Left Knee",
-      65: "Cross, Left Hook, Left High Kick",
-      66: "Jab, Left Hook, Right Elbow, Left Knee",
-      67: "Left Hook, Right Hook, Left Low Kick, Right Elbow",
-      68: "Cross, Left Hook, Right Elbow",
-      69: "Jab, Left Hook, Right Cross, Left Knee",
-      70: "Left Hook, Right Cross, Left Elbow, Right Low Kick",
-      71: "Right Hook, Left Hook, Left High Kick",
-      72: "Jab, Cross, Right Uppercut, Left Hook",
-      73: "Jab, Left Hook, Right Elbow, Left Kick",
-      74: "Cross, Right Hook, Left Knee, Right Elbow",
-      75: "Jab, Cross, Left Hook, Left Elbow",
-      76: "Left Hook, Right Hook, Left Knee, Right Cross",
-      77: "Jab, Cross, Left Hook, Left Low Kick",
-      78: "Cross, Left Hook, Left Elbow, Right Knee",
-      79: "Right Cross, Left Hook, Right Low Kick",
-      80: "Left Hook, Right Hook, Left High Kick",
-      81: "Jab, Left Hook, Right Elbow, Left High Kick",
-      82: "Jab, Cross, Left Hook, Right Low Kick",
-      83: "Cross, Left Hook, Right Elbow, Left Knee",
-      84: "Right Cross, Left Hook, Left Elbow, Right Low Kick",
-      85: "Jab, Left Hook, Right Hook, Left Elbow",
-      86: "Cross, Left Hook, Right Elbow, Left Low Kick",
-      87: "Left Hook, Right Hook, Left Knee, Right High Kick",
-      88: "Jab, Right Cross, Left Hook, Left Knee",
-      89: "Jab, Left Hook, Right Cross, Left Elbow",
-      90: "Right Low Kick, Left Hook, Right Cross, Left Elbow",
-      91: "Jab, Cross, Left Hook, Right High Kick",
-      92: "Left Hook, Right Hook, Left Knee, Right Cross",
-      93: "Right Low Kick, Left Hook, Right Cross, Left Elbow",
-      94: "Jab, Right Cross, Left Hook, Left Low Kick",
-      95: "Jab, Left Hook, Right Hook, Left Knee",
-      96: "Cross, Left Hook, Right Cross, Left High Kick",
-      97: "Jab, Cross, Left Hook, Left High Kick",
-      98: "Cross, Left Hook, Right Elbow, Left High Kick",
-      99: "Jab, Left Hook, Right Cross, Left Kick",
-      100: "Left Hook, Right Cross, Left Elbow, Right High Kick"
-    },
+      46: "Jab, Cross, Left Hook, Right Low Kick",
+      47: "Jab, Cross, Left Hook, Right Elbow",
+      48: "Jab, Left Hook, Right Uppercut, Right Elbow",
+      49: "Cross, Left Hook, Right Hook, Left Kick",
+      50: "Right Low Kick, Left Hook, Right Cross",
+      51: "Jab, Left Hook, Right Cross, Left Knee",
+      52: "Left Hook, Right Hook, Left Knee, Right Hook",
+      53: "Left Hook, Right Elbow, Right Kick",
+      54: "Jab, Left Hook, Right Cross, Right Elbow",
+      55: "Right Low Kick, Left Hook, Right Hook, Left High Kick",
+      56: "Left Hook, Right Hook, Left Elbow, Right Cross",
+      57: "Cross, Left Hook, Left Low Kick, Right Elbow",
+      58: "Right Low Kick, Left Hook, Right Hook",
+      59: "Left Hook, Right Cross, Left Knee",
+      60: "Cross, Left Hook, Left High Kick",
+      61: "Jab, Left Hook, Right Elbow, Left Knee",
+      62: "Left Hook, Right Hook, Left Low Kick, Right Elbow",
+      63: "Cross, Left Hook, Right Elbow",
+      64: "Left Hook, Right Cross, Left Elbow, Right Low Kick",
+      65: "Right Hook, Left Hook, Left High Kick",
+      66: "Jab, Cross, Right Uppercut, Left Hook",
+      67: "Jab, Left Hook, Right Elbow, Left Kick",
+      68: "Cross, Right Hook, Left Knee, Right Elbow",
+      69: "Jab, Cross, Left Hook, Left Elbow",
+      70: "Left Hook, Right Hook, Left Knee, Right Cross",
+      71: "Jab, Cross, Left Hook, Left Low Kick",
+      72: "Cross, Left Hook, Left Elbow, Right Knee",
+      73: "Right Cross, Left Hook, Right Low Kick",
+      74: "Left Hook, Right Hook, Left High Kick",
+      75: "Jab, Left Hook, Right Elbow, Left High Kick",
+      76: "Cross, Left Hook, Right Elbow, Left Knee",
+      77: "Right Cross, Left Hook, Left Elbow, Right Low Kick",
+      78: "Jab, Left Hook, Right Hook, Left Elbow",
+      79: "Cross, Left Hook, Right Elbow, Left Low Kick",
+      80: "Left Hook, Right Hook, Left Knee, Right High Kick",
+      81: "Jab, Right Cross, Left Hook, Left Knee",
+      82: "Jab, Left Hook, Right Cross, Left Elbow",
+      83: "Right Low Kick, Left Hook, Right Cross, Left Elbow",
+      84: "Jab, Cross, Left Hook, Right High Kick",
+      85: "Jab, Right Cross, Left Hook, Left Low Kick",
+      86: "Jab, Left Hook, Right Hook, Left Knee",
+      87: "Cross, Left Hook, Right Cross, Left High Kick",
+      88: "Jab, Cross, Left Hook, Left High Kick",
+      89: "Cross, Left Hook, Right Elbow, Left High Kick",
+      90: "Jab, Left Hook, Right Cross, Left Kick",
+      91: "Left Hook, Right Cross, Left Elbow, Right High Kick"
+
+    
+
+  
+
+        },
 
 
 
   'MMA': {
-  1: "Jab → Cross → Left Hook: Start by throwing a quick jab with your lead hand to gauge distance. Follow up with a powerful cross from your rear hand, then finish with a left hook, aiming for the opponent’s chin.",
-      2: "Jab → Cross → Right Head Kick: Throw a jab to keep your opponent occupied, land a strong cross, then immediately whip up a right high kick to the head when they’re distracted.",
-      3: "Inside Leg Kick → Overhand Right: Attack your opponent’s lead leg with an inside kick to off-balance them, then explode with an overhand right as they react.",
-      4: "Cross → Left Hook → Right Uppercut: Step in with a strong cross, follow up with a left hook to the side of the head, then throw a right uppercut underneath their chin.",
-      5: "Jab → Rear Body Kick: Use a jab to measure distance, then whip your rear leg into their ribs for a powerful body kick.",
-      6: "Double Jab → Cross → Left Hook → Right Leg Kick: Keep them busy with two jabs, throw a hard cross, finish with a left hook, and then chop their leg down with a kick.",
-      7: "Jab → Fake Cross → Lead Head Kick: Fake a right cross to get them to react, then bring your left leg up high for a head kick.",
-      8: "Left Hook to the Body → Left Hook to the Head: Dig into their ribs with a left hook, then immediately bring it upstairs to the chin.",
-      9: "Cross → Left Hook → Spinning Back Fist: Land a cross, follow with a hook, then spin around and throw your rear hand in a spinning back fist.",
-      10: "Jab → Cross → Lead Uppercut: Basic but effective—set up with a jab, land a cross, then finish with a lead uppercut underneath the chin.",
-      11: "Teep Kick → Overhand Right: Push your opponent back with a front kick to the body, then step in and throw an overhand right as they try to regain balance.",
-      12: "Jab → Cross → Rear Knee: Get their attention with a jab-cross, then drive your rear knee into their body or chin.",
-      13: "Slip Opponent's Jab → Overhand Right: When they throw a jab, slip to the outside and counter with a big overhand right.",
-      14: "Cross → Rear Elbow: Land a hard cross, then step in and follow up with a rear elbow strike to the head.",
-      15: "Jab → Cross → Lead Hook → Rear Low Kick: Use hands to keep them guessing, then attack their lead leg to slow them down.",
-      16: "Right Cross → Left Hook → Right Uppercut → Left Head Kick: A hard boxing combo followed by a sneaky head kick.",
-      17: "Fake Cross → Rear Head Kick: Fake a cross to get them to raise their hands, then whip a head kick behind it.",
-      18: "Jab → Cross → Duck Opponent's Punch → Right Uppercut: After your punches, duck their counter and return fire with an uppercut.",
-      19: "Right Hook → Left Hook → Right Hook: Go side to side with hooks to open their defense and land a big shot.",
-      20: "Jab → Rear Uppercut → Lead Hook: Use a jab to measure, then surprise them with an uppercut before landing a lead hook.",
-      21: "Jab → Cross → Rear Teep Kick: Use punches to set up a powerful push kick to the stomach.",
-      22: "Lead Body Hook → Overhand Right: Dig to the body, then go upstairs with a looping overhand right.",
-      23: "Cross → Slip Opponent's Punch → Left Hook: Throw a cross, make them miss, then come back with a left hook.",
-      24: "Cross → Spinning Back Kick: Land a cross, turn your back briefly, and fire a spinning back kick to the body.",
-      25: "Jab → Cross → Hook → Low Kick: A classic setup that mixes punches and kicks.",
-      26: "Jab → Cross → Left Uppercut → Right Hook: A clean boxing combo ending with a big right hand.",
-      27: "Fake Jab → Overhand Right → Left Hook: Fake with a jab, then throw a heavy overhand and finish with a hook.",
-      28: "Teep Kick → Jab → Cross: Push them back with a teep, then step forward and land a clean one-two.",
-      29: "Lead Hook → Rear Low Kick → Rear Head Kick: Attack their legs, then surprise them with a high kick.",
-      30: "Jab → Cross → Lead Hook → Spinning Back Elbow: A high-level combo ending in a spinning elbow.",
-      31: "Cross → Step Back → Right High Kick: Land a cross, step back, then launch a high kick as they come forward.",
-      32: "Jab → Rear Knee → Left Hook: A great mix of strikes that keeps them guessing.",
-      33: "Cross → Lead Uppercut → Cross: A fast-paced boxing sequence.",
-      34: "Inside Leg Kick → Cross → Overhand Right: Kick low to make them drop their hands, then strike high.",
-      35: "Cross → Left Hook → Superman Punch: A strong punch combo into a jumping superman punch.",
-      36: "Jab → Right Hook → Spinning Hook Kick: A sneaky spinning kick setup.",
-      37: "Fake Cross → Spinning Back Kick to the Body: Fake a cross, then turn and land a spinning kick to the stomach.",
-      38: "Jab → Jab → Overhand Right → Rear Uppercut: Mix speed with power.",
-      39: "Cross → Left Hook → Right Hook → Left Hook → Rear Head Kick: A devastating mix of strikes.",
-      40: "Jab → Fake Cross → Left Hook → Right Uppercut: A deceptive setup into a knockout punch.",
-      41: "Jab → Cross → Lead Body Hook → Rear Head Kick: Target the body with a hook, then go upstairs with a high kick.",
-      42: "Slip Opponent’s Jab → Lead Uppercut → Cross: Slip their jab, come up with an uppercut, and follow with a cross.",
-      43: "Jab → Rear Uppercut → Lead Hook → Rear Low Kick: Mix punches and kicks to break their defense.",
-      44: "Cross → Lead Hook → Rear Elbow: Start with classic boxing, then surprise them with an elbow strike.",
-      45: "Overhand Right → Left Hook → Right Uppercut: A power punch combination that leads to knockouts.",
-      46: "Jab → Cross → Rear Leg Kick → Spinning Back Fist: End a leg kick combo with a spinning back fist.",
-      47: "Cross → Left Hook → Overhand Right → Left Hook: A sequence of looping punches that overwhelm opponents.",
-      48: "Jab → Cross → Step Forward → Rear Head Kick: Close distance and set up a head kick after punches.",
-      49: "Inside Leg Kick → Cross → Lead Hook → Rear Uppercut: Start low and finish high with this sequence.",
-      50: "Jab → Cross → Lead Hook → Rear Spinning Hook Kick: A flashy but effective knockout combo.",
-      51: "Lead Body Hook → Cross → Rear Uppercut: Hit the body, then go upstairs for the knockout.",
-      52: "Jab → Cross → Lead Head Kick: A basic but deadly high kick setup.",
-      53: "Teep Kick → Step Back → Cross → Left Hook: Use a teep to create space, then counter with a combo.",
-      54: "Jab → Overhand Right → Left Hook: A sneaky knockout combo that catches opponents off guard.",
-      55: "Cross → Lead Hook → Cross → Rear Knee: Land hard punches, then throw a knee up the middle.",
-      56: "Step Back → Right Uppercut → Left Hook: Step back to avoid a punch, then counter with power shots.",
-      57: "Jab → Cross → Fake Low Kick → Rear Head Kick: Fake to the leg before throwing a high kick.",
-      58: "Jab → Cross → Lead Hook → Spinning Heel Kick: A boxing setup into a spinning kick knockout.",
-      59: "Cross → Duck Opponent’s Hook → Right Uppercut: Avoid their hook and land a clean uppercut.",
-      60: "Overhand Right → Lead Hook → Cross → Rear Head Kick: A combination that mixes power with deception.",
-      61: "Jab → Cross → Lead Hook → Rear Flying Knee: After punches, jump into a knee strike.",
-      62: "Slip Opponent’s Jab → Overhand Right → Left Hook: A counter combo that has ended many fights.",
-      63: "Jab → Fake Cross → Lead Hook → Rear Spinning Elbow: A deceptive elbow knockout combo.",
-      64: "Inside Leg Kick → Cross → Left Hook → Overhand Right: Break their rhythm before landing power shots.",
-      65: "Jab → Cross → Body Hook → Overhand Right: Attack the body before going for the knockout shot.",
-      66: "Jab → Cross → Step Back → Spinning Back Kick: A tricky setup for a devastating body kick.",
-      67: "Rear Teep Kick → Overhand Right: Push them back, then step in with a big punch.",
-      68: "Cross → Lead Hook → Rear Uppercut → Rear Head Kick: A chain of attacks that keep opponents guessing.",
-      69: "Jab → Cross → Lead Uppercut → Cross: A crisp boxing combination ending in power.",
-      70: "Right Hook → Left Hook → Right Cross → Rear Head Kick: A mix of looping punches into a kick.",
-      71: "Jab → Fake Cross → Rear Uppercut: Fake them out before landing a knockout uppercut.",
-      72: "Cross → Duck → Right Hook → Left Hook: Throw, evade, and counter in one fluid motion.",
-      73: "Jab → Cross → Lead Hook → Rear Spinning Back Kick: A flashy but effective finishing move.",
-      74: "Lead Hook → Cross → Step Forward → Rear Elbow: Engage with punches before landing an elbow.",
-      75: "Overhand Right → Rear Uppercut → Lead Hook: A heavy power shot combination.",
-      76: "Jab → Cross → Rear Low Kick → Spinning Hook Kick: A sneaky head kick setup.",
-      77: "Jab → Cross → Overhand Right → Rear Knee: Box into a knee strike to the body or head.",
-      78: "Jab → Fake Cross → Left Hook → Rear Spinning Heel Kick: Deceive before finishing with a spinning kick.",
-      79: "Jab → Cross → Lead Hook → Rear Superman Punch: A clean knockout combination.",
-      80: "Jab → Rear Teep Kick → Cross → Lead Hook: A mix of kicks and punches.",
-      81: "Jab → Cross → Fake Low Kick → Spinning Back Kick: Fake low, strike high.",
-      82: "Lead Body Hook → Rear Uppercut → Cross: A sneaky body-head combination.",
-      83: "Jab → Cross → Lead Hook → Jumping Switch Knee: Catch them off guard with a jumping knee.",
-      84: "Jab → Cross → Duck → Right Uppercut: Evade and counter in one move.",
-      85: "Cross → Lead Hook → Rear Leg Kick: Slow them down before finishing them off.",
-      86: "Jab → Cross → Rear Spinning Hook Kick: A tricky high kick setup.",
-      87: "Jab → Cross → Lead Hook → Flying Knee: Set up a flying knee with punches.",
-      88: "Jab → Rear Uppercut → Lead Hook → Cross: Classic boxing combination.",
-      89: "Inside Leg Kick → Overhand Right → Rear Head Kick: Attack low and high in quick succession.",
-      90: "Jab → Fake Cross → Rear Spinning Back Elbow: Fake them into walking into an elbow.",
-      91: "Cross → Left Hook → Right Hook → Rear Head Kick: A knockout-worthy mix.",
-      92: "Jab → Cross → Lead Hook → Rear Uppercut: A well-balanced striking sequence.",
-      93: "Jab → Rear Teep Kick → Spinning Heel Kick: Fake the teep, then go high.",
-      94: "Jab → Cross → Left Hook → Spinning Back Fist: Punches into a spinning knockout shot.",
-      95: "Jab → Fake Cross → Rear Spinning Hook Kick: A deadly knockout setup.",
-      96: "Inside Leg Kick → Cross → Rear Spinning Back Kick: A mix of kicks and punches.",
-      97: "Jab → Cross → Rear Leg Kick → Spinning Heel Kick: A devastating knockout sequence.",
-      98: "Overhand Right → Lead Hook → Rear Uppercut → Rear Head Kick: Power strikes leading to a head kick finish.",
-      99: "Jab → Rear Superman Punch → Rear Spinning Hook Kick: A high-risk but effective combination.",
-      100: "Jab → Cross → Lead Hook → Rear Spinning Elbow: Punch setup leading into a finishing elbow strike."
+      1: "Jab → Cross → Left Hook",
+      2: "Jab → Cross → Right Head Kick",
+      3: "Inside Leg Kick → Overhand Right",
+      4: "Cross → Left Hook → Right Uppercut",
+      5: "Jab → Rear Body Kick",
+      6: "Double Jab → Cross → Left Hook → Right Leg Kick",
+      7: "Jab → Fake Cross → Lead Head Kick",
+      8: "Left Hook to the Body → Left Hook to the Head",
+      9: "Cross → Left Hook → Spinning Back Fist",
+      10: "Jab → Cross → Lead Uppercut",
+      11: "Teep Kick → Overhand Right",
+      12: "Jab → Cross → Rear Knee",
+      13: "Slip Opponent's Jab → Overhand Right",
+      14: "Cross → Rear Elbow",
+      15: "Jab → Cross → Lead Hook → Rear Low Kick",
+      16: "Right Cross → Left Hook → Right Uppercut → Left Head Kick",
+      17: "Fake Cross → Rear Head Kick",
+      18: "Jab → Cross → Duck Opponent's Punch → Right Uppercut",
+      19: "Right Hook → Left Hook → Right Hook",
+      20: "Jab → Rear Uppercut → Lead Hook",
+      21: "Jab → Cross → Rear Teep Kick",
+      22: "Lead Body Hook → Overhand Right",
+      23: "Cross → Slip Opponent's Punch → Left Hook",
+      24: "Cross → Spinning Back Kick",
+      25: "Jab → Cross → Hook → Low Kick",
+      26: "Jab → Cross → Left Uppercut → Right Hook",
+      27: "Fake Jab → Overhand Right → Left Hook",
+      28: "Teep Kick → Jab → Cross",
+      29: "Lead Hook → Rear Low Kick → Rear Head Kick",
+      30: "Jab → Cross → Lead Hook → Spinning Back Elbow",
+      31: "Cross → Step Back → Right High Kick",
+      32: "Jab → Rear Knee → Left Hook",
+      33: "Cross → Lead Uppercut → Cross",
+      34: "Inside Leg Kick → Cross → Overhand Right",
+      35: "Cross → Left Hook → Superman Punch",
+      36: "Jab → Right Hook → Spinning Hook Kick",
+      37: "Fake Cross → Spinning Back Kick to the Body",
+      38: "Jab → Jab → Overhand Right → Rear Uppercut",
+      39: "Cross → Left Hook → Right Hook → Left Hook → Rear Head Kick",
+      40: "Jab → Fake Cross → Left Hook → Right Uppercut",
+      41: "Jab → Cross → Lead Body Hook → Rear Head Kick",
+      42: "Slip Opponent’s Jab → Lead Uppercut → Cross",
+      43: "Jab → Rear Uppercut → Lead Hook → Rear Low Kick",
+      44: "Cross → Lead Hook → Rear Elbow",
+      45: "Overhand Right → Left Hook → Right Uppercut",
+      46: "Jab → Cross → Rear Leg Kick → Spinning Back Fist",
+      47: "Cross → Left Hook → Overhand Right → Left Hook",
+      48: "Jab → Cross → Step Forward → Rear Head Kick",
+      49: "Inside Leg Kick → Cross → Lead Hook → Rear Uppercut",
+      50: "Jab → Cross → Lead Hook → Rear Spinning Hook Kick",
+      51: "Lead Body Hook → Cross → Rear Uppercut",
+      52: "Jab → Cross → Lead Head Kick",
+      53: "Teep Kick → Step Back → Cross → Left Hook",
+      54: "Jab → Overhand Right → Left Hook",
+      55: "Cross → Lead Hook → Cross → Rear Knee",
+      56: "Step Back → Right Uppercut → Left Hook",
+      57: "Jab → Cross → Fake Low Kick → Rear Head Kick",
+      58: "Jab → Cross → Lead Hook → Spinning Heel Kick",
+      59: "Cross → Duck Opponent’s Hook → Right Uppercut",
+      60: "Overhand Right → Lead Hook → Cross → Rear Head Kick",
+      61: "Jab → Cross → Lead Hook → Rear Flying Knee",
+      62: "Slip Opponent’s Jab → Overhand Right → Left Hook",
+      63: "Jab → Fake Cross → Lead Hook → Rear Spinning Elbow",
+      64: "Inside Leg Kick → Cross → Left Hook → Overhand Right",
+      65: "Jab → Cross → Body Hook → Overhand Right",
+      66: "Jab → Cross → Step Back → Spinning Back Kick",
+      67: "Rear Teep Kick → Overhand Right",
+      68: "Cross → Lead Hook → Rear Uppercut → Rear Head Kick",
+      69: "Jab → Cross → Lead Uppercut → Cross",
+      70: "Right Hook → Left Hook → Right Cross → Rear Head Kick",
+      71: "Jab → Fake Cross → Rear Uppercut",
+      72: "Cross → Duck → Right Hook → Left Hook",
+      73: "Jab → Cross → Lead Hook → Rear Spinning Back Kick",
+      74: "Lead Hook → Cross → Step Forward → Rear Elbow",
+      75: "Overhand Right → Rear Uppercut → Lead Hook",
+      76: "Jab → Cross → Rear Low Kick → Spinning Hook Kick",
+      77: "Jab → Cross → Overhand Right → Rear Knee",
+      78: "Jab → Fake Cross → Left Hook → Rear Spinning Heel Kick",
+      79: "Jab → Cross → Lead Hook → Rear Superman Punch",
+      80: "Jab → Rear Teep Kick → Cross → Lead Hook",
+      81: "Jab → Cross → Fake Low Kick → Spinning Back Kick",
+      82: "Lead Body Hook → Rear Uppercut → Cross",
+      83: "Jab → Cross → Lead Hook → Jumping Switch Knee",
+      84: "Jab → Cross → Duck → Right Uppercut",
+      85: "Cross → Lead Hook → Rear Leg Kick",
+      86: "Jab → Cross → Rear Spinning Hook Kick",
+      87: "Jab → Cross → Lead Hook → Flying Knee",
+      88: "Jab → Rear Uppercut → Lead Hook → Cross",
+      89: "Inside Leg Kick → Overhand Right → Rear Head Kick",
+      90: "Jab → Fake Cross → Rear Spinning Back Elbow",
+      91: "Cross → Left Hook → Right Hook → Rear Head Kick",
+      92: "Jab → Cross → Lead Hook → Rear Uppercut",
+      93: "Jab → Rear Teep Kick → Spinning Heel Kick",
+      94: "Jab → Cross → Left Hook → Spinning Back Fist",
+      95: "Jab → Fake Cross → Rear Spinning Hook Kick",
+      96: "Inside Leg Kick → Cross → Rear Spinning Back Kick",
+      97: "Jab → Cross → Rear Leg Kick → Spinning Heel Kick",
+      98: "Overhand Right → Lead Hook → Rear Uppercut → Rear Head Kick",
+      99: "Jab → Rear Superman Punch → Rear Spinning Hook Kick",
+      100: "Jab → Cross → Lead Hook → Rear Spinning Elbow"
     },
 
 
     'Combat Sambo': {
       1: "Jab, cross, left hook, right low kick",
-  2: "Front kick, cross, left hook, takedown",
-  3: "Slip, right uppercut, left hook, knee strike",
-  4: "Parry, overhand right, left body hook, right elbow",
-  5: "Double leg takedown, ground and pound",
-  6: "Clinch, knee strike, hip throw",
-  7: "Jab, cross, duck under, rear naked choke",
-  8: "Low kick, cross, hook, high kick",
-  9: "Feint jab, overhand right, left hook, ankle pick",
-  10: "Sprawl, front headlock, knee strikes",
-  11: "Jab, cross, left hook, right low kick, takedown",
-  12: "Side step, right hook, left uppercut, clinch, throw",
-  13: "Push kick, spinning back fist, clinch, hip toss",
-  14: "Parry, cross, hook, leg sweep",
-  15: "Jab, cross, level change, double leg takedown",
-  16: "Inside leg kick, cross, hook, outside leg kick",
-  17: "Overhand right, left hook, right uppercut, takedown",
-  18: "Clinch, knee strike, foot sweep, ground control",
-  19: "Fake takedown, uppercut, hook, high kick",
-  20: "Jab, cross, bob and weave, body shot, takedown",
-  21: "Front kick, cross, hook, spinning back kick",
-  22: "Slip jab, counter cross, left hook, right low kick",
-  23: "Catch kick, sweep, ground and pound",
-  24: "Jab, cross, level change, single leg takedown",
-  25: "Clinch, dirty boxing, knee strike, throw",
-  26: "Low kick, jab, cross, high kick",
-  27: "Feint kick, overhand right, left hook, takedown",
-  28: "Sprawl, front headlock, gator roll",
-  29: "Jab, cross, duck under, back take",
-  30: "Push kick, spinning heel kick, clinch, throw",
-  31: "Parry, elbow strike, knee, hip throw",
-  32: "Inside leg kick, jab, cross, outside leg kick, takedown",
-  33: "Overhand right, left hook, right uppercut, ankle pick",
-  34: "Clinch, knee strike, foot sweep, arm bar",
-  35: "Fake jab, right uppercut, left hook, takedown",
-  36: "Front kick, spinning back fist, clinch, suplex",
-  37: "Slip, body shot, hook, high kick",
-  38: "Jab, cross, level change, ankle pick",
-  39: "Low kick, overhand right, left hook, clinch, throw",
-  40: "Catch kick, counter punch, takedown",
-  41: "Jab, cross, bob and weave, liver shot, clinch",
-  42: "Push kick, cross, hook, leg kick",
-  43: "Feint takedown, uppercut, hook, knee strike",
-  44: "Parry, cross counter, hook, takedown",
-  45: "Clinch, knee strike, outside trip",
-  46: "Inside leg kick, jab, cross, high kick",
-  47: "Overhand right, left hook, level change, double leg",
-  48: "Sprawl, front headlock, snap down",
-  49: "Jab, cross, slip, body shot, clinch, throw",
-  50: "Low kick, jab, cross, spinning back kick",
-  51: "Feint jab, right hook, left uppercut, takedown",
-  52: "Catch punch, counter elbow, knee, throw",
-  53: "Push kick, spinning back fist, takedown",
-  54: "Slip, right uppercut, left hook, right low kick",
-  55: "Jab, cross, level change, single leg, lift, slam",
-  56: "Clinch, dirty boxing, knee strike, foot sweep",
-  57: "Inside leg kick, cross, hook, outside leg kick, clinch",
-  58: "Overhand right, left hook, right uppercut, double leg",
-  59: "Front kick, jab, cross, high kick",
-  60: "Feint kick, right hook, left uppercut, takedown",
-  61: "Sprawl, front headlock, arm drag to back take",
-  62: "Jab, cross, duck under, suplex",
-  63: "Low kick, overhand right, left hook, clinch, knee",
-  64: "Parry, counter cross, hook, spinning back kick",
-  65: "Clinch, knee strike, hip throw, ground control",
-  66: "Fake jab, right uppercut, left hook, leg kick",
-  67: "Push kick, cross, hook, takedown",
-  68: "Slip, body shot, hook, high kick, clinch",
-  69: "Jab, cross, level change, ankle pick, ground and pound",
-  70: "Inside leg kick, jab, cross, outside leg kick, spinning back fist",
-  71: "Overhand right, left hook, right uppercut, clinch, throw",
-  72: "Catch kick, sweep, mount, submission attempt",
-  73: "Front kick, spinning heel kick, takedown",
-  74: "Feint takedown, uppercut, hook, high kick",
-  75: "Parry, elbow strike, knee, outside trip",
-  76: "Clinch, dirty boxing, knee strike, inside trip",
-  77: "Low kick, jab, cross, spinning back kick, clinch",
-  78: "Slip jab, counter cross, left hook, right low kick, takedown",
-  79: "Sprawl, front headlock, go behind",
-  80: "Jab, cross, bob and weave, liver shot, takedown",
-  81: "Push kick, overhand right, left hook, clinch, throw",
-  82: "Feint jab, right hook, left uppercut, leg kick",
-  83: "Catch punch, counter knee, clinch, throw",
-  84: "Inside leg kick, cross, hook, high kick, takedown",
-  85: "Overhand right, left hook, level change, single leg",
-  86: "Front kick, jab, cross, spinning back fist",
-  87: "Slip, right uppercut, left hook, takedown",
-  88: "Jab, cross, duck under, back take, rear naked choke",
-  89: "Low kick, overhand right, left hook, right elbow",
-  90: "Parry, counter hook, cross, knee strike",
-  91: "Clinch, knee strike, foot sweep, arm lock",
-  92: "Fake takedown, uppercut, hook, spinning back kick",
-  93: "Push kick, cross, hook, outside leg kick, clinch",
-  94: "Slip, body shot, hook, high kick, takedown",
-  95: "Jab, cross, level change, double leg, ground and pound",
-  96: "Inside leg kick, jab, cross, outside leg kick, spinning heel kick",
-  97: "Overhand right, left hook, right uppercut, clinch, suplex",
-  98: "Catch kick, counter punch, takedown, submission attempt",
-  99: "Front kick, spinning back fist, clinch, knee strike, throw",
-  100: "Feint jab, right hook, left uppercut, leg kick, takedown"
-  },
+      2: "Front kick, cross, left hook, takedown",
+      3: "Slip, right uppercut, left hook, knee strike",
+      4: "Parry, overhand right, left body hook, right elbow",
+      5: "Double leg takedown, ground and pound",
+      6: "Clinch, knee strike, hip throw",
+      7: "Jab, cross, duck under, rear naked choke",
+      8: "Low kick, cross, hook, high kick",
+      9: "Feint jab, overhand right, left hook, ankle pick",
+      10: "Sprawl, front headlock, knee strikes",
+      11: "Jab, cross, left hook, right low kick, takedown",
+      12: "Side step, right hook, left uppercut, clinch, throw",
+      13: "Push kick, spinning back fist, clinch, hip toss",
+      14: "Parry, cross, hook, leg sweep",
+      15: "Jab, cross, level change, double leg takedown",
+      16: "Inside leg kick, cross, hook, outside leg kick",
+      17: "Overhand right, left hook, right uppercut, takedown",
+      18: "Clinch, knee strike, foot sweep, ground control",
+      19: "Fake takedown, uppercut, hook, high kick",
+      20: "Jab, cross, bob and weave, body shot, takedown",
+      21: "Front kick, cross, hook, spinning back kick",
+      22: "Slip jab, counter cross, left hook, right low kick",
+      23: "Catch kick, sweep, ground and pound",
+      24: "Jab, cross, level change, single leg takedown",
+      25: "Clinch, dirty boxing, knee strike, throw",
+      26: "Low kick, jab, cross, high kick",
+      27: "Feint kick, overhand right, left hook, takedown",
+      28: "Sprawl, front headlock, gator roll",
+      29: "Jab, cross, duck under, back take",
+      30: "Push kick, spinning heel kick, clinch, throw",
+      31: "Parry, elbow strike, knee, hip throw",
+      32: "Inside leg kick, jab, cross, outside leg kick, takedown",
+      33: "Overhand right, left hook, right uppercut, ankle pick",
+      34: "Clinch, knee strike, foot sweep, arm bar",
+      35: "Fake jab, right uppercut, left hook, takedown",
+      36: "Front kick, spinning back fist, clinch, suplex",
+      37: "Slip, body shot, hook, high kick",
+      38: "Jab, cross, level change, ankle pick",
+      39: "Low kick, overhand right, left hook, clinch, throw",
+      40: "Catch kick, counter punch, takedown",
+      41: "Jab, cross, bob and weave, liver shot, clinch",
+      42: "Push kick, cross, hook, leg kick",
+      43: "Feint takedown, uppercut, hook, knee strike",
+      44: "Parry, cross counter, hook, takedown",
+      45: "Clinch, knee strike, outside trip",
+      46: "Inside leg kick, jab, cross, high kick",
+      47: "Overhand right, left hook, level change, double leg",
+      48: "Sprawl, front headlock, snap down",
+      49: "Jab, cross, slip, body shot, clinch, throw",
+      50: "Low kick, jab, cross, spinning back kick",
+      51: "Feint jab, right hook, left uppercut, takedown",
+      52: "Catch punch, counter elbow, knee, throw",
+      53: "Push kick, spinning back fist, takedown",
+      54: "Slip, right uppercut, left hook, right low kick",
+      55: "Jab, cross, level change, single leg, lift, slam",
+      56: "Clinch, dirty boxing, knee strike, foot sweep",
+      57: "Inside leg kick, cross, hook, outside leg kick, clinch",
+      58: "Overhand right, left hook, right uppercut, double leg",
+      59: "Front kick, jab, cross, high kick",
+      60: "Feint kick, right hook, left uppercut, takedown",
+      61: "Sprawl, front headlock, arm drag to back take",
+      62: "Jab, cross, duck under, suplex",
+      63: "Low kick, overhand right, left hook, clinch, knee",
+      64: "Parry, counter cross, hook, spinning back kick",
+      65: "Clinch, knee strike, hip throw, ground control",
+      66: "Fake jab, right uppercut, left hook, leg kick",
+      67: "Push kick, cross, hook, takedown",
+      68: "Slip, body shot, hook, high kick, clinch",
+      69: "Jab, cross, level change, ankle pick, ground and pound",
+      70: "Inside leg kick, jab, cross, outside leg kick, spinning back fist",
+      71: "Overhand right, left hook, right uppercut, clinch, throw",
+      72: "Catch kick, sweep, mount, submission attempt",
+      73: "Front kick, spinning heel kick, takedown",
+      74: "Feint takedown, uppercut, hook, high kick",
+      75: "Parry, elbow strike, knee, outside trip",
+      76: "Clinch, dirty boxing, knee strike, inside trip",
+      77: "Low kick, jab, cross, spinning back kick, clinch",
+      78: "Slip jab, counter cross, left hook, right low kick, takedown",
+      79: "Sprawl, front headlock, go behind",
+      80: "Jab, cross, bob and weave, liver shot, takedown",
+      81: "Push kick, overhand right, left hook, clinch, throw",
+      82: "Feint jab, right hook, left uppercut, leg kick",
+      83: "Catch punch, counter knee, clinch, throw",
+      84: "Inside leg kick, cross, hook, high kick, takedown",
+      85: "Overhand right, left hook, level change, single leg",
+      86: "Front kick, jab, cross, spinning back fist",
+      87: "Slip, right uppercut, left hook, takedown",
+      88: "Jab, cross, duck under, back take, rear naked choke",
+      89: "Low kick, overhand right, left hook, right elbow",
+      90: "Parry, counter hook, cross, knee strike",
+      91: "Clinch, knee strike, foot sweep, arm lock",
+      92: "Fake takedown, uppercut, hook, spinning back kick",
+      93: "Push kick, cross, hook, outside leg kick, clinch",
+      94: "Slip, body shot, hook, high kick, takedown",
+      95: "Jab, cross, level change, double leg, ground and pound",
+      96: "Inside leg kick, jab, cross, outside leg kick, spinning heel kick",
+      97: "Overhand right, left hook, right uppercut, clinch, suplex",
+      98: "Catch kick, counter punch, takedown, submission attempt",
+      99: "Front kick, spinning back fist, clinch, knee strike, throw",
+      100: "Feint jab, right hook, left uppercut, leg kick, takedown"
+    },
 
   'BJJ': {
     1: "Double leg takedown > Mount > Ground and pound",
@@ -851,60 +738,79 @@ const taskDifficulties = {
 
 
     'Judo': {
-    1: "O Goshi (Major Hip Throw)",
-    2: "Seoi Nage (Shoulder Throw)",
-    3: "Uchi Mata (Inner Thigh Throw)",
-    4: "Tai Otoshi (Body Drop)",
-    5: "Koshi Guruma (Hip Wheel)",
-    6: "Harai Goshi (Hip Sweep)",
-    7: "Sumi Gaeshi (Corner Reversal)",
-    8: "Ippon Seoi Nage (One-Arm Shoulder Throw)",
-    9: "Osoto Gari (Large Outer Reap)",
-    10: "Osoto Otoshi (Large Outer Drop)",
-    11: "Ashi Guruma (Foot Wheel)",
-    12: "De Ashi Barai (Advanced Foot Sweep)",
-    13: "Okuri Ashi Barai (Sliding Foot Sweep)",
-    14: "Sasae Tsurikomi Ashi (Supporting Foot Lift Sweep)",
-    15: "Hiza Guruma (Knee Wheel)",
-    16: "Uchi Ashi Barai (Inner Foot Sweep)",
-    17: "Kouchi Gari (Small Inner Reap)",
-    18: "Kouchi Barai (Small Inner Sweep)",
-    19: "Ashi Tori Zemi (Foot Catching)",
-    20: "Tsurikomi Ashi (Lifting Foot Sweep)",
-    21: "Tomoe Nage (Circle Throw)",
-    22: "Sumi Gaeshi (Corner Reversal)",
-    23: "Ura Nage (Back Throw)",
-    24: "Yoko Gake (Side Hook)",
-    25: "Yoko Otoshi (Side Drop)",
-    26: "Hane Goshi (Spring Hip Throw)",
-    27: "Kani Basami (Crab Leg Sweep)",
-    28: "Tani Otoshi (Valley Drop)",
-    29: "Ashi Garami (Leg Trap)",
-    30: "Uchi Mata Sukashi (Inner Thigh Reversal)",
-    31: "Kesa Gatame (Scarf Hold)",
-    32: "Yoko Shiho Gatame (Side Four Corner Hold)",
-    33: "Tate Shiho Gatame (Top Four Corner Hold)",
-    34: "Kami Shiho Gatame (Upper Four Corner Hold)",
-    35: "Juji Gatame (Armbar)",
-    36: "Ude Garami (Entangled Arm)",
-    37: "Shime Waza (Strangulation Techniques)",
-    38: "Kata Gatame (Shoulder Hold)",
-    39: "Ashi Garami (Leg Entanglement)",
-    40: "Hiza Gatame (Knee Hold)",
-    41: "Atemi Waza (Striking Techniques)",
-    42: "Kansetsu Waza (Joint Locks)",
-    43: "Ashi Uke (Foot Block)",
-    44: "Waki Gatame (Armpit Arm Lock)",
-    45: "Atemi (Striking with the Open Hand)",
-    46: "Ude Hishigi Juji Gatame (Armbar in Cross Position)",
-    47: "Ashi Hishigi (Foot Lock)",
-    48: "Ude Hishigi Ura (Reverse Arm Lock)",
-    49: "Kote Hishigi (Wrist Lock)",
-    50: "Kansetsu Waza Kata Gatame (Shoulder Lock)"
-    },
+      1: "O Goshi (Major Hip Throw)",
+      2: "Seoi Nage (Shoulder Throw)",
+      3: "Uchi Mata (Inner Thigh Throw)",
+      4: "Tai Otoshi (Body Drop)",
+      5: "Koshi Guruma (Hip Wheel)",
+      6: "Harai Goshi (Hip Sweep)",
+      7: "Sumi Gaeshi (Corner Reversal)",
+      8: "Ippon Seoi Nage (One-Arm Shoulder Throw)",
+      9: "Osoto Gari (Large Outer Reap)",
+      10: "Osoto Otoshi (Large Outer Drop)",
+      11: "Ashi Guruma (Foot Wheel)",
+      12: "De Ashi Barai (Advanced Foot Sweep)",
+      13: "Okuri Ashi Barai (Sliding Foot Sweep)",
+      14: "Sasae Tsurikomi Ashi (Supporting Foot Lift Sweep)",
+      15: "Hiza Guruma (Knee Wheel)",
+      16: "Uchi Ashi Barai (Inner Foot Sweep)",
+      17: "Kouchi Gari (Small Inner Reap)",
+      18: "Kouchi Barai (Small Inner Sweep)",
+      19: "Ashi Tori Zemi (Foot Catching)",
+      20: "Tsurikomi Ashi (Lifting Foot Sweep)",
+      21: "Tomoe Nage (Circle Throw)",
+      22: "Ura Nage (Back Throw)",
+      23: "Yoko Gake (Side Hook)",
+      24: "Yoko Otoshi (Side Drop)",
+      25: "Hane Goshi (Spring Hip Throw)",
+      26: "Kani Basami (Crab Leg Sweep)",
+      27: "Tani Otoshi (Valley Drop)",
+      28: "Ashi Garami (Leg Trap)",
+      29: "Uchi Mata Sukashi (Inner Thigh Reversal)",
+      30: "Kesa Gatame (Scarf Hold)",
+      31: "Yoko Shiho Gatame (Side Four Corner Hold)",
+      32: "Tate Shiho Gatame (Top Four Corner Hold)",
+      33: "Kami Shiho Gatame (Upper Four Corner Hold)",
+      34: "Juji Gatame (Armbar)",
+      35: "Ude Garami (Entangled Arm)",
+      36: "Shime Waza (Strangulation Techniques)",
+      37: "Kata Gatame (Shoulder Hold)",
+      38: "Ashi Garami (Leg Entanglement)",
+      39: "Hiza Gatame (Knee Hold)",
+      40: "Atemi Waza (Striking Techniques)",
+      41: "Kansetsu Waza (Joint Locks)",
+      42: "Ashi Uke (Foot Block)",
+      43: "Waki Gatame (Armpit Arm Lock)",
+      44: "Atemi (Striking with the Open Hand)",
+      45: "Ude Hishigi Juji Gatame (Armbar in Cross Position)",
+      46: "Ashi Hishigi (Foot Lock)",
+      47: "Ude Hishigi Ura (Reverse Arm Lock)",
+      48: "Kote Hishigi (Wrist Lock)",
+      49: "Kansetsu Waza Kata Gatame (Shoulder Lock)"
+
+
+
+      },
 
   };
 
+
+// Weighted random task picker.
+// Levels 1-12 are the fundamental core; draw them 70% of the time so
+// beginners get the basics. Styles without a basicLevels entry stay uniform.
+const basicLevels = { 'Boxing': 12 };
+const pickRandomTask = (style) => {
+  const tasks = taskDifficulties[style];
+  const taskLevels = Object.keys(tasks);
+  const basicCount = basicLevels[style] || 0;
+  let randomLevel;
+  if (basicCount > 0 && Math.random() < 0.7) {
+    randomLevel = taskLevels[Math.floor(Math.random() * basicCount)];
+  } else {
+    randomLevel = taskLevels[Math.floor(Math.random() * taskLevels.length)];
+  }
+  return tasks[randomLevel];
+};
 
 export default function App() {
  const [generatedTasks, setGeneratedTasks] = useState({});
@@ -914,7 +820,8 @@ export default function App() {
  const [trainingInterval, setTrainingInterval] = useState(null);
  
  // Separate rest periods for combinations and HIIT timer
- const [comboRestPeriod, setComboRestPeriod] = useState(5);
+ const [comboRestPeriod, setComboRestPeriod] = useState(10);
+ const [comboRepeatCount, setComboRepeatCount] = useState(1); // times each combo is called before advancing
  const [hiitRestPeriod, setHiitRestPeriod] = useState(10);
  
  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
@@ -932,17 +839,27 @@ export default function App() {
  const [timerSpeechPaused, setTimerSpeechPaused] = useState(false);
  const [comboSpeechPaused, setComboSpeechPaused] = useState(false);
 
+ // Voice options
+ const [availableVoices, setAvailableVoices] = useState([]);
+ const [speechVoice, setSpeechVoice] = useState(null); // identifier or null = device default
+ const [speechRate, setSpeechRate] = useState(0.9);
+ const [speechPitch, setSpeechPitch] = useState(1.0);
+
  const taskOpacity = useRef(new Animated.Value(0)).current;
  const scaleAnim = useRef(new Animated.Value(1)).current;
+ const currentTaskRef = useRef(null);
+ const repeatCounterRef = useRef(0);
 
  useEffect(() => {
    retrieveSavedTasks();
    retrieveFontSize();
    retrieveComboRestPeriod();
+   retrieveComboRepeatCount();
    retrieveHiitRestPeriod();
    retrieveWorkPeriod();
    retrieveTotalRounds();
    retrieveSpeechSettings();
+   loadAvailableVoices();
    return () => {
      Speech.stop();
    };
@@ -957,10 +874,14 @@ export default function App() {
        
        try {
          // Use different speech rates for different types of speech
-         const rate = speechItem.type === 'combo' ? 0.8 : 0.9;
-         
-         await Speech.speak(speechItem.text, {
+         const rate = speechItem.type === 'combo' ? speechRate * 0.8 : speechRate;
+         // Normalize separators so TTS reads "Jab, cross, hook" instead of "Jab greater-than cross"
+         const speakText = speechItem.text.replace(/\s*[>→]\s*/g, ', ').replace(/\s+/g, ' ').trim();
+        
+         await Speech.speak(speakText, {
            rate,
+           pitch: speechPitch,
+           ...(speechVoice ? { voice: speechVoice } : {}),
            onDone: () => {
              setSpeechQueue(prev => prev.slice(1));
              setIsSpeaking(false);
@@ -1001,7 +922,10 @@ export default function App() {
    try {
      const settings = {
        timerSpeechPaused,
-       comboSpeechPaused
+       comboSpeechPaused,
+       speechVoice,
+       speechRate,
+       speechPitch
      };
      await AsyncStorage.setItem('speechSettings', JSON.stringify(settings));
    } catch (error) {
@@ -1013,19 +937,46 @@ export default function App() {
    try {
      const settings = await AsyncStorage.getItem('speechSettings');
      if (settings !== null) {
-       const { timerSpeechPaused: timerPaused, comboSpeechPaused: comboPaused } = JSON.parse(settings);
+       const {
+         timerSpeechPaused: timerPaused,
+         comboSpeechPaused: comboPaused,
+         speechVoice: savedVoice,
+         speechRate: savedRate,
+         speechPitch: savedPitch
+       } = JSON.parse(settings);
        setTimerSpeechPaused(timerPaused);
        setComboSpeechPaused(comboPaused);
+       if (savedVoice) setSpeechVoice(savedVoice);
+       if (savedRate) setSpeechRate(savedRate);
+       if (savedPitch) setSpeechPitch(savedPitch);
      }
    } catch (error) {
      console.log('Error retrieving speech settings:', error);
    }
  };
 
+ const loadAvailableVoices = async () => {
+   try {
+     const voices = await Speech.getAvailableVoicesAsync();
+     // Prefer English voices, dedupe by name, keep a sensible list
+     const english = voices.filter(v => (v.language || '').toLowerCase().startsWith('en'));
+     const seen = new Set();
+     const deduped = english.filter(v => {
+       const key = v.name || v.identifier || '';
+       if (seen.has(key)) return false;
+       seen.add(key);
+       return true;
+     });
+     setAvailableVoices(deduped.length > 0 ? deduped : voices);
+   } catch (error) {
+     console.log('Error loading voices:', error);
+   }
+ };
+
  // Save speech settings when they change
  useEffect(() => {
    saveSpeechSettings();
- }, [timerSpeechPaused, comboSpeechPaused]);
+ }, [timerSpeechPaused, comboSpeechPaused, speechVoice, speechRate, speechPitch]);
 
  useEffect(() => {
    let interval = null;
@@ -1036,28 +987,24 @@ export default function App() {
          if (prevTime <= 1) {
            const newMode = timerMode === 'work' ? 'rest' : 'work';
            setTimerMode(newMode);
-           
-           // Timer announcements
-           if (newMode === 'work') {
-             addToSpeechQueue("Begin work period", 'timer');
-             if (timerMode === 'work') {
-               if (currentRound >= totalRounds) {
-                 addToSpeechQueue("Workout complete!", 'timer');
-                 setTimerActive(false);
-                 setCurrentRound(1);
-                 return 0;
-               } else {
-                 const nextRound = currentRound + 1;
-                 addToSpeechQueue(`Round ${nextRound}`, 'timer');
-                 setCurrentRound(nextRound);
-               }
+          
+           if (newMode === 'rest') {
+             // Work period ended — check if all rounds are done
+             if (currentRound >= totalRounds) {
+               addToSpeechQueue("Workout complete!", 'timer');
+               setTimerActive(false);
+               setCurrentRound(1);
+               return 0;
              }
-           } else {
              addToSpeechQueue("Rest now", 'timer');
+             return hiitRestPeriod;
            }
-           
-           // Use different rest periods for work vs. rest
-           return newMode === 'work' ? workPeriod : hiitRestPeriod;
+          
+           // Rest ended — advance to next round
+           const nextRound = currentRound + 1;
+           addToSpeechQueue(`Round ${nextRound}`, 'timer');
+           setCurrentRound(nextRound);
+           return workPeriod;
          } else if (prevTime <= 3 && prevTime > 0) {
            // Countdown the last 3 seconds
            addToSpeechQueue(prevTime.toString(), 'timer');
@@ -1111,7 +1058,37 @@ export default function App() {
  const updateComboRestPeriod = (newPeriod) => {
    setComboRestPeriod(newPeriod);
    saveComboRestPeriod(newPeriod);
-   
+  
+   if (isTraining && currentStyle) {
+     stopTrainingSession();
+     startTrainingSession(currentStyle);
+   }
+ };
+
+ // Functions for combo repeat count
+ const retrieveComboRepeatCount = async () => {
+   try {
+     const savedRepeatCount = await AsyncStorage.getItem('comboRepeatCount');
+     if (savedRepeatCount !== null) {
+       setComboRepeatCount(JSON.parse(savedRepeatCount));
+     }
+   } catch (error) {
+     console.log('Error retrieving combo repeat count:', error);
+   }
+ };
+
+ const saveComboRepeatCount = async (newRepeatCount) => {
+   try {
+     await AsyncStorage.setItem('comboRepeatCount', JSON.stringify(newRepeatCount));
+   } catch (error) {
+     console.log('Error saving combo repeat count:', error);
+   }
+ };
+
+ const updateComboRepeatCount = (newCount) => {
+   setComboRepeatCount(newCount);
+   saveComboRepeatCount(newCount);
+  
    if (isTraining && currentStyle) {
      stopTrainingSession();
      startTrainingSession(currentStyle);
@@ -1277,16 +1254,25 @@ export default function App() {
  const startTrainingSession = (style) => {
    setIsTraining(true);
    setCurrentStyle(style);
+   // Reset repeat state so a new session starts with a fresh combo
+   currentTaskRef.current = null;
+   repeatCounterRef.current = 0;
 
    const generateAndSpeak = () => {
-     const tasks = taskDifficulties[style];
-     const taskLevels = Object.keys(tasks);
-     const randomLevel = taskLevels[Math.floor(Math.random() * taskLevels.length)];
-     const task = tasks[randomLevel];
-     
-     setGeneratedTasks(prev => ({ ...prev, [style]: task }));
-     animateTaskGeneration();
-     speakCombination(task);
+     // If we've hit the repeat count (or have no current task), pick a new combo
+     if (!currentTaskRef.current || repeatCounterRef.current >= comboRepeatCount) {
+       const task = pickRandomTask(style);
+       currentTaskRef.current = task;
+       repeatCounterRef.current = 1;
+
+       setGeneratedTasks(prev => ({ ...prev, [style]: task }));
+       animateTaskGeneration();
+       speakCombination(task);
+     } else {
+       // Repeat the current combo
+       repeatCounterRef.current += 1;
+       speakCombination(currentTaskRef.current);
+     }
    };
 
    generateAndSpeak();
@@ -1306,11 +1292,7 @@ export default function App() {
  };
 
  const generateTask = (stat) => {
-   const tasks = taskDifficulties[stat];
-   const taskLevels = Object.keys(tasks);
-   const randomLevel = Math.floor(Math.random() * taskLevels.length);
-   const taskLevel = taskLevels[randomLevel];
-   const task = tasks[taskLevel];
+   const task = pickRandomTask(stat);
    setGeneratedTasks({ ...generatedTasks, [stat]: task });
    animateTaskGeneration();
  };
@@ -1410,7 +1392,7 @@ export default function App() {
          >
            <Text style={styles.categoryTitle}>{category}</Text>
            <View style={styles.taskContainer}>
-             <Text style={styles.taskText}>{task || 'Tap to generate'}</Text>
+             <Text style={[styles.taskText, { fontSize }]}>{task || 'Tap to generate'}</Text>
            </View>
            <View style={styles.cardControls}>
              <TouchableOpacity 
@@ -1508,7 +1490,7 @@ export default function App() {
                <Text style={styles.modalSubtitle}>Combinations Settings</Text>
                <Text style={styles.settingLabel}>Combinations Rest Period</Text>
                <View style={styles.restButtons}>
-                 {[10, 15, 20, 25, 30, 35].map((seconds) => (
+                 {[5, 10, 15, 20, 25, 30, 35].map((seconds) => (
                    <TouchableOpacity
                      key={seconds}
                      style={[
@@ -1522,6 +1504,27 @@ export default function App() {
                        comboRestPeriod === seconds && styles.restButtonTextActive
                      ]}>
                        {seconds}s
+                     </Text>
+                   </TouchableOpacity>
+                 ))}
+               </View>
+
+               <Text style={styles.settingLabel}>Repeats Per Combo</Text>
+               <View style={styles.restButtons}>
+                 {[1, 2, 3, 5, 10].map((count) => (
+                   <TouchableOpacity
+                     key={count}
+                     style={[
+                       styles.restButton,
+                       comboRepeatCount === count && styles.restButtonActive
+                     ]}
+                     onPress={() => updateComboRepeatCount(count)}
+                   >
+                     <Text style={[
+                       styles.restButtonText,
+                       comboRepeatCount === count && styles.restButtonTextActive
+                     ]}>
+                       {count === 1 ? 'Once' : `${count}x`}
                      </Text>
                    </TouchableOpacity>
                  ))}
@@ -1613,7 +1616,86 @@ export default function App() {
                    <Text style={styles.toggleText}>{comboSpeechPaused ? 'OFF' : 'ON'}</Text>
                  </TouchableOpacity>
                </View>
-             </ScrollView>
+
+               <Text style={styles.modalSubtitle}>Voice Options</Text>
+
+               <Text style={styles.settingLabel}>Coach Voice</Text>
+               <View style={styles.restButtons}>
+                 <TouchableOpacity
+                   style={[
+                     styles.restButton,
+                     !speechVoice && styles.restButtonActive
+                   ]}
+                   onPress={() => setSpeechVoice(null)}
+                 >
+                   <Text style={[
+                     styles.restButtonText,
+                     !speechVoice && styles.restButtonTextActive
+                   ]}>
+                     Default
+                   </Text>
+                 </TouchableOpacity>
+                 {availableVoices.slice(0, 12).map((voice) => (
+                   <TouchableOpacity
+                     key={voice.identifier}
+                     style={[
+                       styles.voiceButton,
+                       speechVoice === voice.identifier && styles.restButtonActive
+                     ]}
+                     onPress={() => setSpeechVoice(voice.identifier)}
+                   >
+                     <Text style={[
+                       styles.restButtonText,
+                       speechVoice === voice.identifier && styles.restButtonTextActive
+                     ]} numberOfLines={1}>
+                       {voice.name || voice.language}
+                     </Text>
+                   </TouchableOpacity>
+                 ))}
+               </View>
+
+               <Text style={styles.settingLabel}>Speech Rate</Text>
+               <View style={styles.restButtons}>
+                 {[{ label: 'Slow', value: 0.7 }, { label: 'Normal', value: 0.9 }, { label: 'Fast', value: 1.1 }].map((opt) => (
+                   <TouchableOpacity
+                     key={opt.label}
+                     style={[
+                       styles.restButton,
+                       speechRate === opt.value && styles.restButtonActive
+                     ]}
+                     onPress={() => setSpeechRate(opt.value)}
+                   >
+                     <Text style={[
+                       styles.restButtonText,
+                       speechRate === opt.value && styles.restButtonTextActive
+                     ]}>
+                       {opt.label}
+                     </Text>
+                   </TouchableOpacity>
+                 ))}
+               </View>
+
+               <Text style={styles.settingLabel}>Pitch</Text>
+               <View style={styles.restButtons}>
+                 {[{ label: 'Low', value: 0.8 }, { label: 'Normal', value: 1.0 }, { label: 'High', value: 1.3 }].map((opt) => (
+                   <TouchableOpacity
+                     key={opt.label}
+                     style={[
+                       styles.restButton,
+                       speechPitch === opt.value && styles.restButtonActive
+                     ]}
+                     onPress={() => setSpeechPitch(opt.value)}
+                   >
+                     <Text style={[
+                       styles.restButtonText,
+                       speechPitch === opt.value && styles.restButtonTextActive
+                     ]}>
+                       {opt.label}
+                     </Text>
+                   </TouchableOpacity>
+                 ))}
+               </View>
+               </ScrollView>
 
              <TouchableOpacity
                style={styles.closeButton}
@@ -1780,6 +1862,14 @@ const styles = StyleSheet.create({
  },
  restButtonTextActive: {
    fontWeight: 'bold',
+ },
+ voiceButton: {
+   paddingVertical: 8,
+   paddingHorizontal: 14,
+   borderRadius: 20,
+   backgroundColor: 'rgba(255,255,255,0.1)',
+   maxWidth: '45%',
+   alignItems: 'center',
  },
  closeButton: {
    backgroundColor: '#4a90e2',
