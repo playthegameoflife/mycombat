@@ -7,6 +7,7 @@ import {
   TouchableOpacity, 
   Dimensions, 
   Animated,
+  PanResponder,
   SafeAreaView,
   Platform,
   Modal,
@@ -590,6 +591,60 @@ const pickRandomTask = (style, styles, difficultyFilter) => {
     randomLevel = taskLevels[Math.floor(Math.random() * taskLevels.length)];
   }
   return tasks[randomLevel];
+};
+
+
+// ---------- Drag-and-drop style card (pure JS PanResponder, Expo Go safe) ----------
+// Long-press a card to lift it, drag vertically to reorder, release to drop.
+// ScrollView scrolling stays intact because we only claim the responder after
+// the long-press fires (onMoveShouldSetPanResponder), never on touch start.
+const DraggableCard = ({ category, index, onReorder, children }) => {
+  const translateY = useRef(new Animated.Value(0)).current;
+  const [dragging, setDragging] = useState(false);
+  const dragDy = useRef(0);
+  const isDragging = useRef(false);
+
+  const startDrag = () => {
+    isDragging.current = true;
+    dragDy.current = 0;
+    setDragging(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+  };
+  const endDrag = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    setDragging(false);
+    // Card height ~ 190px including margin; compute how many cards we crossed
+    const step = 190;
+    const delta = Math.round(dragDy.current / step);
+    if (delta !== 0) onReorder(index, index + delta);
+    Animated.spring(translateY, { toValue: 0, friction: 7, useNativeDriver: true }).start();
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, g) => isDragging.current && Math.abs(g.dy) > 5,
+      onPanResponderMove: (_, g) => {
+        if (!isDragging.current) return;
+        dragDy.current = g.dy;
+        translateY.setValue(g.dy);
+      },
+      onPanResponderRelease: endDrag,
+      onPanResponderTerminate: endDrag,
+    })
+  ).current;
+
+  return (
+    <Animated.View
+      {...panResponder.panHandlers}
+      style={[dragging && { elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, transform: [{ translateY }, { scale: 1.03 }] }, !dragging && { transform: [{ translateY }] }, { zIndex: dragging ? 10 : 1 }]}
+    >
+      {typeof children === 'function'
+        ? children({ onLongPress: startDrag, onPressOut: () => { if (!isDragging.current) return; endDrag(); } })
+        : children}
+    </Animated.View>
+  );
 };
 
 export default function App() {
@@ -1590,7 +1645,7 @@ export default function App() {
     return diff === 'beginner' ? theme.success : diff === 'intermediate' ? '#FB923C' : theme.danger;
   };
 
-  const CategoryCard = ({ category }) => {
+  const CategoryCard = ({ category, dragHandlers }) => {
     const task = generatedTasks[category] || null;
     const isSelected = selectedCategory === category;
     const cardScale = useRef(new Animated.Value(1)).current;
@@ -1610,7 +1665,13 @@ export default function App() {
     if (!showCard) return null;
 
     return (
-      <TouchableOpacity onPress={() => { hapticIf('medium'); setSelectedCategory(category); startTrainingSession(category); }} activeOpacity={0.9}>
+      <TouchableOpacity
+        onPress={() => { hapticIf('light'); setSelectedCategory(category); }}
+        onLongPress={dragHandlers && dragHandlers.onLongPress}
+        onPressOut={dragHandlers && dragHandlers.onPressOut}
+        delayLongPress={280}
+        activeOpacity={0.9}
+      >
         <Animated.View style={[styles.categoryCard, { transform: [{ scale: cardScale }], backgroundColor: isSelected ? theme.cardBgSelected : theme.cardBg }]}>
           <LinearGradient
             colors={isSelected ? theme.cardGradSelected : theme.cardGradNormal}
@@ -1643,7 +1704,12 @@ export default function App() {
                   </Text>
                 </View>
               )}
-              <Animated.Text style={[styles.taskText, { fontSize, color: theme.text, opacity: taskOpacity }]}>
+              <Animated.Text
+                style={[styles.taskText, { fontSize, color: theme.text, opacity: taskOpacity }]}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.6}
+              >
                 {task ? displayText(task) : 'Tap refresh to generate'}
               </Animated.Text>
               {task && <ComboPreview combo={task} styleName={category} />}
@@ -1785,8 +1851,26 @@ export default function App() {
           <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
             {arsenalView ? 'My Arsenal' : (difficultyFilter !== 'all' ? `Showing ${DIFFICULTY_LABELS[difficultyFilter].toLowerCase()} combos` : 'All Styles')}
           </Text>
-          {orderedStyles.map((category) => (
-            <CategoryCard key={category} category={category} />
+          {!arsenalView && (
+            <Text style={[styles.dragHint, { color: theme.textMuted }]}>Hold & drag a card to reorder</Text>
+          )}
+          {orderedStyles.map((category, cardIndex) => (
+            <DraggableCard
+              key={category}
+              category={category}
+              index={cardIndex}
+              onReorder={(from, to) => {
+                const list = [...orderedStyles];
+                const [moved] = list.splice(from, 1);
+                const clamped = Math.max(0, Math.min(to, list.length));
+                list.splice(clamped, 0, moved);
+                setStyleOrder(list);
+              }}
+            >
+              {({ onLongPress, onPressOut }) => (
+                <CategoryCard category={category} dragHandlers={{ onLongPress, onPressOut }} />
+              )}
+            </DraggableCard>
           ))}
           {arsenalView && favorites.length === 0 && (
             <Text style={styles.emptyText}>No favorites yet. Tap the star on any combo.</Text>
@@ -2441,6 +2525,7 @@ const createStyles = (theme) => StyleSheet.create({
   zoomButton: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   scrollContent: { padding: 20, gap: 20 },
   sectionLabel: { fontSize: 13, fontFamily: FONT.headingSemi, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 1.5 },
+  dragHint: { fontSize: 12, fontFamily: FONT.body, color: theme.textMuted, textAlign: 'center', marginTop: -10 },
   kcalStrip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 12, borderWidth: 1, paddingVertical: 8, paddingHorizontal: 12 },
   kcalStripText: { fontSize: 13, fontFamily: FONT.body },
   speechErrorBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
@@ -2453,7 +2538,7 @@ const createStyles = (theme) => StyleSheet.create({
   progressText: { fontSize: 12, fontFamily: FONT.body, color: theme.textMuted, marginTop: 2 },
   favButton: { padding: 8, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   taskContainer: { borderRadius: 12, padding: 15, marginBottom: 15, minHeight: 80, justifyContent: 'center', backgroundColor: theme.taskContainer },
-  taskText: { fontSize: 16, fontFamily: FONT.body, color: theme.text, textAlign: 'center' },
+  taskText: { fontSize: 16, fontFamily: FONT.body, color: theme.text, textAlign: 'center', width: '100%' },
   diffRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 6 },
   diffDot: { width: 8, height: 8, borderRadius: 4 },
   diffLabel: { fontSize: 12, fontFamily: FONT.bodySemi, color: theme.textMuted },
