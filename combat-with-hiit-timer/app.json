@@ -26,9 +26,10 @@
       "bundleIdentifier": "com.gamifiedlivingapps.mycombat"
     },
     "plugins": [
-      "expo-av",
       "expo-sensors",
-      "expo-asset"
+      "expo-asset",
+      "expo-font",
+      "expo-audio"
     ],
     "web": {
       "favicon": "./assets/favicon.png"

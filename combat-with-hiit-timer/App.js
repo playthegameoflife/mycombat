@@ -24,7 +24,7 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useFonts, Barlow_400Regular, Barlow_500Medium, Barlow_600SemiBold, Barlow_700Bold } from '@expo-google-fonts/barlow';
 import { BarlowCondensed_500Medium, BarlowCondensed_600SemiBold, BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed';
-import { Audio } from 'expo-av';
+import { setAudioModeAsync, createAudioPlayer } from 'expo-audio';
 import { Accelerometer } from 'expo-sensors';
 import * as StoreReview from 'expo-store-review';
 import { Share } from 'react-native';
@@ -684,23 +684,23 @@ export default function App() {
       const sound = CUE_SOUNDS[cueSound];
       if (!sound) return;
       if (cueSoundRef.current) {
-        try { await cueSoundRef.current.unloadAsync(); } catch (e) {}
+        try { cueSoundRef.current.release(); } catch (e) {}
+        cueSoundRef.current = null;
       }
-      const { sound: player } = await Audio.Sound.createAsync(sound);
+      const player = createAudioPlayer(sound);
       cueSoundRef.current = player;
-      await player.playAsync();
+      player.play();
     } catch (e) { console.log('cue sound error', e); }
   };
   const setupAudioMode = async () => {
     try {
-      // Duck other audio (Spotify/YouTube) instead of cutting it off
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
-        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
+      // Duck other audio (Spotify/YouTube) instead of cutting it off.
+      // expo-audio API: playsInSilentMode → playsInSilentModeIOS; interruption
+      // modes are no longer configurable — ducking is the default behavior.
+      await setAudioModeAsync({
+        playsInSilentMode: true,
+        shouldPlayInBackground: false,
+        interruptionMode: 'mixWithOthers',
       });
     } catch (e) { console.log('audio mode error', e); }
   };
