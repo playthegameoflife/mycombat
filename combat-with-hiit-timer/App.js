@@ -1617,7 +1617,7 @@ export default function App() {
                 accessibilityLabel={`Drill ${category} combination`}
                 onPress={() => task && startDrill(category, task)}
               >
-                <Ionicons name="target" size={22} color="#fff" />
+                <Ionicons name="locate" size={22} color="#fff" />
               </TouchableOpacity>
               {task && (
                 <TouchableOpacity
