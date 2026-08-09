@@ -18,6 +18,7 @@ import {
   BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -610,6 +611,10 @@ const haptic = (type = 'light') => {
 
 // ---------- Weighted random task picker (respects difficulty filter) ----------
 const basicLevels = { 'Boxing': 12 };
+// A real coach never calls the SAME combo twice in a row. Track the last pick
+// per style (module-level; survives across renders) and re-roll once if the
+// random pick matches it — keeps sessions feeling coached, not robotic.
+const lastPickByStyle = {};
 const pickRandomTask = (style, styles, difficultyFilter) => {
   const tasks = styles[style];
   if (!tasks) return null;
@@ -623,17 +628,24 @@ const pickRandomTask = (style, styles, difficultyFilter) => {
   }
   if (taskLevels.length === 0) return null;
   const basicCount = basicLevels[style] || 0;
-  let randomLevel;
-  if (basicCount > 0 && Math.random() < 0.7) {
-    const basics = taskLevels.filter(lv => lv <= basicCount);
-    if (basics.length > 0) {
-      randomLevel = basics[Math.floor(Math.random() * basics.length)];
-    } else {
-      randomLevel = taskLevels[Math.floor(Math.random() * taskLevels.length)];
+  const pickLevel = () => {
+    if (basicCount > 0 && Math.random() < 0.7) {
+      const basics = taskLevels.filter(lv => lv <= basicCount);
+      if (basics.length > 0) {
+        return basics[Math.floor(Math.random() * basics.length)];
+      }
     }
-  } else {
-    randomLevel = taskLevels[Math.floor(Math.random() * taskLevels.length)];
+    return taskLevels[Math.floor(Math.random() * taskLevels.length)];
+  };
+  let randomLevel = pickLevel();
+  // No-immediate-repeat: if there are 2+ candidates and we re-picked the last
+  // combo for this style, re-roll once (second roll is final — avoids an
+  // infinite loop when the filter leaves only one candidate).
+  const prev = lastPickByStyle[style];
+  if (prev != null && randomLevel === prev && taskLevels.length > 1) {
+    randomLevel = pickLevel();
   }
+  lastPickByStyle[style] = randomLevel;
   return tasks[randomLevel];
 };
 
@@ -808,6 +820,22 @@ function App() {
   // Haptics toggle
   const [hapticsEnabled, setHapticsEnabled] = usePersistedState('hapticsEnabled', true);
   const hapticIf = (type) => { if (hapticsEnabled) haptic(type); };
+
+  // ---------- Keep-awake: the screen must stay on during a session ----------
+  // This is a HANDS-FREE coach app — the user's hands are wrapped/on pads and
+  // the phone sits on the floor/bench. Android's default screen timeout (~30s-2min)
+  // would lock the screen mid-round; AppState fires 'background', the timer
+  // throttles and the session auto-stops. Keep the screen on for the whole
+  // session, release the moment training stops.
+  const keepAwakeActiveRef = useRef(false);
+  const setKeepAwake = (active) => {
+    if (active === keepAwakeActiveRef.current) return;
+    keepAwakeActiveRef.current = active;
+    try {
+      if (active) activateKeepAwakeAsync().catch(() => {});
+      else deactivateKeepAwake();
+    } catch (e) { /* keep-awake optional */ }
+  };
 
   // ---------- Monetization: soft gate + REAL Google Play Billing ----------
   // Gated feature tap → if not Pro, open the paywall preview instead.
@@ -1745,6 +1773,7 @@ function App() {
       setCurrentRound(round);
       setTimeRemaining(next);
       if (!active) {
+        setKeepAwake(false);
         setTimerActive(false);
         setIsDrilling(false);
         setDrillTask(null);
@@ -1756,6 +1785,7 @@ function App() {
   const startHiitTimer = () => {
     hapticIf('medium');
     if (isTraining) stopTrainingSession();
+    setKeepAwake(true);
     timerRef.current = { mode: 'work', round: 1, remaining: workPeriod };
     setTimerMode('work');
     setCurrentRound(1);
@@ -1766,6 +1796,7 @@ function App() {
 
   const stopHiitTimer = () => {
     hapticIf('light');
+    setKeepAwake(false);
     setTimerActive(false);
     setIsDrilling(false);
     setDrillTask(null);
@@ -1780,6 +1811,7 @@ function App() {
     if (requireStyle(style)) return;
     if (isTraining) stopTrainingSession();
     if (timerActive) stopHiitTimer();  // BUG1: don't silently kill an active HIIT session
+    setKeepAwake(true);
     track('drill_started', { style });
     setDrillTask(task);
     setIsDrilling(true);
@@ -1797,6 +1829,7 @@ function App() {
     hapticIf('medium');
     if (requireStyle(style)) return;
     if (timerActive) stopHiitTimer();
+    setKeepAwake(true);
     // BUG2: clear any orphaned interval from a prior double-tap before arming a new one
     if (trainingInterval) {
       clearInterval(trainingInterval);
@@ -1876,6 +1909,7 @@ function App() {
 
   const stopTrainingSession = () => {
     if (!isTraining && !trainingInterval) return;  // BUG2: reentrancy guard — double-Stop must not double-log
+    setKeepAwake(false);
     setIsTraining(false);
     recordWorkout();
     logSession(currentStyle || 'Training', 'combo', Math.round((Date.now() - (sessionStartRef.current || Date.now())) / 1000), sessionRoundsRef.current || 0);
