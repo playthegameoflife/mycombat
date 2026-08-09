@@ -30,7 +30,8 @@
       "expo-asset",
       "expo-font",
       "expo-audio",
-      "expo-speech-recognition"
+      "expo-speech-recognition",
+      "expo-notifications"
     ],
     "web": {
       "favicon": "./assets/favicon.png"

@@ -128,8 +128,12 @@ const track = (event, properties = {}) => {
 // the app, but make the full 825-combination library the reason to pay.
 const FREE_STYLES = ['Boxing', 'Muay Thai', 'Karate'];
 const PRO_PRICING = {
-  monthly: 4.99, annual: 29.99,
+  monthly: 4.99, annual: 49.99,
 };
+// Health & Fitness category data: annual is the dominant + growing plan type,
+// trials boost annual LTV, and high-priced apps earn ~4x LTV of low-priced.
+// Annual leads the paywall; monthly is the low-commitment fallback.
+const TRIAL_DAYS = 7;
 const PRO_FEATURES = [
   'All 10 styles — full 825-combo library',
   'Unlimited custom combos & styles',
@@ -756,6 +760,16 @@ export default function App() {
   const [southpaw, setSouthpaw] = usePersistedState('southpaw', false);
   // Workout history + streak: { dates: ['YYYY-MM-DD', ...] }
   const [workoutDates, setWorkoutDates] = usePersistedState('workoutDates', []);
+  // Day-0 paywall: shown ONCE after the first completed session (the moment of
+  // peak motivation). Per H&F category data, users decide Day 0 or Days 4-7 —
+  // this catches the Day-0 cohort right after they've felt the product.
+  const [day0PaywallShown, setDay0PaywallShown] = usePersistedState('day0PaywallShown', false);
+  // Gamification: XP + level, streak freezes, badges, weekly challenge
+  const [xp, setXp] = usePersistedState('xp', 0);
+  const [streakFreezes, setStreakFreezes] = usePersistedState('streakFreezes', 2);
+  const [freezeUsedFor, setFreezeUsedFor] = usePersistedState('freezeUsedFor', null);
+  const [badges, setBadges] = usePersistedState('badges', []);
+  const [weeklyGoalMet, setWeeklyGoalMet] = usePersistedState('weeklyGoalMet', {});
   // Haptics toggle
   const [hapticsEnabled, setHapticsEnabled] = usePersistedState('hapticsEnabled', true);
   const hapticIf = (type) => { if (hapticsEnabled) haptic(type); };
@@ -782,6 +796,10 @@ export default function App() {
     annual: 'mycombat_pro_annual',
   };
   const BILLING_TIER_NAMES = { monthly: 'Monthly', annual: 'Annual' };
+  // Free-trial offer per SKU (from getProducts subscriptionOfferDetails).
+  // Populated at init so requestPurchase can pass the offer token — that's how
+  // Play Billing knows to grant the 7-day trial instead of charging immediately.
+  const [trialOfferBySku, setTrialOfferBySku] = useState({});
 
   // NitroModules availability probe — non-throwing. react-native-iap v16 is
   // Nitro-based and its module factory throws at require-time in Expo Go
@@ -822,6 +840,21 @@ export default function App() {
         await RNIap.initConnection();
         if (cancelled) return;
         setBillingAvailable(true);
+        // Fetch product details to find the free-trial offer per SKU
+        // (Android: subscriptionOfferDetails[].offerId on the base plan with a
+        // FREE pricing phase). Without passing the offer token, Play charges
+        // immediately — the trial never fires.
+        try {
+          const skus = Object.values(BILLING_PRODUCTS);
+          const products = await RNIap.getProducts({ skus });
+          const offers = {};
+          (products || []).forEach(p => {
+            const details = p.subscriptionOfferDetails || [];
+            const trial = details.find(d => (d.pricingPhases || []).some(ph => ph.priceAmountMicros === 0));
+            if (trial) offers[p.productId] = trial;
+          });
+          if (!cancelled) setTrialOfferBySku(offers);
+        } catch (e) { /* product fetch failed — purchases still work without trial */ }
         // Restore a prior purchase (e.g. reinstall) so Pro survives reinstall.
         // Also: if billing is live and NO active purchase exists, clear Pro —
         // a lapsed/expired subscription must not keep the user Pro forever.
@@ -867,7 +900,23 @@ export default function App() {
       setPurchasing(true);
       const RNIap = getRNIap();
       if (!RNIap) throw new Error('billing unavailable');
-      const purchase = await RNIap.requestPurchase({ sku: productId });
+      // Pass the free-trial offer token if we found one for this SKU — Play
+      // Billing grants the trial only when the offer is explicitly requested.
+      const trialOffer = trialOfferBySku[productId];
+      let purchase;
+      if (trialOffer && trialOffer.offerId) {
+        track('trial_start', { tier, days: TRIAL_DAYS });
+        purchase = await RNIap.requestPurchase({
+          sku: productId,
+          subscriptionOffers: [{
+            productId,
+            offerId: trialOffer.offerId,
+            pricingPhases: trialOffer.pricingPhases || [],
+          }],
+        });
+      } else {
+        purchase = await RNIap.requestPurchase({ sku: productId });
+      }
       const receipt = purchase?.transactionReceipt || purchase?.purchaseToken || null;
       await RNIap.finishTransaction({ purchase, isConsumable: false });
       if (purchase?.productId === productId) {
@@ -876,7 +925,7 @@ export default function App() {
         setPaywallVisible(false);
         setPendingProAction(null);
         hapticIf('heavy');
-        track('paywall_purchase_success', { tier });
+        track('paywall_purchase_success', { tier, trial: !!trialOffer });
         Alert.alert('Welcome to Pro', `MyCombat Pro (${BILLING_TIER_NAMES[tier]}) is active.`);
       }
       return receipt;
@@ -1116,8 +1165,41 @@ export default function App() {
       date: todayStr(),
       style, type, seconds, rounds: roundsDone, kcal,
     };
+    const isFirstSession = sessions.length === 0;
     setSessions(prev => [...prev.slice(-199), entry]);
     track('session_completed', { style, type, seconds, rounds: roundsDone, kcal });
+
+    // ---------- Gamification hooks ----------
+    const rounds = roundsDone || 0;
+    if (rounds > 0) {
+      addXp(rounds * XP_PER_ROUND + XP_PER_SESSION, { badge: isFirstSession ? 'first_workout' : null });
+      if (isFirstSession) recordWorkout();
+      // Badges: combo milestones
+      const newTotal = combosCompleted + rounds;
+      if (newTotal >= 100) earnBadge('combos_100');
+      if (newTotal >= 500) earnBadge('combos_500');
+    }
+    // Streak badges + freeze milestones are handled by the streak-watch effect
+    // below (the value here is stale until the workout-date state lands).
+    // Weekly goal badge
+    if (weekRounds + rounds >= WEEKLY_GOAL_ROUNDS && !weeklyGoalMet[weekKey()]) {
+      setWeeklyGoalMet(prev => ({ ...prev, [weekKey()]: true }));
+      earnBadge('weekly_goal');
+    }
+
+    // ---------- Day-0 paywall: once, right after the first real session ----------
+    if (isFirstSession && rounds > 0 && !day0PaywallShown && !effectivePro) {
+      setDay0PaywallShown(true);
+      setTimeout(() => {
+        setPendingProAction('full library');
+        setPaywallVisible(true);
+        track('day0_paywall_shown');
+      }, 3000);
+    }
+
+    // Re-schedule the re-engagement reminder after every session
+    scheduleReminder();
+
     // Ask for a review after the session lands (only once, after 3+ sessions)
     setTimeout(() => { maybeRequestReview(); }, 2500);
   };
@@ -1252,9 +1334,158 @@ export default function App() {
     return count;
   }, [workoutDates]);
 
+  // Streak watch: award streak badges + grant a freeze at every 7-day milestone
+  useEffect(() => {
+    if (streak <= 0) return;
+    if (streak >= 3) earnBadge('streak_3');
+    if (streak >= 7) earnBadge('streak_7');
+    if (streak >= 30) earnBadge('streak_30');
+    maybeGrantFreeze(streak);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [streak]);
+
+  // On open: after persisted state rehydrates, consume a freeze if yesterday
+  // was missed and schedule the re-engagement reminder. Deferred so
+  // usePersistedState has resolved (local AsyncStorage is fast). The
+  // permission prompt only fires for users with workout history — never on a
+  // cold first launch.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      maybeConsumeFreeze();
+      if (sessions.length > 0) scheduleReminder();
+    }, 1500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const recordWorkout = () => {
     const today = todayStr();
     setWorkoutDates(prev => prev.includes(today) ? prev : [...prev, today]);
+  };
+
+  // ---------- Gamification: XP, levels, badges, streak freezes, weekly goal ----------
+  const XP_PER_ROUND = 10;
+  const XP_PER_SESSION = 25;
+  const WEEKLY_GOAL_ROUNDS = 50;
+  const BADGES = [
+    { id: 'first_workout', label: 'First Blood', desc: 'Complete your first session', icon: 'flame' },
+    { id: 'streak_3', label: 'On A Roll', desc: '3-day streak', icon: 'flash' },
+    { id: 'streak_7', label: 'Week Warrior', desc: '7-day streak', icon: 'calendar' },
+    { id: 'streak_30', label: 'Unstoppable', desc: '30-day streak', icon: 'trophy' },
+    { id: 'combos_100', label: 'Century Club', desc: '100 combos completed', icon: 'stats-chart' },
+    { id: 'combos_500', label: 'Heavy Hitter', desc: '500 combos completed', icon: 'ribbon' },
+    { id: 'weekly_goal', label: 'Goal Crusher', desc: 'Hit your weekly goal', icon: 'flag' },
+  ];
+  const levelFromXp = (total) => Math.floor(total / 250) + 1;
+  const xpIntoLevel = (total) => total % 250;
+  const level = levelFromXp(xp);
+
+  const earnBadge = (badgeId) => {
+    if (!BADGES.some(b => b.id === badgeId)) return;
+    setBadges(prev => {
+      if (prev.includes(badgeId)) return prev;
+      track('badge_earned', { badge: badgeId });
+      hapticIf('medium');
+      return [...prev, badgeId];
+    });
+  };
+
+  const addXp = (amount, opts = {}) => {
+    setXp(prev => prev + amount);
+    if (opts.badge) earnBadge(opts.badge);
+  };
+
+  // Grant streak milestones: +1 freeze every 7-day streak (7, 14, 21…)
+  // Milestones map: which streak lengths already granted a freeze
+  const [freezeMilestones, setFreezeMilestones] = usePersistedState('freezeMilestones', []);
+  const maybeGrantFreeze = (streakCount) => {
+    if (streakCount > 0 && streakCount % 7 === 0) {
+      const key = `s${streakCount}`;
+      setFreezeMilestones(prev => {
+        if (prev.includes(key)) return prev;
+        const next = [...prev, key];
+        setStreakFreezes(f => f + 1);
+        track('streak_freeze_granted', { streak: streakCount });
+        return next;
+      });
+    }
+  };
+
+  // Auto-consume a freeze for yesterday if the streak would have broken and we
+  // have one available. Call on app open / after a missed-day gap is detected.
+  const maybeConsumeFreeze = () => {
+    const dates = new Set(workoutDates);
+    const today = todayStr();
+    const yest = yesterdayStr();
+    // Streak would break only if yesterday is missing but the day before isn't.
+    if (!dates.has(today) && !dates.has(yest)) {
+      const twoDays = localDateStr(new Date(new Date().getTime() - 2 * 86400000));
+      if (dates.has(twoDays) && freezeUsedFor !== yest && streakFreezes > 0) {
+        setFreezeUsedFor(yest);
+        setStreakFreezes(f => f - 1);
+        setWorkoutDates(prev => prev.includes(yest) ? prev : [...prev, yest]);
+        track('streak_freeze_used', { date: yest });
+      }
+    }
+  };
+
+  // Weekly goal: rounds completed in the current calendar week (Mon–Sun)
+  const weekKey = () => {
+    const now = new Date();
+    const day = (now.getDay() + 6) % 7; // Mon=0
+    const mon = new Date(now); mon.setDate(now.getDate() - day);
+    return localDateStr(mon);
+  };
+  const weekRounds = sessions.filter(s => {
+    const wk = weekKey();
+    const date = s.date || '';
+    return date >= wk && date <= todayStr();
+  }).reduce((sum, s) => sum + (s.rounds || 0), 0);
+  const weeklyGoalPct = Math.min(100, Math.round((weekRounds / WEEKLY_GOAL_ROUNDS) * 100));
+
+  // ---------- Push notifications (re-engagement, Day 4-7 cohort) ----------
+  // expo-notifications has native modules that requireNativeModule() eagerly
+  // (e.g. ExpoNotificationScheduler) — probe availability first so Expo Go or
+  // web never crashes; the feature just no-ops.
+  const notificationsAvailable = (() => {
+    try {
+      const { TurboModuleRegistry } = require('react-native');
+      return TurboModuleRegistry.get('ExpoNotificationScheduler') != null;
+    } catch (e) {
+      return false;
+    }
+  })();
+  const getNotifications = () => {
+    if (!notificationsAvailable) return null;
+    try {
+      return require('expo-notifications');
+    } catch (e) {
+      return null;
+    }
+  };
+  const [reminderEnabled, setReminderEnabled] = usePersistedState('reminderEnabled', true);
+  const scheduleReminder = async () => {
+    if (!reminderEnabled) return;
+    const Notifications = getNotifications();
+    if (!Notifications) return;
+    try {
+      const perm = await Notifications.getPermissionsAsync();
+      if (!perm.granted) {
+        const req = await Notifications.requestPermissionsAsync();
+        if (!req.granted) return;
+      }
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      // Nudge the Day 4-7 converter: 24h from now if no workout today.
+      if (!workoutDates.includes(todayStr())) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Your gloves are waiting 🥊',
+            body: streak > 0 ? `Keep your ${streak}-day streak alive — one round is all it takes.` : 'One quick round today keeps the momentum going.',
+          },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 86400, repeats: false },
+        });
+      }
+    } catch (e) { /* notifications are best-effort */ }
   };
 
   // ---------- Curriculum ----------
@@ -2096,6 +2327,12 @@ export default function App() {
           <View>
             <Text style={[styles.headerTitle, { color: theme.text }]}>Martial Arts Training</Text>
             <View style={styles.headerMeta}>
+              {xp > 0 && (
+                <View style={styles.streakRow}>
+                  <Ionicons name="shield" size={16} color={theme.accent} />
+                  <Text style={[styles.streakText, { color: theme.accent }]}>Lv {level}</Text>
+                </View>
+              )}
               {streak > 0 && (
                 <View style={styles.streakRow}>
                   <Ionicons name="flame" size={16} color="#F97316" />
@@ -2538,6 +2775,31 @@ export default function App() {
                   <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Rate & pitch are set by the voice pack. Choose Custom to tune them manually.</Text>
                 )}
 
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Motivation</Text>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Workout reminders</Text>
+                  <TouchableOpacity style={[styles.toggleButton, reminderEnabled && styles.toggleActive]} onPress={() => { hapticIf('light'); setReminderEnabled(!reminderEnabled); if (!reminderEnabled) scheduleReminder(); }}>
+                    <Text style={styles.toggleText}>{reminderEnabled ? 'ON' : 'OFF'}</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Weekly goal: {weekRounds}/{WEEKLY_GOAL_ROUNDS} rounds ({weeklyGoalPct}%)</Text>
+                <View style={[styles.goalBar, { backgroundColor: theme.taskContainer, borderColor: theme.border }]}>
+                  <View style={[styles.goalBarFill, { width: `${weeklyGoalPct}%`, backgroundColor: theme.accent }]} />
+                </View>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Streak freezes: {streakFreezes} available — a freeze keeps your streak alive when you miss a day (earn +1 every 7-day streak)</Text>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Badges: {badges.length}/{BADGES.length}</Text>
+                <View style={styles.badgeRow}>
+                  {BADGES.map((b) => {
+                    const earned = badges.includes(b.id);
+                    return (
+                      <View key={b.id} style={[styles.badgeChip, { backgroundColor: theme.cardBg, borderColor: earned ? theme.accent : theme.border, opacity: earned ? 1 : 0.45 }]}>
+                        <Ionicons name={b.icon} size={14} color={earned ? theme.accent : theme.textMuted} />
+                        <Text style={[styles.badgeChipText, { color: earned ? theme.text : theme.textMuted }]} numberOfLines={1}>{b.label}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+
                 <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Haptics</Text>
                 <View style={styles.toggleRow}>
                   <Text style={[styles.toggleLabel, { color: theme.text }]}>Vibration feedback</Text>
@@ -2769,7 +3031,7 @@ export default function App() {
                   <Text style={{ fontFamily: FONT.bodyBold }}>Free (forever):</Text> Boxing, Muay Thai & Karate — 180+ combinations, voice coach, round timer, drill mode, Learn Mode, favorites, streaks, themes, calorie tracking.
                 </Text>
                 <Text style={[styles.helpBody, { color: theme.text }]}>
-                  <Text style={{ fontFamily: FONT.bodyBold }}>Pro:</Text> all 10 styles and the full 825-combination library, custom styles, combo builder saves, premium voice packs, hands-free tap controls, full workout history. Monthly or annual — both unlock the same features.
+                  <Text style={{ fontFamily: FONT.bodyBold }}>Pro:</Text> all 10 styles and the full 825-combination library, custom styles, combo builder saves, premium voice packs, hands-free tap controls, full workout history. Try the annual plan with a {TRIAL_DAYS}-day free trial — monthly or annual both unlock the same features.
                 </Text>
 
                 <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accentBg, marginTop: 12 }]} onPress={() => setHelpVisible(false)}>
@@ -2795,13 +3057,16 @@ export default function App() {
                     <Text style={[styles.paywallFeatureText, { color: theme.text }]}>{f}</Text>
                   </View>
                 ))}
+                <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.accentBg, borderColor: theme.accent }]} onPress={() => purchasePro('annual')}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.paywallTierName, { color: '#fff' }]}>Annual — best value</Text>
+                    <Text style={[styles.paywallTierTrial, { color: '#fff' }]}>Start your {TRIAL_DAYS}-day free trial</Text>
+                  </View>
+                  <Text style={[styles.paywallTierPrice, { color: '#fff' }]}>${PRO_PRICING.annual}/yr (${(PRO_PRICING.annual / 12).toFixed(2)}/mo)</Text>
+                </TouchableOpacity>
                 <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.cardBg, borderColor: theme.border }]} onPress={() => purchasePro('monthly')}>
                   <Text style={[styles.paywallTierName, { color: theme.text }]}>Monthly</Text>
                   <Text style={[styles.paywallTierPrice, { color: theme.accent }]}>${PRO_PRICING.monthly}/mo</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.accentBg, borderColor: theme.accent }]} onPress={() => purchasePro('annual')}>
-                  <Text style={[styles.paywallTierName, { color: '#fff' }]}>Annual — best value</Text>
-                  <Text style={[styles.paywallTierPrice, { color: '#fff' }]}>${PRO_PRICING.annual}/yr (${(PRO_PRICING.annual / 12).toFixed(2)}/mo)</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.paywallRestore, { borderColor: theme.border }]} onPress={restorePurchases} disabled={restoring}>
                   <Text style={[styles.paywallRestoreText, { color: theme.textMuted }]}>
@@ -2896,6 +3161,11 @@ const createStyles = (theme) => StyleSheet.create({
   toggleButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 15, backgroundColor: theme.toggleOff, minWidth: 56, minHeight: 36, alignItems: 'center', justifyContent: 'center' },
   toggleActive: { backgroundColor: theme.accentBg },
   toggleText: { color: theme.text, fontWeight: 'bold', fontFamily: FONT.bodyBold },
+  goalBar: { width: '100%', height: 10, borderRadius: 5, overflow: 'hidden', borderWidth: 1, marginBottom: 12 },
+  goalBarFill: { height: '100%', borderRadius: 5 },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14, width: '100%' },
+  badgeChip: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 14, paddingVertical: 5, paddingHorizontal: 10 },
+  badgeChipText: { fontSize: 12, fontFamily: FONT.bodySemi },
   customStyleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: theme.border },
   customStyleName: { fontSize: 16, fontFamily: FONT.body, color: theme.text, flex: 1, marginRight: 10 },
   textInput: { width: '100%', borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 15, fontSize: 16, fontFamily: FONT.body, color: theme.text, borderColor: theme.border },
@@ -2941,6 +3211,7 @@ const createStyles = (theme) => StyleSheet.create({
   paywallFeatureText: { fontSize: 15, fontFamily: FONT.body, flex: 1 },
   paywallTier: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16, marginBottom: 10, width: '100%' },
   paywallTierName: { fontSize: 16, fontFamily: FONT.bodyBold },
+  paywallTierTrial: { fontSize: 12, fontFamily: FONT.body, marginTop: 2, opacity: 0.9 },
   paywallTierPrice: { fontSize: 16, fontFamily: FONT.headingSemi },
   paywallRestore: { marginTop: 14, paddingVertical: 10, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
   paywallRestoreText: { fontSize: 13, fontFamily: FONT.bodySemi, textAlign: 'center' },
