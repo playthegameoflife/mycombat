@@ -123,10 +123,15 @@ const track = (event, properties = {}) => {
 };
 
 // ---------- Monetization: entitlements + soft gating ----------
+// Free users get a taste: 3 styles (181 combos). The other 7 styles (644
+// combos) + full library are Pro. Keep the free wall generous enough to learn
+// the app, but make the full 825-combination library the reason to pay.
+const FREE_STYLES = ['Boxing', 'Muay Thai', 'Karate'];
 const PRO_PRICING = {
-  monthly: 4.99, annual: 29.99, lifetime: 34.99,
+  monthly: 4.99, annual: 29.99,
 };
 const PRO_FEATURES = [
+  'All 10 styles — full 825-combo library',
   'Unlimited custom combos & styles',
   'Premium voice packs + tempo control',
   'Hands-free tap controls',
@@ -723,6 +728,13 @@ export default function App() {
   const [modifiersEnabled, setModifiersEnabled] = usePersistedState('modifiersEnabled', false);
   // Pro entitlement: persisted; gated features soft-open the paywall preview
   const [isPro, setIsPro] = usePersistedState('isPro', false);
+  // Authoritative entitlement from Play Billing. isPro is persisted so it can
+  // be rehydrated asynchronously and race the billing check — a lapsed sub
+  // must NOT be re-granted Pro by a stale stored value. Once billing is
+  // available and checked, ONLY the real purchase state counts.
+  const [subActive, setSubActive] = useState(false);
+  const [billingChecked, setBillingChecked] = useState(false);
+  const effectivePro = billingChecked && billingAvailable ? subActive : isPro;
   const [paywallVisible, setPaywallVisible] = useState(false);
   const [pendingProAction, setPendingProAction] = useState(null);
   // Real Play Billing state (react-native-iap) — only available in dev builds
@@ -752,20 +764,24 @@ export default function App() {
   // Gated feature tap → if not Pro, open the paywall preview instead.
   // The action name lets us deep-link to the exact feature after purchase.
   const requirePro = (actionName = 'feature') => {
-    if (isPro) return true;
+    if (effectivePro) return true;
     setPendingProAction(actionName);
     setPaywallVisible(true);
     track('paywall_shown', { action: actionName });
     return false;
   };
 
+  // Style gating: free styles work for everyone; locked styles need Pro.
+  // A style is locked if it's not in FREE_STYLES and the user isn't Pro.
+  const isStyleLocked = (style) => !effectivePro && !FREE_STYLES.includes(style);
+  const requireStyle = (style) => isStyleLocked(style) && !requirePro(style);
+
   // Play Store product IDs — must match the products created in Google Play Console.
   const BILLING_PRODUCTS = {
     monthly: 'mycombat_pro_monthly',
     annual: 'mycombat_pro_annual',
-    lifetime: 'mycombat_pro_lifetime',
   };
-  const BILLING_TIER_NAMES = { monthly: 'Monthly', annual: 'Annual', lifetime: 'Lifetime' };
+  const BILLING_TIER_NAMES = { monthly: 'Monthly', annual: 'Annual' };
 
   // NitroModules availability probe — non-throwing. react-native-iap v16 is
   // Nitro-based and its module factory throws at require-time in Expo Go
@@ -807,11 +823,16 @@ export default function App() {
         if (cancelled) return;
         setBillingAvailable(true);
         // Restore a prior purchase (e.g. reinstall) so Pro survives reinstall.
+        // Also: if billing is live and NO active purchase exists, clear Pro —
+        // a lapsed/expired subscription must not keep the user Pro forever.
         try {
           const purchases = await RNIap.getAvailablePurchases();
           const owned = purchases.some(p => p.productId && Object.values(BILLING_PRODUCTS).includes(p.productId));
+          setSubActive(!!owned);
           if (owned && !cancelled) setIsPro(true);
+          else if (!cancelled) setIsPro(false);
         } catch (e) { /* restore check failed — treat as not owned */ }
+        if (!cancelled) setBillingChecked(true);
         setBillingReady(true);
       } catch (e) {
         // No native module (Expo Go / web) — fall back to dev unlock / soft gate.
@@ -835,6 +856,7 @@ export default function App() {
         return;
       }
       setIsPro(true);
+      setSubActive(true);
       setPaywallVisible(false);
       setPendingProAction(null);
       hapticIf('heavy');
@@ -850,6 +872,7 @@ export default function App() {
       await RNIap.finishTransaction({ purchase, isConsumable: false });
       if (purchase?.productId === productId) {
         setIsPro(true);
+        setSubActive(true);
         setPaywallVisible(false);
         setPendingProAction(null);
         hapticIf('heavy');
@@ -885,6 +908,7 @@ export default function App() {
       const owned = purchases.some(p => p.productId && Object.values(BILLING_PRODUCTS).includes(p.productId));
       if (owned) {
         setIsPro(true);
+        setSubActive(true);
         track('paywall_restore_success');
         Alert.alert('Restored', 'Your Pro purchase has been restored.');
       } else {
@@ -898,7 +922,7 @@ export default function App() {
     }
   };
 
-  useEffect(() => { track('app_open', { isPro }); }, []);
+  useEffect(() => { track('app_open', { isPro: effectivePro }); }, [effectivePro]);
 
   // ---------- Audio: cue sounds + music ducking ----------
   const cueSoundRef = useRef(null);
@@ -1121,6 +1145,8 @@ export default function App() {
   // ---------- Program apply ----------
   const applyProgram = (program) => {
     hapticIf('medium');
+    // Programs load a style — locked styles must stay gated here too.
+    if (requireStyle(program.style)) return;
     setActiveProgram(program.id);
     setTotalRounds(program.rounds);
     setWorkPeriod(program.work);
@@ -1482,6 +1508,7 @@ export default function App() {
   // Drill mode: repeat ONE combo for totalRounds rounds
   const startDrill = (style, task) => {
     hapticIf('medium');
+    if (requireStyle(style)) return;
     if (isTraining) stopTrainingSession();
     if (timerActive) stopHiitTimer();  // BUG1: don't silently kill an active HIIT session
     track('drill_started', { style });
@@ -1499,6 +1526,7 @@ export default function App() {
   // ---------- Combo training session ----------
   const startTrainingSession = (style) => {
     hapticIf('medium');
+    if (requireStyle(style)) return;
     if (timerActive) stopHiitTimer();
     // BUG2: clear any orphaned interval from a prior double-tap before arming a new one
     if (trainingInterval) {
@@ -1614,6 +1642,7 @@ export default function App() {
 
   const generateTask = (stat) => {
     hapticIf('light');
+    if (requireStyle(stat)) return;
     const rawTask = pickRandomTask(stat, allStyles, difficultyFilter);
     if (!rawTask) {
       // BUG9/11: no combo matches the filter (or style was deleted mid-session)
@@ -1703,7 +1732,10 @@ export default function App() {
     const techs = TECHNIQUES[builder.style] || {};
     return Object.keys(techs);
   };
-  const openBuilder = (style) => setBuilder({ visible: true, style, sequence: [] });
+  const openBuilder = (style) => {
+    if (requireStyle(style)) return;
+    setBuilder({ visible: true, style, sequence: [] });
+  };
   const closeBuilder = () => setBuilder({ visible: false, style: null, sequence: [] });
   const builderAddTechnique = (name) => {
     hapticIf('light');
@@ -1906,6 +1938,7 @@ export default function App() {
   const CategoryCard = ({ category, dragHandlers }) => {
     const task = generatedTasks[category] || null;
     const isSelected = selectedCategory === category;
+    const locked = isStyleLocked(category);
     const cardScale = useRef(new Animated.Value(1)).current;
     const fav = isFavorite(category, task);
     const learnCount = learnedCount(category);
@@ -1924,7 +1957,11 @@ export default function App() {
 
     return (
       <TouchableOpacity
-        onPress={() => { hapticIf('light'); setSelectedCategory(category); }}
+        onPress={() => {
+          hapticIf('light');
+          if (locked) { requirePro(category); return; }
+          setSelectedCategory(category);
+        }}
         onLongPress={dragHandlers && dragHandlers.onLongPress}
         onPressOut={dragHandlers && dragHandlers.onPressOut}
         delayLongPress={280}
@@ -1938,7 +1975,12 @@ export default function App() {
             <View style={styles.cardHeaderRow}>
               <View style={styles.cardTitleGroup}>
                 <Text style={[styles.categoryTitle, { color: theme.text }]}>{category}</Text>
-                {total > 0 && (
+                {locked ? (
+                  <View style={styles.lockedBadgeRow}>
+                    <Ionicons name="lock-closed" size={13} color={theme.accent} />
+                    <Text style={[styles.lockedBadgeText, { color: theme.accent }]}>PRO</Text>
+                  </View>
+                ) : total > 0 && (
                   <Text style={[styles.progressText, { color: theme.textMuted }]}>
                     Learned {learnCount}/{total}
                   </Text>
@@ -1947,26 +1989,37 @@ export default function App() {
               <TouchableOpacity
                 style={styles.favButton}
                 accessibilityRole="button"
-                accessibilityLabel={fav ? `Remove ${category} from favorites` : `Add ${category} to favorites`}
-                onPress={() => task && toggleFavorite(category, task)}
+                accessibilityLabel={locked ? `Unlock ${category}` : fav ? `Remove ${category} from favorites` : `Add ${category} to favorites`}
+                onPress={() => { if (locked) { requirePro(category); return; } task && toggleFavorite(category, task); }}
               >
-                <Ionicons name={fav ? 'star' : 'star-outline'} size={22} color={fav ? '#FFD700' : theme.textMuted} />
+                <Ionicons name={locked ? 'lock-closed' : fav ? 'star' : 'star-outline'} size={22} color={locked ? theme.accent : fav ? '#FFD700' : theme.textMuted} />
               </TouchableOpacity>
             </View>
             <View style={[styles.taskContainer, { backgroundColor: theme.taskContainer }]}>
-              {task && (
-                <View style={styles.diffRow}>
-                  <View style={[styles.diffDot, { backgroundColor: difficultyColor(category, task) }]} />
-                  <Text style={[styles.diffLabel, { color: theme.textMuted }]}>
-                    {DIFFICULTY_LABELS[difficultyOf(category, comboLevelOf(category, task))]}
+              {locked ? (
+                <View style={styles.lockedContainer}>
+                  <Ionicons name="lock-closed" size={22} color={theme.accent} />
+                  <Text style={[styles.lockedText, { color: theme.textMuted }]}>
+                    {Object.keys(allStyles[category] || {}).length} combos — unlock with Pro
                   </Text>
                 </View>
+              ) : (
+                <>
+                  {task && (
+                    <View style={styles.diffRow}>
+                      <View style={[styles.diffDot, { backgroundColor: difficultyColor(category, task) }]} />
+                      <Text style={[styles.diffLabel, { color: theme.textMuted }]}>
+                        {DIFFICULTY_LABELS[difficultyOf(category, comboLevelOf(category, task))]}
+                      </Text>
+                    </View>
+                  )}
+                  {task && <ComboPreview combo={task} styleName={category} />}
+                </>
               )}
-              {task && <ComboPreview combo={task} styleName={category} />}
             </View>
             <View style={styles.cardControls}>
               <TouchableOpacity style={styles.controlButton} accessibilityRole="button" accessibilityLabel={`New ${category} combination`} onPress={() => generateTask(category)}>
-                <Ionicons name="refresh" size={22} color="#fff" />
+                <Ionicons name={locked ? 'lock-closed' : 'refresh'} size={22} color="#fff" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.controlButton, { backgroundColor: theme.accentBg }]}
@@ -1974,17 +2027,17 @@ export default function App() {
                 accessibilityLabel={`Build a ${category} combo`}
                 onPress={() => openBuilder(category)}
               >
-                <Ionicons name="hammer" size={22} color="#fff" />
+                <Ionicons name={locked ? 'lock-closed' : 'hammer'} size={22} color="#fff" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.controlButton, { backgroundColor: theme.test }]}
                 accessibilityRole="button"
                 accessibilityLabel={`Drill ${category} combination`}
-                onPress={() => task && startDrill(category, task)}
+                onPress={() => { if (locked) { requirePro(category); return; } task && startDrill(category, task); }}
               >
-                <Ionicons name="locate" size={22} color="#fff" />
+                <Ionicons name={locked ? 'lock-closed' : 'locate'} size={22} color="#fff" />
               </TouchableOpacity>
-              {task && (
+              {task && !locked && (
                 <TouchableOpacity
                   style={[styles.controlButton, { backgroundColor: theme.accentDark }]}
                   accessibilityRole="button"
@@ -1994,7 +2047,7 @@ export default function App() {
                   <Ionicons name="share-social-outline" size={22} color="#fff" />
                 </TouchableOpacity>
               )}
-              {task && (
+              {task && !locked && (
                 <TouchableOpacity
                   style={[styles.controlButton, { backgroundColor: theme.test }]}
                   accessibilityRole="button"
@@ -2004,7 +2057,7 @@ export default function App() {
                   <Ionicons name="qr-code-outline" size={22} color="#fff" />
                 </TouchableOpacity>
               )}
-              {!isTraining && !timerActive ? (
+              {!locked && !isTraining && !timerActive ? (
                 <TouchableOpacity style={[styles.controlButton, { backgroundColor: theme.success }]} accessibilityRole="button" accessibilityLabel={`Start ${category} training`} onPress={() => startTrainingSession(category)}>
                   <Ionicons name="play" size={22} color="#fff" />
                 </TouchableOpacity>
@@ -2017,12 +2070,12 @@ export default function App() {
             <TouchableOpacity
               style={[styles.learnButton, { borderColor: theme.accent }]}
               accessibilityRole="button"
-              accessibilityLabel={task ? `Learn ${category} combo breakdown` : `Learn ${category} techniques`}
-              onPress={() => setLearnModal({ visible: true, style: category, combo: task })}
+              accessibilityLabel={locked ? `Unlock ${category}` : task ? `Learn ${category} combo breakdown` : `Learn ${category} techniques`}
+              onPress={() => { if (locked) { requirePro(category); return; } setLearnModal({ visible: true, style: category, combo: task }); }}
             >
-              <Ionicons name="book-outline" size={18} color={theme.accent} />
+              <Ionicons name={locked ? 'lock-closed' : 'book-outline'} size={18} color={theme.accent} />
               <Text style={[styles.learnButtonText, { color: theme.accent }]}>
-                {task ? 'Learn This Combo' : 'Learn Techniques'}
+                {locked ? 'Unlock with Pro' : task ? 'Learn This Combo' : 'Learn Techniques'}
               </Text>
             </TouchableOpacity>
           </LinearGradient>
@@ -2073,7 +2126,7 @@ export default function App() {
             <View style={[styles.onboardCard, { backgroundColor: theme.cardBg, borderColor: theme.accent }]}>
               <Text style={[styles.onboardTitle, { color: theme.text }]}>Your voice-guided fight coach</Text>
               <Text style={[styles.onboardBody, { color: theme.textMuted }]}>
-                MyCombat calls out real combinations for 10 martial arts with a round timer, drills, and a technique library. No gym needed.
+                MyCombat calls out real combinations for 10 martial arts with a round timer, drills, and a technique library. No gym needed. Start free with Boxing, Muay Thai & Karate.
               </Text>
               <TouchableOpacity style={[styles.onboardButton, { backgroundColor: theme.accentBg }]} onPress={startFirstWorkout} accessibilityRole="button" accessibilityLabel="Start my first workout">
                 <Text style={styles.onboardButtonText}>Start my first workout — Boxing</Text>
@@ -2134,10 +2187,10 @@ export default function App() {
           <BlurView intensity={100} style={styles.modalContainer}>
             <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
               <Text style={[styles.modalTitle, { color: theme.text }]}>Training Settings</Text>
-              {!isPro && (
+              {!effectivePro && (
                 <TouchableOpacity style={[styles.proBanner, { backgroundColor: theme.accentBg }]} onPress={() => requirePro('settings_banner')}>
                   <Ionicons name="diamond" size={18} color="#fff" />
-                  <Text style={styles.proBannerText}>Unlock MyCombat Pro — premium voices, unlimited combos, no ads</Text>
+                  <Text style={styles.proBannerText}>Unlock MyCombat Pro — all 10 styles, 825 combos, premium voices, no ads</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity style={[styles.helpButton, { backgroundColor: theme.cardBg, borderColor: theme.border }]} onPress={() => setHelpVisible(true)}>
@@ -2186,12 +2239,12 @@ export default function App() {
                 <View style={styles.restButtons}>
                   {VOICE_PACKS.map((pack) => (
                     <TouchableOpacity key={pack.id} style={[styles.restButton, voicePack === pack.id && styles.restButtonActive]} onPress={() => {
-                      if (pack.id !== 'coach' && !isPro && !requirePro('voice_packs')) return;
+                      if (pack.id !== 'coach' && !effectivePro && !requirePro('voice_packs')) return;
                       hapticIf('light');
                       updateSetting(setVoicePack, pack.id);
                     }}>
                       <Text style={[styles.restButtonText, voicePack === pack.id && styles.restButtonTextActive]}>{pack.label}</Text>
-                      {pack.id !== 'coach' && !isPro ? (
+                      {pack.id !== 'coach' && !effectivePro ? (
                         <Ionicons name="lock-closed" size={12} color={theme.textMuted} style={{ marginLeft: 4 }} />
                       ) : null}
                     </TouchableOpacity>
@@ -2241,7 +2294,7 @@ export default function App() {
                 <View style={styles.toggleRow}>
                   <Text style={[styles.toggleLabel, { color: theme.text }]}>Tap-to-stop (accelerometer, gloved hand)</Text>
                   <TouchableOpacity style={[styles.toggleButton, tapControls && styles.toggleActive]} onPress={() => {
-                    if (!tapControls && !isPro && !requirePro('tap_controls')) return;
+                    if (!tapControls && !effectivePro && !requirePro('tap_controls')) return;
                     hapticIf('light'); setTapControls(!tapControls);
                   }}>
                     <Text style={styles.toggleText}>{tapControls ? 'ON' : 'OFF'}</Text>
@@ -2250,7 +2303,7 @@ export default function App() {
                 <View style={styles.toggleRow}>
                   <Text style={[styles.toggleLabel, { color: theme.text }]}>Voice commands (say "stop" or "next")</Text>
                   <TouchableOpacity style={[styles.toggleButton, voiceCommands && styles.toggleActive]} onPress={() => {
-                    if (!voiceCommands && !isPro && !requirePro('voice_commands')) return;
+                    if (!voiceCommands && !effectivePro && !requirePro('voice_commands')) return;
                     hapticIf('light'); setVoiceCommands(!voiceCommands);
                   }}>
                     <Text style={styles.toggleText}>{voiceCommands ? 'ON' : 'OFF'}</Text>
@@ -2404,7 +2457,7 @@ export default function App() {
                 <Text style={[styles.settingLabel, { color: theme.textMuted }]}>
                   {workoutDates.length} workout{workoutDates.length === 1 ? '' : 's'} · {streak} day streak
                 </Text>
-                {isPro ? (
+                {effectivePro ? (
                   workoutDates.slice(-7).reverse().map((d) => (
                     <View key={d} style={styles.customStyleRow}>
                       <Text style={[styles.customStyleName, { color: theme.text }]}>{d}</Text>
@@ -2713,13 +2766,10 @@ export default function App() {
 
                 <Text style={[styles.modalSubtitle, { color: theme.accent }]}>💎 Free vs Pro</Text>
                 <Text style={[styles.helpBody, { color: theme.text }]}>
-                  <Text style={{ fontFamily: FONT.bodyBold }}>Free (forever):</Text> all 825 combinations, voice coach, round timer, drill mode, Learn Mode, favorites, streaks, themes, calorie tracking.
+                  <Text style={{ fontFamily: FONT.bodyBold }}>Free (forever):</Text> Boxing, Muay Thai & Karate — 180+ combinations, voice coach, round timer, drill mode, Learn Mode, favorites, streaks, themes, calorie tracking.
                 </Text>
                 <Text style={[styles.helpBody, { color: theme.text }]}>
-                  <Text style={{ fontFamily: FONT.bodyBold }}>Pro:</Text> custom styles, combo builder saves, premium voice packs, hands-free tap controls, full workout history. Monthly, annual, or one-time lifetime — all 3 tiers unlock the same features.
-                </Text>
-                <Text style={[styles.helpBody, { color: theme.text }]}>
-                  <Text style={{ fontFamily: FONT.bodyBold }}>Free trial:</Text> coming with the in-app purchase update — a free trial period is planned so you can test Pro before paying.
+                  <Text style={{ fontFamily: FONT.bodyBold }}>Pro:</Text> all 10 styles and the full 825-combination library, custom styles, combo builder saves, premium voice packs, hands-free tap controls, full workout history. Monthly or annual — both unlock the same features.
                 </Text>
 
                 <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accentBg, marginTop: 12 }]} onPress={() => setHelpVisible(false)}>
@@ -2752,10 +2802,6 @@ export default function App() {
                 <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.accentBg, borderColor: theme.accent }]} onPress={() => purchasePro('annual')}>
                   <Text style={[styles.paywallTierName, { color: '#fff' }]}>Annual — best value</Text>
                   <Text style={[styles.paywallTierPrice, { color: '#fff' }]}>${PRO_PRICING.annual}/yr (${(PRO_PRICING.annual / 12).toFixed(2)}/mo)</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.cardBg, borderColor: theme.border }]} onPress={() => purchasePro('lifetime')}>
-                  <Text style={[styles.paywallTierName, { color: theme.text }]}>Lifetime</Text>
-                  <Text style={[styles.paywallTierPrice, { color: theme.accent }]}>${PRO_PRICING.lifetime} once</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.paywallRestore, { borderColor: theme.border }]} onPress={restorePurchases} disabled={restoring}>
                   <Text style={[styles.paywallRestoreText, { color: theme.textMuted }]}>
@@ -2804,6 +2850,10 @@ const createStyles = (theme) => StyleSheet.create({
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
   cardTitleGroup: { flex: 1, marginRight: 10 },
   categoryTitle: { fontSize: 24, fontFamily: FONT.heading, color: theme.text, letterSpacing: 0.3 },
+  lockedBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  lockedBadgeText: { fontSize: 12, fontFamily: FONT.bodyBold, letterSpacing: 1 },
+  lockedContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 50 },
+  lockedText: { fontSize: 14, fontFamily: FONT.bodySemi, textAlign: 'center', flexShrink: 1 },
   progressText: { fontSize: 12, fontFamily: FONT.body, color: theme.textMuted, marginTop: 2 },
   favButton: { padding: 8, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   taskContainer: { borderRadius: 12, padding: 15, marginBottom: 15, minHeight: 80, justifyContent: 'center', backgroundColor: theme.taskContainer },
