@@ -29,7 +29,8 @@
       "expo-sensors",
       "expo-asset",
       "expo-font",
-      "expo-audio"
+      "expo-audio",
+      "expo-speech-recognition"
     ],
     "web": {
       "favicon": "./assets/favicon.png"

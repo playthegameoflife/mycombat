@@ -30,6 +30,10 @@ import { Accelerometer } from 'expo-sensors';
 import * as StoreReview from 'expo-store-review';
 import { Share } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from 'expo-speech-recognition';
 
 // ---------- Audio: cue sounds ----------
 const CUE_SOUNDS = {
@@ -155,7 +159,9 @@ const taskDifficulties = {
     'Combat Sambo': { 1: "Jab, cross, left hook, right low kick", 2: "Front kick, cross, left hook, takedown", 3: "Slip, right uppercut, left hook, knee strike", 4: "Parry, overhand right, left body hook, right elbow", 5: "Double leg takedown, ground and pound", 6: "Clinch, knee strike, hip throw", 7: "Jab, cross, duck under, rear naked choke", 8: "Low kick, cross, hook, high kick", 9: "Feint jab, overhand right, left hook, ankle pick", 10: "Sprawl, front headlock, knee strikes", 11: "Jab, cross, left hook, right low kick, takedown", 12: "Side step, right hook, left uppercut, clinch, throw", 13: "Push kick, spinning back fist, clinch, hip toss", 14: "Parry, cross, hook, leg sweep", 15: "Jab, cross, level change, double leg takedown", 16: "Inside leg kick, cross, hook, outside leg kick", 17: "Overhand right, left hook, right uppercut, takedown", 18: "Clinch, knee strike, foot sweep, ground control", 19: "Fake takedown, uppercut, hook, high kick", 20: "Jab, cross, bob and weave, body shot, takedown", 21: "Front kick, cross, hook, spinning back kick", 22: "Slip jab, counter cross, left hook, right low kick", 23: "Catch kick, sweep, ground and pound", 24: "Jab, cross, level change, single leg takedown", 25: "Clinch, dirty boxing, knee strike, throw", 26: "Low kick, jab, cross, high kick", 27: "Feint kick, overhand right, left hook, takedown", 28: "Sprawl, front headlock, gator roll", 29: "Jab, cross, duck under, back take", 30: "Push kick, spinning heel kick, clinch, throw", 31: "Parry, elbow strike, knee, hip throw", 32: "Inside leg kick, jab, cross, outside leg kick, takedown", 33: "Overhand right, left hook, right uppercut, ankle pick", 34: "Clinch, knee strike, foot sweep, arm bar", 35: "Fake jab, right uppercut, left hook, takedown", 36: "Front kick, spinning back fist, clinch, suplex", 37: "Slip, body shot, hook, high kick", 38: "Jab, cross, level change, ankle pick", 39: "Low kick, overhand right, left hook, clinch, throw", 40: "Catch kick, counter punch, takedown", 41: "Jab, cross, bob and weave, liver shot, clinch", 42: "Push kick, cross, hook, leg kick", 43: "Feint takedown, uppercut, hook, knee strike", 44: "Parry, cross counter, hook, takedown", 45: "Clinch, knee strike, outside trip", 46: "Inside leg kick, jab, cross, high kick", 47: "Overhand right, left hook, level change, double leg", 48: "Sprawl, front headlock, snap down", 49: "Jab, cross, slip, body shot, clinch, throw", 50: "Low kick, jab, cross, spinning back kick", 51: "Feint jab, right hook, left uppercut, takedown", 52: "Catch punch, counter elbow, knee, throw", 53: "Push kick, spinning back fist, takedown", 54: "Slip, right uppercut, left hook, right low kick", 55: "Jab, cross, level change, single leg, lift, slam", 56: "Clinch, dirty boxing, knee strike, foot sweep", 57: "Inside leg kick, cross, hook, outside leg kick, clinch", 58: "Overhand right, left hook, right uppercut, double leg", 59: "Front kick, jab, cross, high kick", 60: "Feint kick, right hook, left uppercut, takedown", 61: "Sprawl, front headlock, arm drag to back take", 62: "Jab, cross, duck under, suplex", 63: "Low kick, overhand right, left hook, clinch, knee", 64: "Parry, counter cross, hook, spinning back kick", 65: "Clinch, knee strike, hip throw, ground control", 66: "Fake jab, right uppercut, left hook, leg kick", 67: "Push kick, cross, hook, takedown", 68: "Slip, body shot, hook, high kick, clinch", 69: "Jab, cross, level change, ankle pick, ground and pound", 70: "Inside leg kick, jab, cross, outside leg kick, spinning back fist", 71: "Overhand right, left hook, right uppercut, clinch, throw", 72: "Catch kick, sweep, mount, submission attempt", 73: "Front kick, spinning heel kick, takedown", 74: "Feint takedown, uppercut, hook, high kick", 75: "Parry, elbow strike, knee, outside trip", 76: "Clinch, dirty boxing, knee strike, inside trip", 77: "Low kick, jab, cross, spinning back kick, clinch", 78: "Slip jab, counter cross, left hook, right low kick, takedown", 79: "Sprawl, front headlock, go behind", 80: "Jab, cross, bob and weave, liver shot, takedown", 81: "Push kick, overhand right, left hook, clinch, throw", 82: "Feint jab, right hook, left uppercut, leg kick", 83: "Catch punch, counter knee, clinch, throw", 84: "Inside leg kick, cross, hook, high kick, takedown", 85: "Overhand right, left hook, level change, single leg", 86: "Front kick, jab, cross, spinning back fist", 87: "Slip, right uppercut, left hook, takedown", 88: "Jab, cross, duck under, back take, rear naked choke", 89: "Low kick, overhand right, left hook, right elbow", 90: "Parry, counter hook, cross, knee strike", 91: "Clinch, knee strike, foot sweep, arm lock", 92: "Fake takedown, uppercut, hook, spinning back kick", 93: "Push kick, cross, hook, outside leg kick, clinch", 94: "Slip, body shot, hook, high kick, takedown", 95: "Jab, cross, level change, double leg, ground and pound", 96: "Inside leg kick, jab, cross, outside leg kick, spinning heel kick", 97: "Overhand right, left hook, right uppercut, clinch, suplex", 98: "Catch kick, counter punch, takedown, submission attempt", 99: "Front kick, spinning back fist, clinch, knee strike, throw", 100: "Feint jab, right hook, left uppercut, leg kick, takedown" },
     'BJJ': { 1: "Double leg takedown > Mount > Ground and pound", 2: "Single leg takedown > Side control > Kimura", 3: "Clinch > Hip throw > Armbar", 4: "Sprawl > Front headlock > Guillotine choke", 5: "Pull guard > Sweep > Rear naked choke", 6: "Ankle pick > Knee on belly > Americana", 7: "Arm drag > Back take > Rear naked choke", 8: "Duck under > Back take > Bow and arrow choke", 9: "Snap down > Front headlock > D'arce choke", 10: "Osoto gari > Side control > North-south choke", 11: "Collar tie > Knee tap > Mount > Ezekiel choke", 12: "Arm wrap > Trip > Kesa gatame > Arm triangle", 13: "Underhook > Lateral drop > Side control > Kimura", 14: "Overhook > Uchi mata > Mount > Cross collar choke", 15: "Wrist control > Foot sweep > Knee on belly > Straight armbar", 16: "Two-on-one > Arm drag > Back take > Rear naked choke", 17: "Collar grab defense > Arm drag > Single leg > Ground and pound", 18: "Haymaker defense > Clinch > Hip throw > Mount", 19: "Bear hug defense > Lateral drop > Side control > Americana", 20: "Headlock defense > Switch > Back take > Rear naked choke", 21: "Guard pull > Triangle choke > Armbar", 22: "Double leg > Half guard pass > Mount > Arm triangle", 23: "Single leg > Knee cut pass > Side control > Kimura", 24: "Clinch > Foot sweep > Mount > Cross collar choke", 25: "Sprawl > Spin behind > Back take > Bow and arrow choke", 26: "Arm drag > Single leg > Knee on belly > Straight armbar", 27: "Duck under > Waist lock > Suplex > Rear naked choke", 28: "Snap down > Front headlock > Anaconda choke", 29: "Osoto gari > Scarf hold > Americana", 30: "Collar tie > Inside trip > Mount > Ezekiel choke", 31: "Underhook > Outside trip > Side control > North-south choke", 32: "Overhook > Harai goshi > Mount > Arm triangle", 33: "Wrist control > Ankle pick > Knee on belly > Kimura", 34: "Two-on-one > Russian tie > Single leg > Ground and pound", 35: "Collar grab defense > Osoto gari > Side control > Americana", 36: "Haymaker defense > Slip > Double leg > Mount", 37: "Bear hug defense > Hip toss > Side control > Kimura", 38: "Headlock defense > Roll > Mount > Cross collar choke", 39: "Guard pull > Omoplata > Straight armlock", 40: "Double leg > Toreando pass > Side control > Arm triangle", 41: "Single leg > X-pass > Mount > Ezekiel choke", 42: "Clinch > Uchi mata > Side control > North-south choke", 43: "Sprawl > Go behind > Back take > Rear naked choke", 44: "Arm drag > Kouchi gari > Knee on belly > Straight armbar", 45: "Duck under > Body lock > Suplex > Arm triangle", 46: "Snap down > Front headlock > Japanese necktie", 47: "Osoto gari > Kesa gatame > Arm triangle", 48: "Collar tie > Ankle pick > Side control > Kimura", 49: "Underhook > Sumi gaeshi > Mount > Cross collar choke", 50: "Overhook > Ouchi gari > Side control > Americana", 51: "Wrist control > De ashi barai > Knee on belly > Straight armbar", 52: "Two-on-one > Fireman's carry > Side control > North-south choke", 53: "Collar grab defense > Seoi nage > Mount > Ezekiel choke", 54: "Haymaker defense > Bob and weave > Double leg > Ground and pound", 55: "Bear hug defense > Ura nage > Side control > Kimura", 56: "Headlock defense > Sit-through > Back take > Bow and arrow choke", 57: "Guard pull > Scissor sweep > Mount > Cross collar choke", 58: "Double leg > Stack pass > Mount > Arm triangle", 59: "Single leg > Smash pass > Side control > Americana", 60: "Clinch > Kosoto gake > Side control > Kimura", 61: "Sprawl > Limp arm > Front headlock > Anaconda choke", 62: "Arm drag > Tai otoshi > Mount > Ezekiel choke", 63: "Duck under > Single leg > Knee on belly > Straight armbar", 64: "Snap down > Spiral ride > Back take > Rear naked choke", 65: "Osoto gari > Modified scarf hold > Arm triangle", 66: "Collar tie > Double leg > Half guard pass > Mount", 67: "Underhook > Uchi mata > Side control > Kimura", 68: "Overhook > Tani otoshi > Mount > Cross collar choke", 69: "Wrist control > Tomoe nage > Armbar", 70: "Two-on-one > Knee tap > Side control > North-south choke", 71: "Collar grab defense > Hip throw > Mount > Ezekiel choke", 72: "Haymaker defense > Level change > Double leg > Ground and pound", 73: "Bear hug defense > Sumi gaeshi > Mount > Arm triangle", 74: "Headlock defense > Arm trap > Back take > Rear naked choke", 75: "Guard pull > Flower sweep > Mount > Cross collar choke", 76: "Double leg > Over-under pass > Side control > Kimura", 77: "Single leg > Leg drag pass > Mount > Ezekiel choke", 78: "Clinch > Ouchi gari > Side control > Americana", 79: "Sprawl > Switch > Back take > Bow and arrow choke", 80: "Arm drag > Ankle pick > Knee on belly > Straight armbar", 81: "Duck under > High crotch > Knee on belly > Kimura", 82: "Snap down > Cow catcher > D'arce choke", 83: "Osoto gari > Knee on stomach > Straight armlock", 84: "Collar tie > Single leg > Half guard pass > Mount", 85: "Underhook > Kouchi gari > Side control > North-south choke", 86: "Overhook > Sasae tsurikomi ashi > Mount > Arm triangle", 87: "Wrist control > Sumi gaeshi > Armbar", 88: "Two-on-one > Inside trip > Side control > Americana", 89: "Collar grab defense > Double leg > Toreando pass > Mount", 90: "Haymaker defense > Duck under > Back take > Rear naked choke", 91: "Bear hug defense > Foot sweep > Side control > Kimura", 92: "Headlock defense > Hip bump > Mount > Cross collar choke", 93: "Guard pull > Pendulum sweep > Mount > Ezekiel choke", 94: "Double leg > Pressure pass > Side control > Arm triangle", 95: "Single leg > Bull fighter pass > Mount > Cross collar choke", 96: "Clinch > Harai goshi > Side control > Americana", 97: "Sprawl > Crossface > Front headlock > Anaconda choke", 98: "Arm drag > Uchi mata > Mount > Arm triangle", 99: "Duck under > Double leg > Half guard pass > Mount", 100: "Snap down > Guillotine > Mount > Ezekiel choke", 101: "Osoto gari > Side control > Paper cutter choke", 102: "Collar tie > Foot sweep > Knee on belly > Straight armbar", 103: "Underhook > Body lock takedown > Side control > Kimura", 104: "Overhook > Kosoto gari > Mount > Cross collar choke", 105: "Wrist control > Seoi nage > Armbar", 106: "Two-on-one > Outside trip > Side control > North-south choke", 107: "Collar grab defense > Arm drag > Back take > Rear naked choke", 108: "Haymaker defense > Shoot > Single leg > Ground and pound", 109: "Bear hug defense > Uchi mata > Mount > Ezekiel choke", 110: "Headlock defense > Lateral drop > Side control > Americana", 111: "Guard pull > Hip bump sweep > Mount > Arm triangle", 112: "Double leg > Knee slice pass > Side control > Kimura", 113: "Single leg > Backstep pass > Mount > Cross collar choke", 114: "Clinch > Foot sweep > Side control > North-south choke", 115: "Sprawl > Snap down > Front headlock > D'arce choke", 116: "Arm drag > Ouchi gari > Knee on belly > Straight armbar", 117: "Duck under > Ankle pick > Side control > Americana", 118: "Snap down > Arm-in guillotine > Mount", 119: "Osoto gari > Kesa gatame > Chest compression", 120: "Collar tie > Lateral drop > Side control > Kimura", 121: "Underhook > Sumi gaeshi > Armbar", 122: "Overhook > Tai otoshi > Mount > Ezekiel choke", 123: "Wrist control > Kouchi gari > Knee on belly > Straight armbar", 124: "Two-on-one > Hip throw > Side control > Arm triangle", 125: "Collar grab defense > Duck under > Back take > Bow and arrow choke", 126: "Haymaker defense > Clinch > Osoto gari > Mount", 127: "Bear hug defense > Suplex > Side control > Kimura", 128: "Headlock defense > Sit-out > Back take > Rear naked choke", 129: "Guard pull > Kimura sweep > Side control > Americana", 130: "Double leg > Double under pass > Mount > Cross collar choke", 131: "Single leg > Tripod pass > Side control > North-south choke", 132: "Clinch > Inside trip > Mount > Arm triangle", 133: "Sprawl > Spiral ride > Back take > Rear naked choke", 134: "Arm drag > Fireman's carry > Side control > Kimura", 135: "Duck under > Uchi mata > Mount > Ezekiel choke", 136: "Snap down > Clock choke > Mount", 137: "Osoto gari > Side control > Straight armlock", 138: "Collar tie > Single leg > Knee cut pass > Mount", 139: "Underhook > Harai goshi > Side control > Americana", 140: "Overhook > De ashi barai > Mount > Cross collar choke", 141: "Wrist control > Ankle pick > Side control > North-south choke", 142: "Two-on-one > Kosoto gake > Mount > Arm triangle", 143: "Collar grab defense > Snap down > Front headlock > Anaconda choke", 144: "Haymaker defense > Slip > Clinch > Hip throw > Mount", 145: "Bear hug defense > Back trip > Side control > Kimura", 146: "Headlock defense > Forward roll > Mount > Ezekiel choke", 147: "Guard pull > Tripod sweep > Mount > Cross collar choke", 148: "Double leg > Leg weave pass > Side control > Americana", 149: "Single leg > Over-under pass > Mount > Arm triangle", 150: "Clinch > Foot sweep > Knee on belly > Straight armbar" },
     'Wrestling': { 1: "Double leg takedown > side control", 2: "Single leg takedown > half guard", 3: "Arm drag > rear naked choke", 4: "Clinch > hip throw", 5: "Sprawl > front headlock", 6: "Ankle pick > knee on belly", 7: "Snap down > guillotine choke", 8: "Body lock > suplex", 9: "Underhook > trip takedown", 10: "Collar tie > knee strike", 11: "Arm wrap > back take", 12: "Duck under > waist lock takedown", 13: "Overhook > lateral drop", 14: "Wrist control > arm drag", 15: "Leg lace > calf slicer", 16: "Fireman's carry > armbar", 17: "Shoulder throw > mount", 18: "Ankle sweep > kneebar", 19: "Arm trap > hip toss", 20: "Headlock > throw", 21: "Foot sweep > side control", 22: "Arm spin > back mount", 23: "Knee tap > north-south position", 24: "Whizzer > outside trip", 25: "Collar drag > anaconda choke", 26: "Leg hook > sweep", 27: "Arm control > kimura", 28: "Clinch > knee tap", 29: "Wrist lock > takedown", 30: "Snap down > front choke", 31: "Arm bar from guard", 32: "Double underhooks > body lock takedown", 33: "Single collar tie > elbow strike", 34: "Leg ride > calf crush", 35: "Arm triangle from mount", 36: "Butterfly sweep > mount", 37: "Ankle pick > leg lace", 38: "Arm drag > single leg", 39: "Collar tie > Russian tie", 40: "Underhook > back take", 41: "Snap down > cradle", 42: "Arm wrap > suplex", 43: "Wrist control > standing kimura", 44: "Knee shield > sweep", 45: "Arm trap > shoulder lock", 46: "Head and arm control > throw", 47: "Ankle pick > single leg X-guard", 48: "Clinch > inside trip", 49: "Arm drag > body lock", 50: "Collar tie > head snap", 51: "Underhook > outside trip", 52: "Wrist control > Russian arm drag", 53: "Knee tap > side control", 54: "Snap down > arm triangle", 55: "Double leg > mount", 56: "Single leg > back take", 57: "Arm drag > duck under", 58: "Clinch > foot sweep", 59: "Sprawl > spin behind", 60: "Ankle pick > back control", 61: "Snap down > d'arce choke", 62: "Body lock > mat return", 63: "Underhook > lateral drop", 64: "Collar tie > snap down", 65: "Arm wrap > hip throw", 66: "Duck under > rear bodylock", 67: "Overhook > headlock throw", 68: "Wrist control > single leg", 69: "Leg lace > back take", 70: "Fireman's carry > side control", 71: "Shoulder throw > armbar", 72: "Ankle sweep > leg lock", 73: "Arm trap > sacrifice throw", 74: "Headlock > arm triangle", 75: "Foot sweep > mount", 76: "Arm spin > kimura trap", 77: "Knee tap > crucifix", 78: "Whizzer > hip toss", 79: "Collar drag > back mount", 80: "Leg hook > back take", 81: "Arm control > omoplata", 82: "Clinch > suplex", 83: "Wrist lock > arm drag", 84: "Snap down > rear naked choke", 85: "Guard pull > sweep", 86: "Double underhooks > high crotch", 87: "Single collar tie > level change", 88: "Leg ride > turk", 89: "Arm triangle > mount", 90: "Butterfly guard > X-guard", 91: "Ankle pick > single leg", 92: "Arm drag > clinch", 93: "Collar tie > arm drag", 94: "Underhook > knee tap", 95: "Snap down > front headlock", 96: "Arm wrap > inside trip", 97: "Wrist control > duck under", 98: "Knee shield > back take", 99: "Arm trap > double leg" },
-    'Judo': { 1: "O Goshi (Major Hip Throw)", 2: "Seoi Nage (Shoulder Throw)", 3: "Uchi Mata (Inner Thigh Throw)", 4: "Tai Otoshi (Body Drop)", 5: "Koshi Guruma (Hip Wheel)", 6: "Harai Goshi (Hip Sweep)", 7: "Sumi Gaeshi (Corner Reversal)", 8: "Ippon Seoi Nage (One-Arm Shoulder Throw)", 9: "Osoto Gari (Large Outer Reap)", 10: "Osoto Otoshi (Large Outer Drop)", 11: "Ashi Guruma (Foot Wheel)", 12: "De Ashi Barai (Advanced Foot Sweep)", 13: "Okuri Ashi Barai (Sliding Foot Sweep)", 14: "Sasae Tsurikomi Ashi (Supporting Foot Lift Sweep)", 15: "Hiza Guruma (Knee Wheel)", 16: "Uchi Ashi Barai (Inner Foot Sweep)", 17: "Kouchi Gari (Small Inner Reap)", 18: "Kouchi Barai (Small Inner Sweep)", 19: "Ashi Tori Zemi (Foot Catching)", 20: "Tsurikomi Ashi (Lifting Foot Sweep)", 21: "Tomoe Nage (Circle Throw)", 22: "Ura Nage (Back Throw)", 23: "Yoko Gake (Side Hook)", 24: "Yoko Otoshi (Side Drop)", 25: "Hane Goshi (Spring Hip Throw)", 26: "Kani Basami (Crab Leg Sweep)", 27: "Tani Otoshi (Valley Drop)", 28: "Ashi Garami (Leg Trap)", 29: "Uchi Mata Sukashi (Inner Thigh Reversal)", 30: "Kesa Gatame (Scarf Hold)", 31: "Yoko Shiho Gatame (Side Four Corner Hold)", 32: "Tate Shiho Gatame (Top Four Corner Hold)", 33: "Kami Shiho Gatame (Upper Four Corner Hold)", 34: "Juji Gatame (Armbar)", 35: "Ude Garami (Entangled Arm)", 36: "Shime Waza (Strangulation Techniques)", 37: "Kata Gatame (Shoulder Hold)", 38: "Ashi Garami (Leg Entanglement)", 39: "Hiza Gatame (Knee Hold)", 40: "Atemi Waza (Striking Techniques)", 41: "Kansetsu Waza (Joint Locks)", 42: "Ashi Uke (Foot Block)", 43: "Waki Gatame (Armpit Arm Lock)", 44: "Atemi (Striking with the Open Hand)", 45: "Ude Hishigi Juji Gatame (Armbar in Cross Position)", 46: "Ashi Hishigi (Foot Lock)", 47: "Ude Hishigi Ura (Reverse Arm Lock)", 48: "Kote Hishigi (Wrist Lock)", 49: "Kansetsu Waza Kata Gatame (Shoulder Lock)" },};
+    'Judo': { 1: "O Goshi (Major Hip Throw)", 2: "Seoi Nage (Shoulder Throw)", 3: "Uchi Mata (Inner Thigh Throw)", 4: "Tai Otoshi (Body Drop)", 5: "Koshi Guruma (Hip Wheel)", 6: "Harai Goshi (Hip Sweep)", 7: "Sumi Gaeshi (Corner Reversal)", 8: "Ippon Seoi Nage (One-Arm Shoulder Throw)", 9: "Osoto Gari (Large Outer Reap)", 10: "Osoto Otoshi (Large Outer Drop)", 11: "Ashi Guruma (Foot Wheel)", 12: "De Ashi Barai (Advanced Foot Sweep)", 13: "Okuri Ashi Barai (Sliding Foot Sweep)", 14: "Sasae Tsurikomi Ashi (Supporting Foot Lift Sweep)", 15: "Hiza Guruma (Knee Wheel)", 16: "Uchi Ashi Barai (Inner Foot Sweep)", 17: "Kouchi Gari (Small Inner Reap)", 18: "Kouchi Barai (Small Inner Sweep)", 19: "Ashi Tori Zemi (Foot Catching)", 20: "Tsurikomi Ashi (Lifting Foot Sweep)", 21: "Tomoe Nage (Circle Throw)", 22: "Ura Nage (Back Throw)", 23: "Yoko Gake (Side Hook)", 24: "Yoko Otoshi (Side Drop)", 25: "Hane Goshi (Spring Hip Throw)", 26: "Kani Basami (Crab Leg Sweep)", 27: "Tani Otoshi (Valley Drop)", 28: "Ashi Garami (Leg Trap)", 29: "Uchi Mata Sukashi (Inner Thigh Reversal)", 30: "Kesa Gatame (Scarf Hold)", 31: "Yoko Shiho Gatame (Side Four Corner Hold)", 32: "Tate Shiho Gatame (Top Four Corner Hold)", 33: "Kami Shiho Gatame (Upper Four Corner Hold)", 34: "Juji Gatame (Armbar)", 35: "Ude Garami (Entangled Arm)", 36: "Shime Waza (Strangulation Techniques)", 37: "Kata Gatame (Shoulder Hold)", 38: "Ashi Garami (Leg Entanglement)", 39: "Hiza Gatame (Knee Hold)", 40: "Atemi Waza (Striking Techniques)", 41: "Kansetsu Waza (Joint Locks)", 42: "Ashi Uke (Foot Block)", 43: "Waki Gatame (Armpit Arm Lock)", 44: "Atemi (Striking with the Open Hand)", 45: "Ude Hishigi Juji Gatame (Armbar in Cross Position)", 46: "Ashi Hishigi (Foot Lock)", 47: "Ude Hishigi Ura (Reverse Arm Lock)", 48: "Kote Hishigi (Wrist Lock)", 49: "Kansetsu Waza Kata Gatame (Shoulder Lock)" },
+    'Taekwondo': { 1: "Jab > Cross", 2: "Jab > Cross > Front kick", 3: "Front kick > Roundhouse kick", 4: "Jab > Front kick", 5: "Jab > Cross > Roundhouse kick", 6: "Jab > Front kick > Roundhouse kick", 7: "Roundhouse kick > Side kick", 8: "Jab > Cross > Front kick > Roundhouse kick", 9: "Front kick > Side kick > Cross", 10: "Jab > Roundhouse kick > Roundhouse kick", 11: "Cross > Side kick > Roundhouse kick", 12: "Back kick > Cross", 13: "Jab > Cross > Back kick", 14: "Front kick > Back kick > Side kick", 15: "Jab > Roundhouse kick > Back kick", 16: "Side kick > Roundhouse kick > Cross", 17: "Hook kick > Cross", 18: "Jab > Cross > Hook kick", 19: "Front kick > Hook kick > Roundhouse kick", 20: "Jab > Cross > Front kick > Back kick", 21: "Axe kick > Roundhouse kick", 22: "Jab > Axe kick > Cross", 23: "Crescent kick > Roundhouse kick", 24: "Front kick > Crescent kick > Side kick", 25: "Spinning back kick > Cross", 26: "Jab > Cross > Spinning back kick", 27: "Front kick > Spinning back kick > Roundhouse kick", 28: "Push kick > Roundhouse kick > Cross", 29: "Jab > Push kick > Roundhouse kick", 30: "Knee > Cross > Roundhouse kick", 31: "Jab > Cross > Side kick > Roundhouse kick", 32: "Front kick > Roundhouse kick > Side kick > Cross", 33: "Jab > Cross > Spinning back kick > Side kick", 34: "Roundhouse kick > Back kick > Hook kick > Cross", 35: "Jab > Cross > Front kick > Roundhouse kick > Side kick", 36: "Spinning back kick > Jab > Cross > Back kick", 37: "Jab > Crescent kick > Roundhouse kick > Side kick", 38: "Cross > Spinning back kick > Hook kick > Roundhouse kick", 39: "Front kick > Side kick > Push kick > Roundhouse kick", 40: "Jab > Cross > Roundhouse kick > Spinning back kick > Cross", 41: "Roundhouse kick > Side kick > Back kick > Hook kick > Roundhouse kick", 42: "Axe kick > Cross > Spinning back kick > Side kick", 43: "Jab > Knee > Roundhouse kick > Back kick > Cross", 44: "Push kick > Jab > Cross > Spinning back kick > Roundhouse kick", 45: "Cross > Side kick > Spinning back kick > Roundhouse kick > Hook kick", 46: "Jab > Cross > Front kick > Spinning back kick > Side kick > Roundhouse kick", 47: "Front kick > Roundhouse kick > Side kick > Back kick > Hook kick > Cross", 48: "Jab > Cross > Spinning back kick > Roundhouse kick > Axe kick > Cross", 49: "Spinning back kick > Side kick > Hook kick > Back kick > Roundhouse kick > Cross", 50: "Cross > Jab > Knee > Side kick > Roundhouse kick" },
+    'Karate': { 1: "Jab > Cross", 2: "Jab > Cross > Reverse punch", 3: "Reverse punch > Front kick", 4: "Jab > Reverse punch", 5: "Jab > Cross > Front kick", 6: "Jab > Reverse punch > Front kick", 7: "Front kick > Side kick", 8: "Jab > Cross > Reverse punch > Front kick", 9: "Reverse punch > Side kick > Cross", 10: "Jab > Front kick > Front kick", 11: "Cross > Side kick > Front kick", 12: "Roundhouse kick > Cross", 13: "Jab > Cross > Roundhouse kick", 14: "Reverse punch > Roundhouse kick > Side kick", 15: "Jab > Front kick > Roundhouse kick", 16: "Side kick > Front kick > Cross", 17: "Backfist > Cross", 18: "Jab > Cross > Backfist", 19: "Reverse punch > Backfist > Front kick", 20: "Jab > Cross > Reverse punch > Roundhouse kick", 21: "Ridge hand > Front kick", 22: "Jab > Ridge hand > Cross", 23: "Knife hand > Front kick", 24: "Reverse punch > Knife hand > Side kick", 25: "Elbow > Cross", 26: "Jab > Cross > Elbow", 27: "Reverse punch > Elbow > Front kick", 28: "Knee > Front kick > Cross", 29: "Jab > Knee > Front kick", 30: "Push kick > Cross > Front kick", 31: "Jab > Cross > Side kick > Front kick", 32: "Reverse punch > Front kick > Side kick > Cross", 33: "Jab > Cross > Elbow > Side kick", 34: "Front kick > Roundhouse kick > Backfist > Cross", 35: "Jab > Cross > Reverse punch > Front kick > Side kick", 36: "Elbow > Jab > Cross > Roundhouse kick", 37: "Jab > Knife hand > Front kick > Side kick", 38: "Cross > Elbow > Backfist > Front kick", 39: "Reverse punch > Side kick > Knee > Front kick", 40: "Jab > Cross > Front kick > Elbow > Cross", 41: "Front kick > Side kick > Roundhouse kick > Backfist > Front kick", 42: "Ridge hand > Cross > Elbow > Side kick", 43: "Jab > Push kick > Front kick > Roundhouse kick > Cross", 44: "Knee > Jab > Cross > Elbow > Front kick", 45: "Cross > Side kick > Elbow > Front kick > Backfist", 46: "Jab > Cross > Reverse punch > Elbow > Side kick > Front kick", 47: "Reverse punch > Front kick > Side kick > Roundhouse kick > Backfist > Cross", 48: "Jab > Cross > Elbow > Front kick > Ridge hand > Cross", 49: "Elbow > Side kick > Backfist > Roundhouse kick > Front kick > Cross", 50: "Cross > Jab > Push kick > Side kick > Front kick" },};
 
 // ---------- Difficulty tiers (per style: which level numbers are beginner/intermediate/advanced) ----------
 const DIFFICULTY_TIERS = {
@@ -167,6 +173,8 @@ const DIFFICULTY_TIERS = {
   'BJJ': { beginner: 50, intermediate: 100, advanced: 150 },
   'Wrestling': { beginner: 33, intermediate: 66, advanced: 99 },
   'Judo': { beginner: 16, intermediate: 32, advanced: 49 },
+  'Taekwondo': { beginner: 16, intermediate: 32, advanced: 50 },
+  'Karate': { beginner: 16, intermediate: 32, advanced: 50 },
 };
 const DIFFICULTY_ORDER = ['beginner', 'intermediate', 'advanced'];
 const DIFFICULTY_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' };
@@ -331,6 +339,34 @@ const TECHNIQUES = {
     'kansetsu waza': { how: 'Apply a joint lock against the natural bend.', cue: 'Lock the joint.' },
     'kansetsu waza kata gatame': { how: 'Combine the shoulder pin with a joint lock.', cue: 'Pin and lock.' },
   },
+  'Taekwondo': {
+    'jab': { how: 'Snap the lead hand straight from your chin, rotating the fist at extension, and return to guard.', cue: 'Snap out, return fast.' },
+    'cross': { how: 'Pivot the rear foot and drive the rear hand straight through with full hip rotation.', cue: 'Pivot and drive.' },
+    'front kick': { how: 'Raise the knee to the chest and extend the foot forward, snapping with the ball of the foot.', cue: 'Knee up, snap forward.' },
+    'roundhouse kick': { how: 'Pivot the standing foot, raise the knee, and rotate the hips to snap the foot through the target.', cue: 'Pivot, knee up, whip through.' },
+    'side kick': { how: 'Chamber the knee across the body, then extend the leg sideways with the heel leading.', cue: 'Chamber, extend with the heel.' },
+    'back kick': { how: 'Turn the head and shoulders back, chamber the knee, and drive the heel straight behind you.', cue: 'Look back, drive the heel.' },
+    'hook kick': { how: 'Raise the knee, swing the leg in a horizontal arc, and hook with the heel.', cue: 'Knee up, hook the heel.' },
+    'axe kick': { how: 'Raise the leg high, then drop the heel straight down with power.', cue: 'Raise high, chop down.' },
+    'crescent kick': { how: 'Swing the leg in an inward or outward arc, striking with the inner or outer foot edge.', cue: 'Swing the arc.' },
+    'spinning back kick': { how: 'Pivot 180 degrees on the lead foot and drive the heel straight back into the target.', cue: 'Spin, drive the heel.' },
+    'push kick': { how: 'Extend the foot forward with a thrusting motion to control range.', cue: 'Thrust to control.' },
+    'knee': { how: 'Drive the knee straight up the middle, using the clinch or grip to control distance.', cue: 'Drive the knee up.' },
+  },
+  'Karate': {
+    'jab': { how: 'Snap the lead hand straight from a bladed stance, rotating the fist at extension, and return.', cue: 'Snap and return.' },
+    'cross': { how: 'Pivot the rear foot and drive the rear hand straight through the target with full rotation.', cue: 'Pivot and drive.' },
+    'reverse punch': { how: 'From a stable stance, rotate the hips and drive the rear fist straight down the center line.', cue: 'Hips first, straight line.' },
+    'front kick': { how: 'Raise the knee and snap the ball of the foot forward, then rechamber.', cue: 'Knee up, snap, rechamber.' },
+    'side kick': { how: 'Chamber the knee across the body and extend the heel sideways with hip rotation.', cue: 'Chamber, extend the heel.' },
+    'roundhouse kick': { how: 'Pivot the standing foot and whip the leg through with the shin or instep.', cue: 'Pivot, whip through.' },
+    'backfist': { how: 'Snap the arm out and whip the back of the fist into the target, rotating the wrist.', cue: 'Snap, whip the backfist.' },
+    'ridge hand': { how: 'Strike with the ridge of the hand between the thumb and forefinger, wrist straight.', cue: 'Wrist straight, ridge first.' },
+    'knife hand': { how: 'Strike with the edge of the hand, fingers tight, thumb across the palm.', cue: 'Edge of the hand, tight fingers.' },
+    'elbow': { how: 'Slice the elbow in a tight arc with the hips behind it.', cue: 'Tight arc, hip turn.' },
+    'knee': { how: 'Drive the knee up the middle with a strong hip snap.', cue: 'Drive the knee.' },
+    'push kick': { how: 'Extend the foot forward with a thrust to create space.', cue: 'Thrust for space.' },
+  },
 };
 
 // Shared striking techniques — available as fallback for every style
@@ -425,6 +461,8 @@ const CURRICULUM = {
   'BJJ': ['guard pull', 'sweep', 'mount', 'side control', 'guard pass', 'armbar', 'rear naked choke', 'kimura', 'triangle', 'back take', 'omoplata', 'sweep to mount'],
   'Wrestling': ['double leg', 'single leg', 'arm drag', 'sprawl', 'front headlock', 'takedown', 'trip', 'hip toss', 'ankle pick', 'cradle', 'sit out', 'mat return'],
   'Judo': ['ogoshi', 'seoi nage', 'osoto gari', 'harai goshi', 'uchi mata', 'tai otoshi', 'ippon seoi nage', 'foot sweep', 'tomoe nage', 'kesa gatame', 'juji gatame', 'hold down'],
+  'Taekwondo': ['jab', 'cross', 'front kick', 'roundhouse kick', 'side kick', 'back kick', 'hook kick', 'axe kick', 'crescent kick', 'spinning back kick', 'push kick', 'knee'],
+  'Karate': ['jab', 'cross', 'reverse punch', 'front kick', 'side kick', 'roundhouse kick', 'backfist', 'ridge hand', 'knife hand', 'elbow', 'knee', 'push kick'],
 };
 
 // Normalize a combo move name to look up in the technique library
@@ -690,6 +728,14 @@ export default function App() {
   const [isPro, setIsPro] = usePersistedState('isPro', false);
   const [paywallVisible, setPaywallVisible] = useState(false);
   const [pendingProAction, setPendingProAction] = useState(null);
+  // Real Play Billing state (react-native-iap) — only available in dev builds
+  const [billingAvailable, setBillingAvailable] = useState(false);
+  const [billingReady, setBillingReady] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  // Voice-command hands-free (Pro): "stop" / "next" while training
+  const [voiceCommands, setVoiceCommands] = usePersistedState('voiceCommands', false);
+  const [voiceCmdListening, setVoiceCmdListening] = useState(false);
 
   // Difficulty filter: 'all' | 'beginner' | 'intermediate' | 'advanced'
   const [difficultyFilter, setDifficultyFilter] = usePersistedState('difficultyFilter', 'all');
@@ -705,9 +751,9 @@ export default function App() {
   const [hapticsEnabled, setHapticsEnabled] = usePersistedState('hapticsEnabled', true);
   const hapticIf = (type) => { if (hapticsEnabled) haptic(type); };
 
-  // ---------- Monetization: soft gate + billing stub ----------
+  // ---------- Monetization: soft gate + REAL Google Play Billing ----------
   // Gated feature tap → if not Pro, open the paywall preview instead.
-  // The action name lets us (later) deep-link to the exact feature after purchase.
+  // The action name lets us deep-link to the exact feature after purchase.
   const requirePro = (actionName = 'feature') => {
     if (isPro) return true;
     setPendingProAction(actionName);
@@ -715,23 +761,116 @@ export default function App() {
     track('paywall_shown', { action: actionName });
     return false;
   };
-  // Billing stub: native Google Play Billing will replace this when the dev build ships.
-  // __DEV__ gate: in production builds this must NOT unlock Pro for free — a real
-  // purchase flow (Phase 2) replaces the stub before the store release.
-  const purchasePro = (tier) => {
+
+  // Play Store product IDs — must match the products created in Google Play Console.
+  const BILLING_PRODUCTS = {
+    monthly: 'mycombat_pro_monthly',
+    annual: 'mycombat_pro_annual',
+    lifetime: 'mycombat_pro_lifetime',
+  };
+  const BILLING_TIER_NAMES = { monthly: 'Monthly', annual: 'Annual', lifetime: 'Lifetime' };
+
+  // Initialize the billing connection on mount (dev builds only — Expo Go has no native module).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const RNIap = require('react-native-iap');
+        if (!RNIap || typeof RNIap.initConnection !== 'function') {
+          setBillingAvailable(false);
+          return;
+        }
+        await RNIap.initConnection();
+        if (cancelled) return;
+        setBillingAvailable(true);
+        // Restore a prior purchase (e.g. reinstall) so Pro survives reinstall.
+        try {
+          const purchases = await RNIap.getAvailablePurchases();
+          const owned = purchases.some(p => p.productId && Object.values(BILLING_PRODUCTS).includes(p.productId));
+          if (owned && !cancelled) setIsPro(true);
+        } catch (e) { /* restore check failed — treat as not owned */ }
+        setBillingReady(true);
+      } catch (e) {
+        // No native module (Expo Go / web) — fall back to dev unlock / soft gate.
+        setBillingAvailable(false);
+        setBillingReady(true);
+      }
+    })();
+    return () => { cancelled = true; try { const RNIap = require('react-native-iap'); RNIap.endConnection && RNIap.endConnection(); } catch (e) {} };
+  }, []);
+
+  // Purchase flow: request the Play Billing sheet for a tier, then grant Pro.
+  const purchasePro = async (tier) => {
     track('paywall_purchase_attempt', { tier });
-    // TODO: call Google Play Billing (react-native-billing / Billing Library) here.
-    if (!__DEV__) {
+    const productId = BILLING_PRODUCTS[tier];
+    if (!productId) return;
+    if (!billingAvailable) {
+      // No native billing (Expo Go / preview build) — keep the old preview behavior.
+      if (!__DEV__) {
+        setPaywallVisible(false);
+        Alert.alert('Billing coming soon', 'Purchases will be enabled in the next update. Pro is currently in preview.');
+        return;
+      }
+      setIsPro(true);
       setPaywallVisible(false);
-      Alert.alert('Billing coming soon', 'Purchases will be enabled in the next update. Pro is currently in preview.');
+      setPendingProAction(null);
+      hapticIf('heavy');
+      Alert.alert('Pro unlocked (dev)', `MyCombat Pro (${tier}) is active for testing.`);
       return;
     }
-    // Dev-only: unlock Pro directly for testing.
-    setIsPro(true);
-    setPaywallVisible(false);
-    setPendingProAction(null);
-    hapticIf('heavy');
-    Alert.alert('Pro unlocked (dev)', `MyCombat Pro (${tier}) is active for testing.`);
+    try {
+      setPurchasing(true);
+      const RNIap = require('react-native-iap');
+      const purchase = await RNIap.requestPurchase({ sku: productId });
+      const receipt = purchase?.transactionReceipt || purchase?.purchaseToken || null;
+      await RNIap.finishTransaction({ purchase, isConsumable: false });
+      if (purchase?.productId === productId) {
+        setIsPro(true);
+        setPaywallVisible(false);
+        setPendingProAction(null);
+        hapticIf('heavy');
+        track('paywall_purchase_success', { tier });
+        Alert.alert('Welcome to Pro', `MyCombat Pro (${BILLING_TIER_NAMES[tier]}) is active.`);
+      }
+      return receipt;
+    } catch (e) {
+      // User cancelled the sheet or billing error — stay on the paywall.
+      if (e && (e.code === 'E_USER_CANCELLED' || e.message && e.message.includes('cancel'))) {
+        track('paywall_purchase_cancelled', { tier });
+      } else {
+        console.log('purchase error', e);
+        Alert.alert('Purchase failed', 'Could not complete the purchase. Please try again.');
+      }
+      return null;
+    } finally {
+      setPurchasing(false);
+    }
+  };
+
+  // Restore purchases: re-query owned items and re-grant Pro.
+  const restorePurchases = async () => {
+    if (!billingAvailable) {
+      Alert.alert('Restore not available', 'Billing is not available in this build.');
+      return;
+    }
+    try {
+      setRestoring(true);
+      const RNIap = require('react-native-iap');
+      const purchases = await RNIap.getAvailablePurchases();
+      const owned = purchases.some(p => p.productId && Object.values(BILLING_PRODUCTS).includes(p.productId));
+      if (owned) {
+        setIsPro(true);
+        track('paywall_restore_success');
+        Alert.alert('Restored', 'Your Pro purchase has been restored.');
+      } else {
+        Alert.alert('No purchases found', 'We could not find a Pro purchase on this account.');
+      }
+    } catch (e) {
+      console.log('restore error', e);
+      Alert.alert('Restore failed', 'Could not check your purchases. Please try again.');
+    } finally {
+      setRestoring(false);
+    }
   };
 
   useEffect(() => { track('app_open', { isPro }); }, []);
@@ -797,6 +936,76 @@ export default function App() {
     return () => sub.remove();
   }, [tapControls, timerActive, isTraining]);
 
+  // ---------- Hands-free: voice commands ("stop" / "next") ----------
+  // Refs so the recognizer always calls the LATEST handlers (defined later).
+  const voiceCmdHandlersRef = useRef({ stop: null, next: null, timerActive: false, isTraining: false });
+  useEffect(() => {
+    voiceCmdHandlersRef.current = {
+      stop: () => {
+        if (timerActive) { stopTimerRef.current && stopTimerRef.current(); }
+        else if (isTraining) { stopTrainingRef.current && stopTrainingRef.current(); }
+      },
+      next: () => {
+        // Combo training: pull a fresh combo immediately (generateTask handles
+        // isTraining && currentStyle === stat, speaks it, resets repeat count).
+        if (isTraining && currentStyle) generateTask(currentStyle);
+        // HIIT timer: skip the current round by zeroing the clock — the timer
+        // interval advances to the next phase naturally.
+        else if (timerActive) setTimeRemaining(0);
+      },
+      timerActive,
+      isTraining,
+    };
+  });
+  const voiceCmdActive = () => voiceCmdHandlersRef.current.timerActive || voiceCmdHandlersRef.current.isTraining;
+  const startVoiceListening = useCallback(async () => {
+    try {
+      const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (!perm.granted) return;
+      const available = await ExpoSpeechRecognitionModule.isRecognitionAvailable();
+      if (!available) return;
+      ExpoSpeechRecognitionModule.start({
+        lang: 'en-US',
+        interimResults: false,
+        continuous: true,
+        requiresOnDeviceRecognition: false,
+      });
+    } catch (e) { console.log('voice start error', e); }
+  }, []);
+  // Hook event: result transcript → route to stop/next.
+  useSpeechRecognitionEvent('result', (event) => {
+    const text = (event.results && event.results[0] && event.results[0].transcript || '').toLowerCase().trim();
+    if (!text) return;
+    // "stop"/"halt"/"quit"/"end"/"enough" → stop the session
+    if (/\b(stop|halt|quit|end|enough|finish)\b/.test(text)) {
+      hapticIf('medium');
+      voiceCmdHandlersRef.current.stop && voiceCmdHandlersRef.current.stop();
+    } else if (/\b(next|skip|again|another|more|change)\b/.test(text)) {
+      hapticIf('light');
+      voiceCmdHandlersRef.current.next && voiceCmdHandlersRef.current.next();
+    }
+  });
+  // Keep listening alive: recognizer can end on its own — restart while active.
+  useSpeechRecognitionEvent('end', () => {
+    if (voiceCommands && voiceCmdActive()) {
+      ExpoSpeechRecognitionModule.stop && ExpoSpeechRecognitionModule.stop();
+      setTimeout(() => { if (voiceCommands && voiceCmdActive()) startVoiceListening(); }, 300);
+    } else {
+      ExpoSpeechRecognitionModule.stop && ExpoSpeechRecognitionModule.stop();
+    }
+  });
+  // Start/stop recognition when the toggle or session state changes.
+  useEffect(() => {
+    if (!voiceCommands || (!timerActive && !isTraining)) {
+      ExpoSpeechRecognitionModule.stop && ExpoSpeechRecognitionModule.stop();
+      setVoiceCmdListening(false);
+      return;
+    }
+    setVoiceCmdListening(true);
+    startVoiceListening();
+    return () => { ExpoSpeechRecognitionModule.stop && ExpoSpeechRecognitionModule.stop(); setVoiceCmdListening(false); };
+  }, [voiceCommands, timerActive, isTraining, startVoiceListening]);
+
   // ---------- Voice pack application ----------
   const effectiveSpeechRate = useMemo(() => {
     const pack = VOICE_PACKS.find(p => p.id === voicePack);
@@ -833,7 +1042,7 @@ export default function App() {
   // to the next day in the Americas, breaking streaks + monthly stats)
   const localDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const todayStr = () => localDateStr(new Date());
-  const METS = { 'Boxing': 8, 'Kickboxing': 9, 'Muay Thai': 10, 'MMA': 9, 'Combat Sambo': 9, 'BJJ': 8, 'Wrestling': 8, 'Judo': 8 };
+  const METS = { 'Boxing': 8, 'Kickboxing': 9, 'Muay Thai': 10, 'MMA': 9, 'Combat Sambo': 9, 'BJJ': 8, 'Wrestling': 8, 'Judo': 8, 'Taekwondo': 9, 'Karate': 8 };
   const logSession = (style, type, seconds, roundsDone) => {
     const met = METS[style] || 8;
     const hours = seconds / 3600;
@@ -1587,18 +1796,18 @@ export default function App() {
     const moves = splitCombo(baseCombo);
     if (moves.length < 2) return null;
     return (
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.previewStrip} contentContainerStyle={styles.previewStripContent}>
+      <View style={styles.previewStrip}>
         {moves.map((move, idx) => (
           <View key={idx} style={styles.previewStep}>
             <View style={[styles.previewChip, { backgroundColor: theme.taskContainer, borderColor: theme.accent }]}>
-              <Text style={[styles.previewChipText, { color: theme.text }]} numberOfLines={1}>{displayText(move)}</Text>
+              <Text style={[styles.previewChipText, { color: theme.text }]}>{displayText(move)}</Text>
             </View>
             {idx < moves.length - 1 && (
               <Ionicons name="arrow-forward" size={14} color={theme.accent} style={styles.previewArrow} />
             )}
           </View>
         ))}
-      </ScrollView>
+      </View>
     );
   };
 
@@ -1704,14 +1913,6 @@ export default function App() {
                   </Text>
                 </View>
               )}
-              <Animated.Text
-                style={[styles.taskText, { fontSize, color: theme.text, opacity: taskOpacity }]}
-                numberOfLines={2}
-                adjustsFontSizeToFit
-                minimumFontScale={0.6}
-              >
-                {task ? displayText(task) : 'Tap refresh to generate'}
-              </Animated.Text>
               {task && <ComboPreview combo={task} styleName={category} />}
             </View>
             <View style={styles.cardControls}>
@@ -1823,7 +2024,7 @@ export default function App() {
             <View style={[styles.onboardCard, { backgroundColor: theme.cardBg, borderColor: theme.accent }]}>
               <Text style={[styles.onboardTitle, { color: theme.text }]}>Your voice-guided fight coach</Text>
               <Text style={[styles.onboardBody, { color: theme.textMuted }]}>
-                MyCombat calls out real combinations for 8 martial arts with a round timer, drills, and a technique library. No gym needed.
+                MyCombat calls out real combinations for 10 martial arts with a round timer, drills, and a technique library. No gym needed.
               </Text>
               <TouchableOpacity style={[styles.onboardButton, { backgroundColor: theme.accentBg }]} onPress={startFirstWorkout} accessibilityRole="button" accessibilityLabel="Start my first workout">
                 <Text style={styles.onboardButtonText}>Start my first workout — Boxing</Text>
@@ -1997,6 +2198,20 @@ export default function App() {
                     <Text style={styles.toggleText}>{tapControls ? 'ON' : 'OFF'}</Text>
                   </TouchableOpacity>
                 </View>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Voice commands (say "stop" or "next")</Text>
+                  <TouchableOpacity style={[styles.toggleButton, voiceCommands && styles.toggleActive]} onPress={() => {
+                    if (!voiceCommands && !isPro && !requirePro('voice_commands')) return;
+                    hapticIf('light'); setVoiceCommands(!voiceCommands);
+                  }}>
+                    <Text style={styles.toggleText}>{voiceCommands ? 'ON' : 'OFF'}</Text>
+                  </TouchableOpacity>
+                </View>
+                {voiceCommands && (
+                  <Text style={[styles.settingLabel, { color: theme.textMuted }]}>
+                    {voiceCmdListening ? '🎙️ Listening — say "stop" or "next" during a workout' : 'Voice listening starts when a workout begins'}
+                  </Text>
+                )}
                 <View style={styles.toggleRow}>
                   <Text style={[styles.toggleLabel, { color: theme.text }]}>Landscape mode (wall-propped display)</Text>
                   <TouchableOpacity style={[styles.toggleButton, landscapeMode && styles.toggleActive]} onPress={() => { hapticIf('light'); setLandscapeMode(!landscapeMode); }}>
@@ -2449,7 +2664,7 @@ export default function App() {
 
                 <Text style={[styles.modalSubtitle, { color: theme.accent }]}>💎 Free vs Pro</Text>
                 <Text style={[styles.helpBody, { color: theme.text }]}>
-                  <Text style={{ fontFamily: FONT.bodyBold }}>Free (forever):</Text> all 725 combinations, voice coach, round timer, drill mode, Learn Mode, favorites, streaks, themes, calorie tracking.
+                  <Text style={{ fontFamily: FONT.bodyBold }}>Free (forever):</Text> all 825 combinations, voice coach, round timer, drill mode, Learn Mode, favorites, streaks, themes, calorie tracking.
                 </Text>
                 <Text style={[styles.helpBody, { color: theme.text }]}>
                   <Text style={{ fontFamily: FONT.bodyBold }}>Pro:</Text> custom styles, combo builder saves, premium voice packs, hands-free tap controls, full workout history. Monthly, annual, or one-time lifetime — all 3 tiers unlock the same features.
@@ -2493,8 +2708,13 @@ export default function App() {
                   <Text style={[styles.paywallTierName, { color: theme.text }]}>Lifetime</Text>
                   <Text style={[styles.paywallTierPrice, { color: theme.accent }]}>${PRO_PRICING.lifetime} once</Text>
                 </TouchableOpacity>
+                <TouchableOpacity style={[styles.paywallRestore, { borderColor: theme.border }]} onPress={restorePurchases} disabled={restoring}>
+                  <Text style={[styles.paywallRestoreText, { color: theme.textMuted }]}>
+                    {restoring ? 'Checking purchases…' : 'Restore purchases'}
+                  </Text>
+                </TouchableOpacity>
                 <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.textMuted, marginTop: 12 }]} onPress={() => setPaywallVisible(false)}>
-                  <Text style={styles.closeButtonText}>Not now</Text>
+                  <Text style={styles.closeButtonText}>{purchasing ? 'Processing…' : 'Not now'}</Text>
                 </TouchableOpacity>
               </ScrollView>
             </View>
@@ -2594,11 +2814,10 @@ const createStyles = (theme) => StyleSheet.create({
   builderControls: { flexDirection: 'row', gap: 10, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' },
   streakRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   completeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  previewStrip: { marginTop: 10 },
-  previewStripContent: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 4 },
+  previewStrip: { marginTop: 10, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 6 },
   previewStep: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  previewChip: { borderWidth: 1, borderRadius: 14, paddingVertical: 4, paddingHorizontal: 10, maxWidth: 130 },
-  previewChipText: { fontSize: 12, fontFamily: FONT.bodySemi },
+  previewChip: { borderWidth: 1, borderRadius: 14, paddingVertical: 5, paddingHorizontal: 12, maxWidth: '100%' },
+  previewChipText: { fontSize: 12, fontFamily: FONT.bodySemi, textAlign: 'center' },
   previewArrow: { marginHorizontal: -2 },
   qrWrap: { padding: 12, backgroundColor: '#fff', borderRadius: 12, marginBottom: 12 },
   qrLabel: { fontSize: 13, fontFamily: FONT.body, marginBottom: 10, textAlign: 'center' },
@@ -2624,6 +2843,8 @@ const createStyles = (theme) => StyleSheet.create({
   paywallTier: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16, marginBottom: 10, width: '100%' },
   paywallTierName: { fontSize: 16, fontFamily: FONT.bodyBold },
   paywallTierPrice: { fontSize: 16, fontFamily: FONT.headingSemi },
+  paywallRestore: { marginTop: 14, paddingVertical: 10, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
+  paywallRestoreText: { fontSize: 13, fontFamily: FONT.bodySemi, textAlign: 'center' },
   onboardCard: { borderRadius: 16, borderWidth: 1, padding: 20, alignItems: 'center', marginBottom: 4 },
   onboardTitle: { fontSize: 22, fontFamily: FONT.heading, textAlign: 'center', marginBottom: 8 },
   onboardBody: { fontSize: 14, fontFamily: FONT.body, textAlign: 'center', lineHeight: 20, marginBottom: 16 },
