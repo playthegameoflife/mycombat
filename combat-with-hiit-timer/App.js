@@ -22,6 +22,79 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useFonts, Barlow_400Regular, Barlow_500Medium, Barlow_600SemiBold, Barlow_700Bold } from '@expo-google-fonts/barlow';
 import { BarlowCondensed_500Medium, BarlowCondensed_600SemiBold, BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed';
+import { Audio } from 'expo-av';
+import { Accelerometer } from 'expo-sensors';
+import { Share } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
+
+// ---------- Audio: cue sounds ----------
+const CUE_SOUNDS = {
+  woodblock: require('./assets/sounds/woodblock.wav'),
+  bell: require('./assets/sounds/bell.wav'),
+  beep: require('./assets/sounds/beep.wav'),
+  whistle: require('./assets/sounds/whistle.wav'),
+};
+const CUE_SOUND_NAMES = ['woodblock', 'bell', 'beep', 'whistle'];
+const CUE_SOUND_LABELS = { woodblock: 'Woodblock', bell: 'Brass Bell', beep: 'Digital Beep', whistle: 'Whistle' };
+
+// ---------- Voice packs (persona presets) ----------
+const VOICE_PACKS = [
+  { id: 'coach', label: 'Intense Coach', desc: 'Fast, commanding', rate: 1.15, pitch: 0.9 },
+  { id: 'calm', label: 'Calm Corner', desc: 'Measured, clear', rate: 0.85, pitch: 1.0 },
+  { id: 'urgency', label: 'Corner Urgency', desc: 'Rapid fire, high energy', rate: 1.35, pitch: 1.1 },
+  { id: 'custom', label: 'Custom', desc: 'Your own rate/pitch', rate: null, pitch: null },
+];
+
+// ---------- Combo modifiers (defensive / stance / target zones) ----------
+const COMBO_MODIFIERS = {
+  defensive: ['Slip', 'Roll', 'Duck', 'Pivot', 'Shoulder roll', 'Pull counter', 'Parry', 'Step back'],
+  stance: ['Switch stance', 'Southpaw switch', 'Shift lead foot'],
+  target: ['to the body', 'to the head', 'to the liver', 'to the chin', 'to the solar plexus'],
+};
+
+// ---------- Pre-set workout programs (coach templates) ----------
+const PROGRAMS = [
+  {
+    id: 'mt-pads', name: '5-Round Muay Thai Pad Conditioning', style: 'Muay Thai', rounds: 5, work: 180, rest: 60,
+    desc: 'Heavy bag / pad rounds. 3-min work, 1-min rest.', focus: 'Kicks & clinch',
+  },
+  {
+    id: 'box-speed', name: '3-Round Boxing Speed & Defense', style: 'Boxing', rounds: 3, work: 120, rest: 45,
+    desc: 'Fast hands + slips. 2-min rounds, sharp bursts.', focus: 'Speed & head movement',
+  },
+  {
+    id: 'mma-cardio', name: 'MMA Cardio Blast', style: 'MMA', rounds: 5, work: 150, rest: 30,
+    desc: 'Mixed striking + takedown chains. Short rest.', focus: 'Conditioning',
+  },
+  {
+    id: 'kb-power', name: 'Kickboxing Power Builder', style: 'Kickboxing', rounds: 6, work: 90, rest: 30,
+    desc: 'Heavy low kicks + body shots. 90-sec bursts.', focus: 'Power',
+  },
+  {
+    id: 'sambo-gnp', name: 'Sambo Striking to Ground', style: 'Combat Sambo', rounds: 4, work: 120, rest: 60,
+    desc: 'Strikes flowing into takedown + GNP chains.', focus: 'Transitions',
+  },
+  {
+    id: 'bjj-flow', name: 'BJJ Position Flow Drill', style: 'BJJ', rounds: 4, work: 150, rest: 45,
+    desc: 'Guard to sweep to sub chains at drill pace.', focus: 'Position chains',
+  },
+  {
+    id: 'wres-takedown', name: 'Wrestling Takedown Reps', style: 'Wrestling', rounds: 5, work: 60, rest: 60,
+    desc: 'High-rep takedown + finish sequences.', focus: 'Explosiveness',
+  },
+  {
+    id: 'judo-throws', name: 'Judo Throws & Holds', style: 'Judo', rounds: 3, work: 180, rest: 90,
+    desc: 'Long rounds: throw combos into pins.', focus: 'Technique',
+  },
+];
+
+// ---------- Cadence / rhythm presets ----------
+const CADENCES = [
+  { id: 'explosive', label: 'Explosive', gap: 3, desc: '2-3s gaps, bursts' },
+  { id: 'standard', label: 'Standard', gap: 5, desc: 'steady 5s' },
+  { id: 'endurance', label: 'Endurance', gap: 6, desc: '5-6s gaps, long pace' },
+  { id: 'custom', label: 'Custom', gap: null, desc: 'your own interval' },
+];
 
 // ---------- Typography (Barlow Condensed = sports/athletic headings, Barlow = body) ----------
 const FONT = {
@@ -385,6 +458,19 @@ export default function App() {
   const [speechRate, setSpeechRate] = usePersistedState('speechRate', 0.9);
   const [speechPitch, setSpeechPitch] = usePersistedState('speechPitch', 1.0);
   const [availableVoices, setAvailableVoices] = useState([]);
+  const [voicePack, setVoicePack] = usePersistedState('voicePack', 'coach');
+  // cue sound: 'woodblock' | 'bell' | 'beep' | 'whistle' | null
+  const [cueSound, setCueSound] = usePersistedState('cueSound', 'bell');
+  // cadence: 'explosive' | 'standard' | 'endurance' | 'custom'
+  const [cadence, setCadence] = usePersistedState('cadence', 'standard');
+  // workout stats + session log
+  const [sessions, setSessions] = usePersistedState('sessions', []);
+  const [weightKg, setWeightKg] = usePersistedState('weightKg', 75);
+  const [activeProgram, setActiveProgram] = usePersistedState('activeProgram', null);
+  // hands-free tap-to-skip
+  const [tapControls, setTapControls] = usePersistedState('tapControls', false);
+  const [landscapeMode, setLandscapeMode] = usePersistedState('landscapeMode', false);
+  const [modifiersEnabled, setModifiersEnabled] = usePersistedState('modifiersEnabled', false);
 
   // Difficulty filter: 'all' | 'beginner' | 'intermediate' | 'advanced'
   const [difficultyFilter, setDifficultyFilter] = usePersistedState('difficultyFilter', 'all');
@@ -399,6 +485,114 @@ export default function App() {
   // Haptics toggle
   const [hapticsEnabled, setHapticsEnabled] = usePersistedState('hapticsEnabled', true);
   const hapticIf = (type) => { if (hapticsEnabled) haptic(type); };
+
+  // ---------- Audio: cue sounds + music ducking ----------
+  const cueSoundRef = useRef(null);
+  const playCueSound = async () => {
+    if (!cueSound) return;
+    try {
+      const sound = CUE_SOUNDS[cueSound];
+      if (!sound) return;
+      if (cueSoundRef.current) {
+        try { await cueSoundRef.current.unloadAsync(); } catch (e) {}
+      }
+      const { sound: player } = await Audio.Sound.createAsync(sound);
+      cueSoundRef.current = player;
+      await player.playAsync();
+    } catch (e) { console.log('cue sound error', e); }
+  };
+  const setupAudioMode = async () => {
+    try {
+      // Duck other audio (Spotify/YouTube) instead of cutting it off
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
+        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+    } catch (e) { console.log('audio mode error', e); }
+  };
+  useEffect(() => { setupAudioMode(); }, []);
+
+  // ---------- Hands-free: accelerometer tap to pause/skip ----------
+  useEffect(() => {
+    if (!tapControls) return;
+    let lastTap = 0;
+    const sub = Accelerometer.addListener(({ x, y, z }) => {
+      const mag = Math.sqrt(x * x + y * y + z * z);
+      const now = Date.now();
+      if (mag > 1.6 && now - lastTap > 1200) {
+        lastTap = now;
+        hapticIf('medium');
+        if (timerActive) {
+          stopHiitTimer();
+        } else if (isTraining) {
+          stopTrainingSession();
+        } else {
+          // tap with no active session does nothing (avoid accidental starts)
+        }
+      }
+    });
+    Accelerometer.setUpdateInterval(100);
+    return () => sub.remove();
+  }, [tapControls, timerActive, isTraining]);
+
+  // ---------- Voice pack application ----------
+  const effectiveSpeechRate = useMemo(() => {
+    const pack = VOICE_PACKS.find(p => p.id === voicePack);
+    return pack && pack.rate != null ? pack.rate : speechRate;
+  }, [voicePack, speechRate]);
+  const effectiveSpeechPitch = useMemo(() => {
+    const pack = VOICE_PACKS.find(p => p.id === voicePack);
+    return pack && pack.pitch != null ? pack.pitch : speechPitch;
+  }, [voicePack, speechPitch]);
+
+  // ---------- Session logging + calories (MET-based) ----------
+  const todayStr = () => new Date().toISOString().slice(0, 10);
+  const METS = { 'Boxing': 8, 'Kickboxing': 9, 'Muay Thai': 10, 'MMA': 9, 'Combat Sambo': 9, 'BJJ': 8, 'Wrestling': 8, 'Judo': 8 };
+  const logSession = (style, type, seconds, roundsDone) => {
+    const met = METS[style] || 8;
+    const hours = seconds / 3600;
+    const kcal = Math.round(met * weightKg * hours);
+    const entry = {
+      date: todayStr(),
+      style, type, seconds, rounds: roundsDone, kcal,
+    };
+    setSessions(prev => [...prev.slice(-199), entry]);
+  };
+  const totalKcal = sessions.reduce((sum, s) => sum + (s.kcal || 0), 0);
+  const totalWorkoutSeconds = sessions.reduce((sum, s) => sum + (s.seconds || 0), 0);
+  const combosCompleted = sessions.reduce((sum, s) => sum + (s.rounds || 0), 0);
+  const monthKey = todayStr().slice(0, 7);
+  const monthlyCombos = sessions.filter(s => (s.date || '').slice(0, 7) === monthKey).reduce((sum, s) => sum + (s.rounds || 0), 0);
+
+  // ---------- Combo modifiers (defensive / stance / target zones) ----------
+  const applyModifiers = (combo) => {
+    if (!modifiersEnabled || !combo) return combo;
+    const parts = [];
+    if (Math.random() < 0.5) parts.push(COMBO_MODIFIERS.defensive[Math.floor(Math.random() * COMBO_MODIFIERS.defensive.length)]);
+    if (Math.random() < 0.3) parts.push(COMBO_MODIFIERS.stance[Math.floor(Math.random() * COMBO_MODIFIERS.stance.length)]);
+    let out = combo;
+    if (parts.length > 0) out = parts.join(', ') + ' - ' + out;
+    if (Math.random() < 0.4) {
+      const target = COMBO_MODIFIERS.target[Math.floor(Math.random() * COMBO_MODIFIERS.target.length)];
+      out = out + ' (' + target + ')';
+    }
+    return out;
+  };
+
+  // ---------- Program apply ----------
+  const applyProgram = (program) => {
+    hapticIf('medium');
+    setActiveProgram(program.id);
+    setTotalRounds(program.rounds);
+    setWorkPeriod(program.work);
+    setHiitRestPeriod(program.rest);
+    setDifficultyFilter('all');
+    setSelectedCategory(program.style);
+  };
 
   // Custom styles: { name: [combo, ...] }
   const [customStyles, setCustomStyles] = usePersistedState('customStyles', {});
@@ -436,6 +630,11 @@ export default function App() {
   const taskOpacity = useRef(new Animated.Value(0)).current;
   const currentTaskRef = useRef(null);
   const repeatCounterRef = useRef(0);
+  const sessionStartRef = useRef(null);
+  const sessionRoundsRef = useRef(0);
+  // Cadence: keep combo rest period in sync when a non-custom cadence is active
+  const cadenceGap = CADENCES.find(c => c.id === cadence);
+  const effectiveComboRest = cadenceGap && cadenceGap.gap != null ? cadenceGap.gap : comboRestPeriod;
 
   // All styles = built-in + custom
   const allStyles = useMemo(() => {
@@ -466,7 +665,6 @@ export default function App() {
   };
 
   // ---------- Streak ----------
-  const todayStr = () => new Date().toISOString().slice(0, 10);
   const yesterdayStr = () => {
     const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10);
   };
@@ -513,13 +711,13 @@ export default function App() {
         setIsSpeaking(true);
         const speechItem = speechQueue[0];
         try {
-          const rate = speechItem.type === 'combo' ? speechRate * 0.8 : speechRate;
+          const rate = speechItem.type === 'combo' ? effectiveSpeechRate * 0.8 : effectiveSpeechRate;
           const speakText = speechItem.text.replace(/\s*[>→]\s*/g, ', ').replace(/\s+/g, ' ').trim();
           // Technique/coaching uses the technique voice; combos/timer use the command voice
           const voice = speechItem.type === 'technique' ? techniqueVoice : speechVoice;
           await Speech.speak(speakText, {
             rate,
-            pitch: speechPitch,
+            pitch: effectiveSpeechPitch,
             ...(voice ? { voice } : {}),
             onDone: () => { setSpeechQueue(prev => prev.slice(1)); setIsSpeaking(false); },
             onError: () => { setSpeechQueue(prev => prev.slice(1)); setIsSpeaking(false); }
@@ -532,7 +730,7 @@ export default function App() {
       }
     };
     processSpeechQueue();
-  }, [speechQueue, isSpeaking, speechRate, speechPitch, speechVoice, techniqueVoice]);
+  }, [speechQueue, isSpeaking, effectiveSpeechRate, effectiveSpeechPitch, speechVoice, techniqueVoice]);
 
   const addToSpeechQueue = useCallback((text, type = 'timer') => {
     const shouldAdd = type === 'timer' ? !timerSpeechPaused : !comboSpeechPaused;
@@ -599,20 +797,24 @@ export default function App() {
           if (s.round >= totalRounds) {
             addToSpeechQueue("Workout complete!", 'timer');
             hapticIf('heavy');
+            playCueSound();
             active = false;
             round = 1;
             next = 0;
             recordWorkout();
+            logSession(currentStyle || drillTask ? (currentStyle || 'Drill') : 'HIIT', isDrilling ? 'drill' : 'hiit', workPeriod * s.round, s.round);
           } else {
             mode = 'rest';
             addToSpeechQueue("Rest now", 'timer');
             hapticIf('light');
+            playCueSound();
             next = hiitRestPeriod;
           }
         } else {
           mode = 'work';
           round = s.round + 1;
           hapticIf('medium');
+          playCueSound();
           if (isDrilling && drillTask) {
             addToSpeechQueue(displayText(drillTask), 'combo');
           }
@@ -622,6 +824,7 @@ export default function App() {
       } else if (next <= 3 && next > 0) {
         addToSpeechQueue(String(next), 'timer');
         hapticIf('light');
+        playCueSound();
       }
 
       timerRef.current = { mode, round, remaining: next };
@@ -681,17 +884,22 @@ export default function App() {
     setCurrentStyle(style);
     currentTaskRef.current = null;
     repeatCounterRef.current = 0;
+    sessionStartRef.current = Date.now();
+    sessionRoundsRef.current = 0;
 
     const generateAndSpeak = () => {
       if (!currentTaskRef.current || repeatCounterRef.current >= comboRepeatCount) {
-        const task = pickRandomTask(style, allStyles, difficultyFilter);
+        const rawTask = pickRandomTask(style, allStyles, difficultyFilter);
+        const task = applyModifiers(rawTask);
         currentTaskRef.current = task;
         repeatCounterRef.current = 1;
+        sessionRoundsRef.current += 1;
         setGeneratedTasks(prev => ({ ...prev, [style]: task }));
         animateTaskGeneration();
         speakCombination(displayText(task));
       } else {
         repeatCounterRef.current += 1;
+        sessionRoundsRef.current += 1;
         speakCombination(displayText(currentTaskRef.current));
         // Form cue on every 3rd repeat of the same combo
         if (repeatCounterRef.current % 3 === 0) speakFormCue(style);
@@ -699,13 +907,14 @@ export default function App() {
     };
 
     generateAndSpeak();
-    const interval = setInterval(generateAndSpeak, comboRestPeriod * 1000);
+    const interval = setInterval(generateAndSpeak, effectiveComboRest * 1000);
     setTrainingInterval(interval);
   };
 
   const stopTrainingSession = () => {
     setIsTraining(false);
     recordWorkout();
+    logSession(currentStyle || 'Training', 'combo', Math.round((Date.now() - (sessionStartRef.current || Date.now())) / 1000), sessionRoundsRef.current || 0);
     Speech.stop();
     if (trainingInterval) {
       clearInterval(trainingInterval);
@@ -715,7 +924,8 @@ export default function App() {
 
   const generateTask = (stat) => {
     hapticIf('light');
-    const task = pickRandomTask(stat, allStyles, difficultyFilter);
+    const rawTask = pickRandomTask(stat, allStyles, difficultyFilter);
+    const task = applyModifiers(rawTask);
     setGeneratedTasks(prev => ({ ...prev, [stat]: task }));
     animateTaskGeneration();
   };
@@ -879,6 +1089,47 @@ export default function App() {
     );
   };
 
+  // ---------- Visual combo preview strip (move chips flow) ----------
+  const ComboPreview = ({ combo, styleName }) => {
+    if (!combo) return null;
+    const moves = splitCombo(combo);
+    if (moves.length < 2) return null;
+    return (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.previewStrip} contentContainerStyle={styles.previewStripContent}>
+        {moves.map((move, idx) => (
+          <View key={idx} style={styles.previewStep}>
+            <View style={[styles.previewChip, { backgroundColor: theme.taskContainer, borderColor: theme.accent }]}>
+              <Text style={[styles.previewChipText, { color: theme.text }]} numberOfLines={1}>{displayText(move)}</Text>
+            </View>
+            {idx < moves.length - 1 && (
+              <Ionicons name="arrow-forward" size={14} color={theme.accent} style={styles.previewArrow} />
+            )}
+          </View>
+        ))}
+      </ScrollView>
+    );
+  };
+
+  // ---------- Share / export combo (native share + QR) ----------
+  const [shareModal, setShareModal] = useState({ visible: false, combo: null, styleName: null });
+  const shareCombo = async (combo, styleName) => {
+    if (!combo) return;
+    try {
+      const message = `MyCombat — ${styleName} combo:\n\n${combo}\n\nTrain it with MyCombat: voice-guided combos, rounds, drills.`;
+      await Share.share({ message });
+    } catch (e) { console.log('share error', e); }
+  };
+  const showQR = (combo, styleName) => {
+    hapticIf('light');
+    setShareModal({ visible: true, combo, styleName });
+  };
+  const exportProgram = async (program) => {
+    try {
+      const message = `MyCombat program: ${program.name}\n${program.style} · ${program.rounds} rounds · ${program.work}s work / ${program.rest}s rest\n${program.desc}`;
+      await Share.share({ message });
+    } catch (e) { console.log('share error', e); }
+  };
+
   const comboLevelOf = (cat, task) => {
     const levels = allStyles[cat] || {};
     const lv = Object.keys(levels).find(l => levels[l] === task);
@@ -941,6 +1192,7 @@ export default function App() {
               <Animated.Text style={[styles.taskText, { fontSize, color: theme.text, opacity: taskOpacity }]}>
                 {task ? displayText(task) : 'Tap refresh to generate'}
               </Animated.Text>
+              {task && <ComboPreview combo={task} styleName={category} />}
             </View>
             <View style={styles.cardControls}>
               <TouchableOpacity style={styles.controlButton} accessibilityRole="button" accessibilityLabel={`New ${category} combination`} onPress={() => generateTask(category)}>
@@ -962,6 +1214,26 @@ export default function App() {
               >
                 <Ionicons name="target" size={22} color="#fff" />
               </TouchableOpacity>
+              {task && (
+                <TouchableOpacity
+                  style={[styles.controlButton, { backgroundColor: theme.accentDark }]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Share ${category} combination`}
+                  onPress={() => { hapticIf('light'); shareCombo(task, category); }}
+                >
+                  <Ionicons name="share-social-outline" size={22} color="#fff" />
+                </TouchableOpacity>
+              )}
+              {task && (
+                <TouchableOpacity
+                  style={[styles.controlButton, { backgroundColor: theme.test }]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Show QR code for ${category} combination`}
+                  onPress={() => showQR(task, category)}
+                >
+                  <Ionicons name="qr-code-outline" size={22} color="#fff" />
+                </TouchableOpacity>
+              )}
               {!isTraining && !timerActive ? (
                 <TouchableOpacity style={[styles.controlButton, { backgroundColor: theme.success }]} accessibilityRole="button" accessibilityLabel={`Start ${category} training`} onPress={() => startTrainingSession(category)}>
                   <Ionicons name="play" size={22} color="#fff" />
@@ -1032,7 +1304,7 @@ export default function App() {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, landscapeMode && styles.landscapeScroll]} showsVerticalScrollIndicator={false}>
           {!arsenalView && <TimerDisplay />}
           <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
             {arsenalView ? 'My Arsenal' : (difficultyFilter !== 'all' ? `Showing ${DIFFICULTY_LABELS[difficultyFilter].toLowerCase()} combos` : 'All Styles')}
@@ -1053,6 +1325,113 @@ export default function App() {
             <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
               <Text style={[styles.modalTitle, { color: theme.text }]}>Training Settings</Text>
               <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={true}>
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Programs</Text>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Coach templates — tap to load</Text>
+                {PROGRAMS.map((program) => (
+                  <TouchableOpacity key={program.id} style={[styles.programRow, { borderColor: theme.border, backgroundColor: activeProgram === program.id ? theme.cardBgSelected : theme.cardBg }]} onPress={() => applyProgram(program)}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.programName, { color: theme.text }]} numberOfLines={1}>{program.name}</Text>
+                      <Text style={[styles.programMeta, { color: theme.textMuted }]}>{program.style} · {program.rounds}r × {program.work}s/{program.rest}s rest</Text>
+                      <Text style={[styles.programDesc, { color: theme.textMuted }]} numberOfLines={1}>{program.desc}</Text>
+                    </View>
+                    <View style={styles.programActions}>
+                      <TouchableOpacity onPress={() => exportProgram(program)} accessibilityLabel={`Share ${program.name}`}>
+                        <Ionicons name="share-social-outline" size={20} color={theme.accent} />
+                      </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Voice Packs</Text>
+                <View style={styles.restButtons}>
+                  {VOICE_PACKS.map((pack) => (
+                    <TouchableOpacity key={pack.id} style={[styles.restButton, voicePack === pack.id && styles.restButtonActive]} onPress={() => updateSetting(setVoicePack, pack.id)}>
+                      <Text style={[styles.restButtonText, voicePack === pack.id && styles.restButtonTextActive]}>{pack.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Speech speed (0.8x–1.5x)</Text>
+                <View style={styles.restButtons}>
+                  {[0.8, 0.9, 1.0, 1.15, 1.3, 1.5].map((rate) => (
+                    <TouchableOpacity key={rate} style={[styles.restButton, speechRate === rate && styles.restButtonActive]} onPress={() => updateSetting(setSpeechRate, rate)}>
+                      <Text style={[styles.restButtonText, speechRate === rate && styles.restButtonTextActive]}>{rate}x</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Round Cue Sounds</Text>
+                <View style={styles.restButtons}>
+                  <TouchableOpacity style={[styles.restButton, !cueSound && styles.restButtonActive]} onPress={() => updateSetting(setCueSound, null)}>
+                    <Text style={[styles.restButtonText, !cueSound && styles.restButtonTextActive]}>Off</Text>
+                  </TouchableOpacity>
+                  {CUE_SOUND_NAMES.map((name) => (
+                    <TouchableOpacity key={name} style={[styles.restButton, cueSound === name && styles.restButtonActive]} onPress={() => { updateSetting(setCueSound, name); playCueSound(); }}>
+                      <Text style={[styles.restButtonText, cueSound === name && styles.restButtonTextActive]}>{CUE_SOUND_LABELS[name]}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Music keeps playing — cues duck over Spotify/YouTube.</Text>
+
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Cadence / Rhythm</Text>
+                <View style={styles.restButtons}>
+                  {CADENCES.map((c) => (
+                    <TouchableOpacity key={c.id} style={[styles.restButton, cadence === c.id && styles.restButtonActive]} onPress={() => updateSetting(setCadence, c.id)}>
+                      <Text style={[styles.restButtonText, cadence === c.id && styles.restButtonTextActive]}>{c.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Cadence sets the combo call-out gap (explosive ≈3s, endurance ≈6s). Custom uses your rest period below.</Text>
+
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Combo Modifiers</Text>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Add defensive/stance/target modifiers</Text>
+                  <TouchableOpacity style={[styles.toggleButton, modifiersEnabled && styles.toggleActive]} onPress={() => { hapticIf('light'); setModifiersEnabled(!modifiersEnabled); }}>
+                    <Text style={styles.toggleText}>{modifiersEnabled ? 'ON' : 'OFF'}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Hands-Free</Text>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Tap-to-stop (accelerometer, gloved hand)</Text>
+                  <TouchableOpacity style={[styles.toggleButton, tapControls && styles.toggleActive]} onPress={() => { hapticIf('light'); setTapControls(!tapControls); }}>
+                    <Text style={styles.toggleText}>{tapControls ? 'ON' : 'OFF'}</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Landscape mode (wall-propped display)</Text>
+                  <TouchableOpacity style={[styles.toggleButton, landscapeMode && styles.toggleActive]} onPress={() => { hapticIf('light'); setLandscapeMode(!landscapeMode); }}>
+                    <Text style={styles.toggleText}>{landscapeMode ? 'ON' : 'OFF'}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Tracking & Stats</Text>
+                <View style={styles.statsRow}>
+                  <View style={styles.statBox}>
+                    <Text style={[styles.statValue, { color: theme.accent }]}>{totalKcal}</Text>
+                    <Text style={[styles.statLabel, { color: theme.textMuted }]}>kcal</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Text style={[styles.statValue, { color: theme.accent }]}>{Math.round(totalWorkoutSeconds / 60)}</Text>
+                    <Text style={[styles.statLabel, { color: theme.textMuted }]}>min trained</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Text style={[styles.statValue, { color: theme.accent }]}>{combosCompleted}</Text>
+                    <Text style={[styles.statLabel, { color: theme.textMuted }]}>combos</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Text style={[styles.statValue, { color: theme.accent }]}>{monthlyCombos}</Text>
+                    <Text style={[styles.statLabel, { color: theme.textMuted }]}>this month</Text>
+                  </View>
+                </View>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Body weight (kg) — for calorie estimate</Text>
+                <View style={styles.restButtons}>
+                  {[55, 60, 65, 70, 75, 80, 85, 90, 95, 100].map((kg) => (
+                    <TouchableOpacity key={kg} style={[styles.restButton, weightKg === kg && styles.restButtonActive]} onPress={() => updateSetting(setWeightKg, kg)}>
+                      <Text style={[styles.restButtonText, weightKg === kg && styles.restButtonTextActive]}>{kg}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Difficulty</Text>
                 <View style={styles.restButtons}>
                   {[{ label: 'All', value: 'all' }, { label: 'Beginner', value: 'beginner' }, { label: 'Intermediate', value: 'intermediate' }, { label: 'Advanced', value: 'advanced' }].map((opt) => (
@@ -1382,6 +1761,37 @@ export default function App() {
             </View>
           </View>
         </Modal>
+
+        {/* QR share modal */}
+        <Modal animationType="fade" transparent={true} visible={shareModal.visible} onRequestClose={() => setShareModal({ visible: false, combo: null, styleName: null })}>
+          <View style={styles.modalContainer}>
+            <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Share Combo</Text>
+              {shareModal.combo ? (
+                <>
+                  <View style={styles.qrWrap}>
+                    <QRCode
+                      value={`mycombat://combo/${encodeURIComponent(shareModal.styleName || '')}/${encodeURIComponent(shareModal.combo)}`}
+                      size={180}
+                      backgroundColor="#fff"
+                      color="#0F172A"
+                    />
+                  </View>
+                  <Text style={[styles.qrLabel, { color: theme.textMuted }]}>
+                    {shareModal.styleName} — scan to load this combo
+                  </Text>
+                  <Text style={[styles.learnComboText, { color: theme.text }]}>{displayText(shareModal.combo)}</Text>
+                  <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accent }]} onPress={() => shareCombo(shareModal.combo, shareModal.styleName)}>
+                    <Text style={styles.closeButtonText}>Share via native sheet</Text>
+                  </TouchableOpacity>
+                </>
+              ) : null}
+              <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.textMuted, marginTop: 8 }]} onPress={() => setShareModal({ visible: false, combo: null, styleName: null })}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -1473,4 +1883,22 @@ const createStyles = (theme) => StyleSheet.create({
   builderControls: { flexDirection: 'row', gap: 10, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' },
   streakRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   completeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  previewStrip: { marginTop: 10 },
+  previewStripContent: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 4 },
+  previewStep: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  previewChip: { borderWidth: 1, borderRadius: 14, paddingVertical: 4, paddingHorizontal: 10, maxWidth: 130 },
+  previewChipText: { fontSize: 12, fontFamily: FONT.bodySemi },
+  previewArrow: { marginHorizontal: -2 },
+  qrWrap: { padding: 12, backgroundColor: '#fff', borderRadius: 12, marginBottom: 12 },
+  qrLabel: { fontSize: 13, fontFamily: FONT.body, marginBottom: 10, textAlign: 'center' },
+  programRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 8, width: '100%' },
+  programName: { fontSize: 15, fontFamily: FONT.bodySemi, marginBottom: 2 },
+  programMeta: { fontSize: 12, fontFamily: FONT.body, marginBottom: 2 },
+  programDesc: { fontSize: 12, fontFamily: FONT.body },
+  programActions: { marginLeft: 10, padding: 6 },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', gap: 8, marginBottom: 10 },
+  statBox: { flex: 1, alignItems: 'center', backgroundColor: theme.cardBg, borderRadius: 12, paddingVertical: 12, borderWidth: 1, borderColor: theme.border },
+  statValue: { fontSize: 22, fontFamily: FONT.heading, marginBottom: 2 },
+  statLabel: { fontSize: 11, fontFamily: FONT.body },
+  landscapeScroll: { maxWidth: 900, width: '100%', alignSelf: 'center' },
 });

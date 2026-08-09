@@ -3,7 +3,7 @@
     "name": "combat-with-hiit-timer",
     "slug": "snack-1d58889c-8d0f-4643-8b52-be390e43de37",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
