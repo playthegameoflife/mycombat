@@ -30,10 +30,7 @@ import { Accelerometer } from 'expo-sensors';
 import * as StoreReview from 'expo-store-review';
 import { Share } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from 'expo-speech-recognition';
+import { requireOptionalNativeModule } from 'expo';
 
 // ---------- Audio: cue sounds ----------
 const CUE_SOUNDS = {
@@ -937,6 +934,10 @@ export default function App() {
   }, [tapControls, timerActive, isTraining]);
 
   // ---------- Hands-free: voice commands ("stop" / "next") ----------
+  // Native module is OPTIONAL — in Expo Go / web it's null and the feature
+  // silently no-ops instead of crashing the app (requireOptionalNativeModule
+  // returns null rather than throwing when the native module is absent).
+  const SpeechRecognition = requireOptionalNativeModule('ExpoSpeechRecognition');
   // Refs so the recognizer always calls the LATEST handlers (defined later).
   const voiceCmdHandlersRef = useRef({ stop: null, next: null, timerActive: false, isTraining: false });
   useEffect(() => {
@@ -959,52 +960,64 @@ export default function App() {
   });
   const voiceCmdActive = () => voiceCmdHandlersRef.current.timerActive || voiceCmdHandlersRef.current.isTraining;
   const startVoiceListening = useCallback(async () => {
+    if (!SpeechRecognition) return;
     try {
-      const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      const perm = await SpeechRecognition.requestPermissionsAsync();
       if (!perm.granted) return;
-      const available = await ExpoSpeechRecognitionModule.isRecognitionAvailable();
+      const available = await SpeechRecognition.isRecognitionAvailable();
       if (!available) return;
-      ExpoSpeechRecognitionModule.start({
+      SpeechRecognition.start({
         lang: 'en-US',
         interimResults: false,
         continuous: true,
         requiresOnDeviceRecognition: false,
       });
     } catch (e) { console.log('voice start error', e); }
-  }, []);
-  // Hook event: result transcript → route to stop/next.
-  useSpeechRecognitionEvent('result', (event) => {
-    const text = (event.results && event.results[0] && event.results[0].transcript || '').toLowerCase().trim();
-    if (!text) return;
-    // "stop"/"halt"/"quit"/"end"/"enough" → stop the session
-    if (/\b(stop|halt|quit|end|enough|finish)\b/.test(text)) {
-      hapticIf('medium');
-      voiceCmdHandlersRef.current.stop && voiceCmdHandlersRef.current.stop();
-    } else if (/\b(next|skip|again|another|more|change)\b/.test(text)) {
-      hapticIf('light');
-      voiceCmdHandlersRef.current.next && voiceCmdHandlersRef.current.next();
-    }
-  });
-  // Keep listening alive: recognizer can end on its own — restart while active.
-  useSpeechRecognitionEvent('end', () => {
-    if (voiceCommands && voiceCmdActive()) {
-      ExpoSpeechRecognitionModule.stop && ExpoSpeechRecognitionModule.stop();
-      setTimeout(() => { if (voiceCommands && voiceCmdActive()) startVoiceListening(); }, 300);
-    } else {
-      ExpoSpeechRecognitionModule.stop && ExpoSpeechRecognitionModule.stop();
-    }
-  });
+  }, [SpeechRecognition]);
+  // Manual native listeners (no hooks — the hooks import the native module
+  // eagerly and would crash Expo Go at module load). Registered once, route
+  // through refs so handlers always see fresh state.
+  useEffect(() => {
+    if (!SpeechRecognition) return;
+    const onResult = (event) => {
+      const text = (event.results && event.results[0] && event.results[0].transcript || '').toLowerCase().trim();
+      if (!text) return;
+      // "stop"/"halt"/"quit"/"end"/"enough" → stop the session
+      if (/\b(stop|halt|quit|end|enough|finish)\b/.test(text)) {
+        hapticIf('medium');
+        voiceCmdHandlersRef.current.stop && voiceCmdHandlersRef.current.stop();
+      } else if (/\b(next|skip|again|another|more|change)\b/.test(text)) {
+        hapticIf('light');
+        voiceCmdHandlersRef.current.next && voiceCmdHandlersRef.current.next();
+      }
+    };
+    const onEnd = () => {
+      // Recognizer can end on its own — restart while the session is active.
+      if (voiceCommands && voiceCmdActive()) {
+        SpeechRecognition.stop && SpeechRecognition.stop();
+        setTimeout(() => { if (voiceCommands && voiceCmdActive()) startVoiceListening(); }, 300);
+      } else {
+        SpeechRecognition.stop && SpeechRecognition.stop();
+      }
+    };
+    const subs = [
+      SpeechRecognition.addListener('result', onResult),
+      SpeechRecognition.addListener('end', onEnd),
+    ];
+    return () => { subs.forEach(s => { try { s.remove(); } catch (e) {} }); };
+  }, [SpeechRecognition, voiceCommands, startVoiceListening]);
   // Start/stop recognition when the toggle or session state changes.
   useEffect(() => {
+    if (!SpeechRecognition) return;
     if (!voiceCommands || (!timerActive && !isTraining)) {
-      ExpoSpeechRecognitionModule.stop && ExpoSpeechRecognitionModule.stop();
+      SpeechRecognition.stop && SpeechRecognition.stop();
       setVoiceCmdListening(false);
       return;
     }
     setVoiceCmdListening(true);
     startVoiceListening();
-    return () => { ExpoSpeechRecognitionModule.stop && ExpoSpeechRecognitionModule.stop(); setVoiceCmdListening(false); };
-  }, [voiceCommands, timerActive, isTraining, startVoiceListening]);
+    return () => { SpeechRecognition.stop && SpeechRecognition.stop(); setVoiceCmdListening(false); };
+  }, [SpeechRecognition, voiceCommands, timerActive, isTraining, startVoiceListening]);
 
   // ---------- Voice pack application ----------
   const effectiveSpeechRate = useMemo(() => {
