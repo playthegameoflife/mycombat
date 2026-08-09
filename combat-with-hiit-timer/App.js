@@ -1257,10 +1257,18 @@ export default function App() {
     if (!shouldAdd) return;
     setSpeechQueue(prev => {
       if (type === 'combo' || type === 'technique') {
-        // Voice-queue race fix: a new combo must REPLACE stale combo/technique
+        // Voice-queue race fix: a NEW combo must REPLACE stale combo/technique
         // announcements (they'd otherwise be spoken after the display already
         // moved on — user hears an outdated combo). Timer callouts ("Round 2",
         // "Rest now") are kept so the round structure still announces.
+        //
+        // But REPEATS of the SAME combo (Repeats Per Combo > 1) must be QUEUED
+        // behind the in-flight announcement — replacing there swallows the
+        // repeat and the coach goes silent for the rest of the set.
+        const lastCombo = [...prev].reverse().find(i => i.type === 'combo' || i.type === 'technique');
+        if (lastCombo && lastCombo.text === text) {
+          return [...prev, { text, type }];
+        }
         const kept = prev.filter(i => i.type === 'timer');
         return [{ text, type }, ...kept];
       }
