@@ -511,19 +511,24 @@ const THEMES = {
   dark: {
     bgTop: '#0F172A', bgBottom: '#1F2937', container: '#0F172A', text: '#F8FAFC', textMuted: '#94A3B8',
     cardBg: 'rgba(255,255,255,0.06)', cardBgSelected: 'rgba(255,255,255,0.12)',
-    cardGradSelected: ['#F97316', '#EA580C'], cardGradNormal: ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)'],
+    cardGradSelected: ['#C2410C', '#9A3412'], cardGradNormal: ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)'],
     taskContainer: 'rgba(0,0,0,0.25)', iconButton: 'rgba(255,255,255,0.08)', buttonDefault: 'rgba(255,255,255,0.08)',
-    modalBg: '#1F2937', overlay: 'rgba(0,0,0,0.6)', accent: '#F97316', accentDark: '#EA580C',
-    success: '#22C55E', danger: '#EF4444', test: '#8B5CF6', timerPanel: 'rgba(255,255,255,0.04)',
+    modalBg: '#1F2937', overlay: 'rgba(0,0,0,0.6)', accent: '#F97316', accentDark: '#C2410C',
+    // accentBg = button background version of accent (white text must pass ≥4.5)
+    accentBg: '#C2410C',
+    // Darkened for WCAG ≥4.5 white-icon contrast (was #22C55E/#EF4444/#8B5CF6)
+    success: '#15803D', danger: '#DC2626', test: '#7C3AED', timerPanel: 'rgba(255,255,255,0.04)',
     toggleOff: 'rgba(255,255,255,0.1)', shadowColor: '#000', border: '#374151',
   },
   light: {
     bgTop: '#F8FAFC', bgBottom: '#E2E8F0', container: '#F8FAFC', text: '#0F172A', textMuted: '#64748B',
     cardBg: 'rgba(255,255,255,0.7)', cardBgSelected: 'rgba(255,255,255,0.95)',
-    cardGradSelected: ['#F97316', '#EA580C'], cardGradNormal: ['rgba(255,255,255,0.85)', 'rgba(255,255,255,0.6)'],
+    cardGradSelected: ['#C2410C', '#9A3412'], cardGradNormal: ['rgba(255,255,255,0.85)', 'rgba(255,255,255,0.6)'],
     taskContainer: 'rgba(0,0,0,0.05)', iconButton: 'rgba(0,0,0,0.06)', buttonDefault: 'rgba(0,0,0,0.06)',
-    modalBg: '#FFFFFF', overlay: 'rgba(0,0,0,0.45)', accent: '#EA580C', accentDark: '#C2410C',
-    success: '#16A34A', danger: '#DC2626', test: '#7C3AED', timerPanel: 'rgba(0,0,0,0.03)',
+    modalBg: '#FFFFFF', overlay: 'rgba(0,0,0,0.45)', accent: '#C2410C', accentDark: '#9A3412',
+    accentBg: '#C2410C',
+    // Darkened for WCAG ≥4.5 white-icon contrast on light backgrounds
+    success: '#166534', danger: '#B91C1C', test: '#6D28D9', timerPanel: 'rgba(0,0,0,0.03)',
     toggleOff: 'rgba(0,0,0,0.08)', shadowColor: '#000', border: '#CBD5E1',
   },
 };
@@ -974,7 +979,14 @@ export default function App() {
     const shouldAdd = type === 'timer' ? !timerSpeechPaused : !comboSpeechPaused;
     if (!shouldAdd) return;
     setSpeechQueue(prev => {
-      if ((type === 'combo' || type === 'technique') && prev.length > 0) return [{ text, type }, ...prev];
+      if (type === 'combo' || type === 'technique') {
+        // Voice-queue race fix: a new combo must REPLACE stale combo/technique
+        // announcements (they'd otherwise be spoken after the display already
+        // moved on — user hears an outdated combo). Timer callouts ("Round 2",
+        // "Rest now") are kept so the round structure still announces.
+        const kept = prev.filter(i => i.type === 'timer');
+        return [{ text, type }, ...kept];
+      }
       return [...prev, { text, type }];
     });
   }, [timerSpeechPaused, comboSpeechPaused]);
@@ -1598,7 +1610,7 @@ export default function App() {
     if (!showCard) return null;
 
     return (
-      <TouchableOpacity onPress={() => { hapticIf('light'); setSelectedCategory(category); }} activeOpacity={0.9}>
+      <TouchableOpacity onPress={() => { hapticIf('medium'); setSelectedCategory(category); startTrainingSession(category); }} activeOpacity={0.9}>
         <Animated.View style={[styles.categoryCard, { transform: [{ scale: cardScale }], backgroundColor: isSelected ? theme.cardBgSelected : theme.cardBg }]}>
           <LinearGradient
             colors={isSelected ? theme.cardGradSelected : theme.cardGradNormal}
@@ -1641,7 +1653,7 @@ export default function App() {
                 <Ionicons name="refresh" size={22} color="#fff" />
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.controlButton, { backgroundColor: theme.accent }]}
+                style={[styles.controlButton, { backgroundColor: theme.accentBg }]}
                 accessibilityRole="button"
                 accessibilityLabel={`Build a ${category} combo`}
                 onPress={() => openBuilder(category)}
@@ -1747,7 +1759,7 @@ export default function App() {
               <Text style={[styles.onboardBody, { color: theme.textMuted }]}>
                 MyCombat calls out real combinations for 8 martial arts with a round timer, drills, and a technique library. No gym needed.
               </Text>
-              <TouchableOpacity style={[styles.onboardButton, { backgroundColor: theme.accent }]} onPress={startFirstWorkout} accessibilityRole="button" accessibilityLabel="Start my first workout">
+              <TouchableOpacity style={[styles.onboardButton, { backgroundColor: theme.accentBg }]} onPress={startFirstWorkout} accessibilityRole="button" accessibilityLabel="Start my first workout">
                 <Text style={styles.onboardButtonText}>Start my first workout — Boxing</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setOnboardDismissed(true)} accessibilityRole="button" accessibilityLabel="Skip onboarding">
@@ -1789,7 +1801,7 @@ export default function App() {
             <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
               <Text style={[styles.modalTitle, { color: theme.text }]}>Training Settings</Text>
               {!isPro && (
-                <TouchableOpacity style={[styles.proBanner, { backgroundColor: theme.accent }]} onPress={() => requirePro('settings_banner')}>
+                <TouchableOpacity style={[styles.proBanner, { backgroundColor: theme.accentBg }]} onPress={() => requirePro('settings_banner')}>
                   <Ionicons name="diamond" size={18} color="#fff" />
                   <Text style={styles.proBannerText}>Unlock MyCombat Pro — premium voices, unlimited combos, no ads</Text>
                 </TouchableOpacity>
@@ -2302,7 +2314,7 @@ export default function App() {
                       {shareModal.styleName} — scan to read this combo on any phone
                     </Text>
                     <Text style={[styles.learnComboText, { color: theme.text }]}>{displayText(shareModal.combo)}</Text>
-                    <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accent }]} onPress={() => shareCombo(shareModal.combo, shareModal.styleName)}>
+                    <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accentBg }]} onPress={() => shareCombo(shareModal.combo, shareModal.styleName)}>
                       <Text style={styles.closeButtonText}>Share via native sheet</Text>
                     </TouchableOpacity>
                   </>
@@ -2362,7 +2374,7 @@ export default function App() {
                   <Text style={{ fontFamily: FONT.bodyBold }}>Free trial:</Text> coming with the in-app purchase update — a free trial period is planned so you can test Pro before paying.
                 </Text>
 
-                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accent, marginTop: 12 }]} onPress={() => setHelpVisible(false)}>
+                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accentBg, marginTop: 12 }]} onPress={() => setHelpVisible(false)}>
                   <Text style={styles.closeButtonText}>Got it</Text>
                 </TouchableOpacity>
               </ScrollView>
@@ -2389,7 +2401,7 @@ export default function App() {
                   <Text style={[styles.paywallTierName, { color: theme.text }]}>Monthly</Text>
                   <Text style={[styles.paywallTierPrice, { color: theme.accent }]}>${PRO_PRICING.monthly}/mo</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.accent, borderColor: theme.accent }]} onPress={() => purchasePro('annual')}>
+                <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.accentBg, borderColor: theme.accent }]} onPress={() => purchasePro('annual')}>
                   <Text style={[styles.paywallTierName, { color: '#fff' }]}>Annual — best value</Text>
                   <Text style={[styles.paywallTierPrice, { color: '#fff' }]}>${PRO_PRICING.annual}/yr (${(PRO_PRICING.annual / 12).toFixed(2)}/mo)</Text>
                 </TouchableOpacity>
@@ -2457,11 +2469,11 @@ const createStyles = (theme) => StyleSheet.create({
   modalSubtitle: { fontSize: 17, fontFamily: FONT.headingSemi, color: theme.text, marginBottom: 15, alignSelf: 'flex-start' },
   restButtons: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, marginBottom: 25 },
   restButton: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 25, backgroundColor: theme.buttonDefault, minWidth: 70, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  restButtonActive: { backgroundColor: theme.accent },
+  restButtonActive: { backgroundColor: theme.accentBg },
   restButtonText: { color: theme.text, fontSize: 16, fontFamily: FONT.bodySemi },
   restButtonTextActive: { color: '#fff', fontFamily: FONT.bodyBold },
   voiceButton: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: theme.buttonDefault, maxWidth: '45%', alignItems: 'center' },
-  closeButton: { backgroundColor: theme.accent, paddingVertical: 12, paddingHorizontal: 30, borderRadius: 25, marginTop: 10, minHeight: 48, justifyContent: 'center' },
+  closeButton: { backgroundColor: theme.accentBg, paddingVertical: 12, paddingHorizontal: 30, borderRadius: 25, marginTop: 10, minHeight: 48, justifyContent: 'center' },
   closeButtonText: { color: '#fff', fontSize: 16, fontFamily: FONT.bodyBold },
   timerContainer: { alignItems: 'center', marginVertical: 20, backgroundColor: theme.timerPanel, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: theme.border },
   drillBadge: { fontSize: 16, fontFamily: FONT.headingSemi, color: theme.test, marginBottom: 10, letterSpacing: 2 },
@@ -2478,7 +2490,7 @@ const createStyles = (theme) => StyleSheet.create({
   toggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 10 },
   toggleLabel: { fontSize: 16, fontFamily: FONT.body, color: theme.text },
   toggleButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 15, backgroundColor: theme.toggleOff, minWidth: 56, minHeight: 36, alignItems: 'center', justifyContent: 'center' },
-  toggleActive: { backgroundColor: theme.accent },
+  toggleActive: { backgroundColor: theme.accentBg },
   toggleText: { color: theme.text, fontWeight: 'bold', fontFamily: FONT.bodyBold },
   customStyleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: theme.border },
   customStyleName: { fontSize: 16, fontFamily: FONT.body, color: theme.text, flex: 1, marginRight: 10 },
