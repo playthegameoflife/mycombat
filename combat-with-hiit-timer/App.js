@@ -24,6 +24,7 @@ import { useFonts, Barlow_400Regular, Barlow_500Medium, Barlow_600SemiBold, Barl
 import { BarlowCondensed_500Medium, BarlowCondensed_600SemiBold, BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed';
 import { Audio } from 'expo-av';
 import { Accelerometer } from 'expo-sensors';
+import * as StoreReview from 'expo-store-review';
 import { Share } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -556,6 +557,19 @@ export default function App() {
     return pack && pack.pitch != null ? pack.pitch : speechPitch;
   }, [voicePack, speechPitch]);
 
+  const [reviewRequested, setReviewRequested] = usePersistedState('reviewRequested', false);
+  // Native Play Store review sheet — ask once, after 3+ completed sessions
+  const maybeRequestReview = async () => {
+    if (reviewRequested) return;
+    if (sessions.length < 3) return;
+    try {
+      if (await StoreReview.isAvailableAsync()) {
+        await StoreReview.requestReview();
+        setReviewRequested(true);
+      }
+    } catch (e) { console.log('review request error', e); }
+  };
+
   // ---------- Session logging + calories (MET-based) ----------
   const todayStr = () => new Date().toISOString().slice(0, 10);
   const METS = { 'Boxing': 8, 'Kickboxing': 9, 'Muay Thai': 10, 'MMA': 9, 'Combat Sambo': 9, 'BJJ': 8, 'Wrestling': 8, 'Judo': 8 };
@@ -568,6 +582,8 @@ export default function App() {
       style, type, seconds, rounds: roundsDone, kcal,
     };
     setSessions(prev => [...prev.slice(-199), entry]);
+    // Ask for a review after the session lands (only once, after 3+ sessions)
+    setTimeout(() => { maybeRequestReview(); }, 2500);
   };
   const totalKcal = sessions.reduce((sum, s) => sum + (s.kcal || 0), 0);
   const totalWorkoutSeconds = sessions.reduce((sum, s) => sum + (s.seconds || 0), 0);
