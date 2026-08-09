@@ -98,9 +98,9 @@ const CADENCES = [
 ];
 
 // ---------- Analytics: zero-dep PostHog capture (no SDK deps, fire-and-forget) ----------
-// Set POSTHOG_KEY to your project API key (PostHog → Project Settings → API Keys).
+// Configure via .env: EXPO_PUBLIC_POSTHOG_KEY=phc_xxx (Expo auto-inlines EXPO_PUBLIC_* vars).
 // Events silently no-op when the key is empty, so the app works without setup.
-const POSTHOG_KEY = ''; // TODO: paste project API key
+const POSTHOG_KEY = process.env.EXPO_PUBLIC_POSTHOG_KEY || '';
 const ANALYTICS_ENABLED = POSTHOG_KEY.length > 0;
 const track = (event, properties = {}) => {
   if (!ANALYTICS_ENABLED) return;
@@ -535,15 +535,22 @@ export default function App() {
     return false;
   };
   // Billing stub: native Google Play Billing will replace this when the dev build ships.
-  // For now: unlock Pro directly (test/dev) — a real purchase flow is Phase 2.
+  // __DEV__ gate: in production builds this must NOT unlock Pro for free — a real
+  // purchase flow (Phase 2) replaces the stub before the store release.
   const purchasePro = (tier) => {
     track('paywall_purchase_attempt', { tier });
     // TODO: call Google Play Billing (react-native-billing / Billing Library) here.
+    if (!__DEV__) {
+      setPaywallVisible(false);
+      Alert.alert('Billing coming soon', 'Purchases will be enabled in the next update. Pro is currently in preview.');
+      return;
+    }
+    // Dev-only: unlock Pro directly for testing.
     setIsPro(true);
     setPaywallVisible(false);
     setPendingProAction(null);
     hapticIf('heavy');
-    Alert.alert('Pro unlocked', `MyCombat Pro (${tier}) is active. Billing integration ships with the dev build.`);
+    Alert.alert('Pro unlocked (dev)', `MyCombat Pro (${tier}) is active for testing.`);
   };
 
   useEffect(() => { track('app_open', { isPro }); }, []);
