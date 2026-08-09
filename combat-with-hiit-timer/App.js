@@ -517,6 +517,13 @@ export default function App() {
   useEffect(() => { setupAudioMode(); }, []);
 
   // ---------- Hands-free: accelerometer tap to pause/skip ----------
+  // Refs so the listener always calls the latest stop handlers (defined later in component)
+  const stopTimerRef = useRef(null);
+  const stopTrainingRef = useRef(null);
+  useEffect(() => {
+    stopTimerRef.current = stopHiitTimer;
+    stopTrainingRef.current = stopTrainingSession;
+  });
   useEffect(() => {
     if (!tapControls) return;
     let lastTap = 0;
@@ -527,9 +534,9 @@ export default function App() {
         lastTap = now;
         hapticIf('medium');
         if (timerActive) {
-          stopHiitTimer();
+          stopTimerRef.current && stopTimerRef.current();
         } else if (isTraining) {
-          stopTrainingSession();
+          stopTrainingRef.current && stopTrainingRef.current();
         } else {
           // tap with no active session does nothing (avoid accidental starts)
         }
@@ -783,6 +790,16 @@ export default function App() {
   }, []);
 
   // ---------- HIIT / Drill timer ----------
+  // Refs so the interval callback never closes over stale values
+  const playCueSoundRef = useRef(playCueSound);
+  const logSessionRef = useRef(logSession);
+  const currentStyleRef = useRef(null);
+  const drillTaskRef = useRef(null);
+  useEffect(() => { playCueSoundRef.current = playCueSound; }, [playCueSound]);
+  useEffect(() => { logSessionRef.current = logSession; }, [logSession]);
+  useEffect(() => { currentStyleRef.current = currentStyle; }, [currentStyle]);
+  useEffect(() => { drillTaskRef.current = drillTask; }, [drillTask]);
+
   useEffect(() => {
     if (!timerActive) return;
     const interval = setInterval(() => {
@@ -791,32 +808,34 @@ export default function App() {
       let mode = s.mode;
       let round = s.round;
       let active = true;
+      const curStyle = currentStyleRef.current;
+      const curDrill = drillTaskRef.current;
 
       if (s.remaining <= 1) {
         if (s.mode === 'work') {
           if (s.round >= totalRounds) {
             addToSpeechQueue("Workout complete!", 'timer');
             hapticIf('heavy');
-            playCueSound();
+            playCueSoundRef.current();
             active = false;
             round = 1;
             next = 0;
             recordWorkout();
-            logSession(currentStyle || drillTask ? (currentStyle || 'Drill') : 'HIIT', isDrilling ? 'drill' : 'hiit', workPeriod * s.round, s.round);
+            logSessionRef.current(curStyle || curDrill ? (curStyle || 'Drill') : 'HIIT', isDrilling ? 'drill' : 'hiit', workPeriod * s.round, s.round);
           } else {
             mode = 'rest';
             addToSpeechQueue("Rest now", 'timer');
             hapticIf('light');
-            playCueSound();
+            playCueSoundRef.current();
             next = hiitRestPeriod;
           }
         } else {
           mode = 'work';
           round = s.round + 1;
           hapticIf('medium');
-          playCueSound();
-          if (isDrilling && drillTask) {
-            addToSpeechQueue(displayText(drillTask), 'combo');
+          playCueSoundRef.current();
+          if (isDrilling && curDrill) {
+            addToSpeechQueue(displayText(curDrill), 'combo');
           }
           addToSpeechQueue(`Round ${round}`, 'timer');
           next = workPeriod;
@@ -824,7 +843,7 @@ export default function App() {
       } else if (next <= 3 && next > 0) {
         addToSpeechQueue(String(next), 'timer');
         hapticIf('light');
-        playCueSound();
+        playCueSoundRef.current();
       }
 
       timerRef.current = { mode, round, remaining: next };
@@ -838,7 +857,7 @@ export default function App() {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [timerActive, workPeriod, hiitRestPeriod, totalRounds, isDrilling, drillTask, addToSpeechQueue, formCuesEnabled, southpaw]);
+  }, [timerActive, workPeriod, hiitRestPeriod, totalRounds, isDrilling, addToSpeechQueue, formCuesEnabled, southpaw]);
 
   const startHiitTimer = () => {
     hapticIf('medium');
@@ -910,6 +929,35 @@ export default function App() {
     const interval = setInterval(generateAndSpeak, effectiveComboRest * 1000);
     setTrainingInterval(interval);
   };
+
+  // Restart the training interval if cadence/rest period changes mid-session
+  const lastGapRef = useRef(effectiveComboRest);
+  useEffect(() => {
+    if (!isTraining || !trainingInterval) return;
+    if (lastGapRef.current === effectiveComboRest) return;
+    lastGapRef.current = effectiveComboRest;
+    clearInterval(trainingInterval);
+    const style = currentStyleRef.current || currentStyle;
+    const generateAndSpeak = () => {
+      if (!currentTaskRef.current || repeatCounterRef.current >= comboRepeatCount) {
+        const rawTask = pickRandomTask(style, allStyles, difficultyFilter);
+        const task = applyModifiers(rawTask);
+        currentTaskRef.current = task;
+        repeatCounterRef.current = 1;
+        sessionRoundsRef.current += 1;
+        setGeneratedTasks(prev => ({ ...prev, [style]: task }));
+        animateTaskGeneration();
+        speakCombination(displayText(task));
+      } else {
+        repeatCounterRef.current += 1;
+        sessionRoundsRef.current += 1;
+        speakCombination(displayText(currentTaskRef.current));
+        if (repeatCounterRef.current % 3 === 0) speakFormCue(style);
+      }
+    };
+    const interval = setInterval(generateAndSpeak, effectiveComboRest * 1000);
+    setTrainingInterval(interval);
+  }, [effectiveComboRest, isTraining, trainingInterval, allStyles, difficultyFilter]);
 
   const stopTrainingSession = () => {
     setIsTraining(false);
@@ -1131,9 +1179,22 @@ export default function App() {
   };
 
   const comboLevelOf = (cat, task) => {
+    if (!task) return 1;
     const levels = allStyles[cat] || {};
-    const lv = Object.keys(levels).find(l => levels[l] === task);
-    return lv ? Number(lv) : 1;
+    // Exact match first (unmodified combo)
+    const exact = Object.keys(levels).find(l => levels[l] === task);
+    if (exact) return Number(exact);
+    // Modified combos: strip "Slip, Switch stance - " prefix and "(to the body)" suffix,
+    // then try to match against the raw catalog to recover the true difficulty
+    let stripped = task.replace(/^[^>→,]*-\s*/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+    const byStripped = Object.keys(levels).find(l => levels[l] === stripped);
+    if (byStripped) return Number(byStripped);
+    // Combo builder output ("Jab > Cross > Hook") won't match either; try prefix match on first move
+    const firstMove = stripped.split(/\s*(?:>|→|,)\s*/)[0];
+    for (const l of Object.keys(levels)) {
+      if (String(levels[l]).split(/\s*(?:>|→|,)\s*/)[0] === firstMove) return Number(l);
+    }
+    return 1;
   };
   const difficultyColor = (cat, task) => {
     const diff = difficultyOf(cat, comboLevelOf(cat, task));
@@ -1589,23 +1650,30 @@ export default function App() {
                   ))}
                 </View>
 
-                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Speech Rate</Text>
-                <View style={styles.restButtons}>
-                  {[{ label: 'Slow', value: 0.7 }, { label: 'Normal', value: 0.9 }, { label: 'Fast', value: 1.1 }].map((opt) => (
-                    <TouchableOpacity key={opt.label} style={[styles.restButton, speechRate === opt.value && styles.restButtonActive]} onPress={() => updateSetting(setSpeechRate, opt.value)}>
-                      <Text style={[styles.restButtonText, speechRate === opt.value && styles.restButtonTextActive]}>{opt.label}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                {voicePack === 'custom' && (
+                  <>
+                    <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Custom Speech Rate</Text>
+                    <View style={styles.restButtons}>
+                      {[{ label: 'Slow', value: 0.7 }, { label: 'Normal', value: 0.9 }, { label: 'Fast', value: 1.1 }].map((opt) => (
+                        <TouchableOpacity key={opt.label} style={[styles.restButton, speechRate === opt.value && styles.restButtonActive]} onPress={() => updateSetting(setSpeechRate, opt.value)}>
+                          <Text style={[styles.restButtonText, speechRate === opt.value && styles.restButtonTextActive]}>{opt.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
 
-                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Pitch</Text>
-                <View style={styles.restButtons}>
-                  {[{ label: 'Low', value: 0.8 }, { label: 'Normal', value: 1.0 }, { label: 'High', value: 1.3 }].map((opt) => (
-                    <TouchableOpacity key={opt.label} style={[styles.restButton, speechPitch === opt.value && styles.restButtonActive]} onPress={() => updateSetting(setSpeechPitch, opt.value)}>
-                      <Text style={[styles.restButtonText, speechPitch === opt.value && styles.restButtonTextActive]}>{opt.label}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                    <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Custom Pitch</Text>
+                    <View style={styles.restButtons}>
+                      {[{ label: 'Low', value: 0.8 }, { label: 'Normal', value: 1.0 }, { label: 'High', value: 1.3 }].map((opt) => (
+                        <TouchableOpacity key={opt.label} style={[styles.restButton, speechPitch === opt.value && styles.restButtonActive]} onPress={() => updateSetting(setSpeechPitch, opt.value)}>
+                          <Text style={[styles.restButtonText, speechPitch === opt.value && styles.restButtonTextActive]}>{opt.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                )}
+                {voicePack !== 'custom' && (
+                  <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Rate & pitch are set by the voice pack. Choose Custom to tune them manually.</Text>
+                )}
 
                 <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Haptics</Text>
                 <View style={styles.toggleRow}>
@@ -1771,14 +1839,14 @@ export default function App() {
                 <>
                   <View style={styles.qrWrap}>
                     <QRCode
-                      value={`mycombat://combo/${encodeURIComponent(shareModal.styleName || '')}/${encodeURIComponent(shareModal.combo)}`}
+                      value={`MyCombat combo (${shareModal.styleName || 'style'}): ${shareModal.combo}`}
                       size={180}
                       backgroundColor="#fff"
                       color="#0F172A"
                     />
                   </View>
                   <Text style={[styles.qrLabel, { color: theme.textMuted }]}>
-                    {shareModal.styleName} — scan to load this combo
+                    {shareModal.styleName} — scan to read this combo on any phone
                   </Text>
                   <Text style={[styles.learnComboText, { color: theme.text }]}>{displayText(shareModal.combo)}</Text>
                   <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accent }]} onPress={() => shareCombo(shareModal.combo, shareModal.styleName)}>
