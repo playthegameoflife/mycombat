@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, Component } from 'react';
 import { 
   StyleSheet, 
   View, 
@@ -691,7 +691,42 @@ const DraggableCard = ({ category, index, onReorder, children }) => {
   );
 };
 
-export default function App() {
+// ---------- Error boundary: keep the app alive instead of white-screening ----------
+// A single runtime JS error in the render tree would otherwise blank the whole
+// app on Android. Catch it, show a restart prompt, and let the user recover.
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, info) {
+    try { console.log('App crash', error, info); } catch (e) {}
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#0F172A' }}>
+          <Text style={{ color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' }}>Something went wrong</Text>
+          <Text style={{ color: '#94A3B8', fontSize: 14, textAlign: 'center', marginBottom: 24 }}>
+            MyCombat hit an unexpected error. Your progress is saved — a quick restart will fix it.
+          </Text>
+          <TouchableOpacity
+            style={{ backgroundColor: '#FF7043', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 25 }}
+            onPress={() => { this.setState({ hasError: false }); }}
+          >
+            <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function App() {
   const [fontsLoaded] = useFonts({
     Barlow_400Regular, Barlow_500Medium, Barlow_600SemiBold, Barlow_700Bold,
     BarlowCondensed_500Medium, BarlowCondensed_600SemiBold, BarlowCondensed_700Bold,
@@ -1377,7 +1412,6 @@ export default function App() {
     { id: 'weekly_goal', label: 'Goal Crusher', desc: 'Hit your weekly goal', icon: 'flag' },
   ];
   const levelFromXp = (total) => Math.floor(total / 250) + 1;
-  const xpIntoLevel = (total) => total % 250;
   const level = levelFromXp(xp);
 
   const earnBadge = (badgeId) => {
@@ -1464,13 +1498,17 @@ export default function App() {
     }
   };
   const [reminderEnabled, setReminderEnabled] = usePersistedState('reminderEnabled', true);
-  const scheduleReminder = async () => {
+  const scheduleReminder = async (opts = {}) => {
     if (!reminderEnabled) return;
     const Notifications = getNotifications();
     if (!Notifications) return;
     try {
       const perm = await Notifications.getPermissionsAsync();
+      // Only request permission on explicit user intent (toggle ON). Background
+      // auto-scheduling (e.g. AppState auto-stop) never prompts — it just skips
+      // silently if the user hasn't already granted access.
       if (!perm.granted) {
+        if (!opts.requestPermission) return;
         const req = await Notifications.requestPermissionsAsync();
         if (!req.granted) return;
       }
@@ -2778,7 +2816,12 @@ export default function App() {
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Motivation</Text>
                 <View style={styles.toggleRow}>
                   <Text style={[styles.toggleLabel, { color: theme.text }]}>Workout reminders</Text>
-                  <TouchableOpacity style={[styles.toggleButton, reminderEnabled && styles.toggleActive]} onPress={() => { hapticIf('light'); setReminderEnabled(!reminderEnabled); if (!reminderEnabled) scheduleReminder(); }}>
+                  <TouchableOpacity style={[styles.toggleButton, reminderEnabled && styles.toggleActive]} onPress={() => {
+                    hapticIf('light');
+                    const next = !reminderEnabled;
+                    setReminderEnabled(next);
+                    if (next) scheduleReminder({ requestPermission: true });
+                  }}>
                     <Text style={styles.toggleText}>{reminderEnabled ? 'ON' : 'OFF'}</Text>
                   </TouchableOpacity>
                 </View>
@@ -3222,3 +3265,9 @@ const createStyles = (theme) => StyleSheet.create({
   onboardButtonText: { color: '#fff', fontSize: 16, fontFamily: FONT.bodyBold },
   onboardSkip: { fontSize: 13, fontFamily: FONT.body, padding: 8 },
 });
+
+// Wrap the root in the error boundary — a runtime JS error must show the
+// recovery screen, never a white screen.
+export default function AppRoot() {
+  return <ErrorBoundary><App /></ErrorBoundary>;
+}
