@@ -694,13 +694,13 @@ export default function App() {
   };
   const setupAudioMode = async () => {
     try {
-      // Duck other audio (Spotify/YouTube) instead of cutting it off.
-      // expo-audio API: playsInSilentMode → playsInSilentModeIOS; interruption
-      // modes are no longer configurable — ducking is the default behavior.
+      // Voice coach needs AUDIO FOCUS to be audible. 'duckOthers' requests focus
+      // and ducks background music (Spotify/YouTube) while the coach speaks.
+      // ('mixWithOthers' = no focus request → TTS can be silent over other audio.)
       await setAudioModeAsync({
         playsInSilentMode: true,
         shouldPlayInBackground: false,
-        interruptionMode: 'mixWithOthers',
+        interruptionMode: 'duckOthers',
       });
     } catch (e) { console.log('audio mode error', e); }
   };
@@ -855,6 +855,7 @@ export default function App() {
   // Speech queue
   const [speechQueue, setSpeechQueue] = useState([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speechError, setSpeechError] = useState(false);
 
   // Animation
   const taskOpacity = useRef(new Animated.Value(0)).current;
@@ -959,6 +960,9 @@ export default function App() {
         } catch (error) {
           console.log('Speech error:', error);
           setIsSpeaking(false);
+          // Visible feedback instead of silent failure — the user needs to know
+          // the voice isn't working (e.g. no TTS engine installed on device)
+          setSpeechError(true);
           setSpeechQueue(prev => prev.slice(1));
         }
       }
@@ -1022,6 +1026,13 @@ export default function App() {
   const voiceLabel = (voice) => {
     const raw = (voice.name || voice.identifier || '').trim();
     if (!raw) return 'Default';
+    let gender = '';
+    // Detect gender from the name/identifier (Google voices: "...Female", "...Male", or
+    // identifier variants like tpf = female, tpm = male)
+    if (/\b(female|feminine)\b/i.test(raw)) gender = ' ♀';
+    else if (/\b(male|masculine)\b/i.test(raw)) gender = ' ♂';
+    else if (/[-_](?:tpf|f|w)\b/i.test(raw.toLowerCase())) gender = ' ♀';
+    else if (/[-_](?:tpm|m)\b/i.test(raw.toLowerCase())) gender = ' ♂';
     // If the name looks like a raw language code (e.g. en-us-x-tpf, en-US-female), decode it
     if (/^[a-z]{2,3}[-_][a-z]{2,3}([-_][a-z0-9]+)*$/i.test(raw)) {
       const langMap = { en: 'English', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian', pt: 'Portuguese', ru: 'Russian', ja: 'Japanese', ko: 'Korean', zh: 'Chinese', ar: 'Arabic', hi: 'Hindi' };
@@ -1031,16 +1042,26 @@ export default function App() {
       const variant = parts.length > 2 ? parts[2] : '';
       let label = region ? `${lang} (${region})` : lang;
       if (variant && !/^(x|local|female|male)$/i.test(variant)) label += ` — ${variant}`;
-      return label;
+      return label + gender;
     }
     // Replace identifier-ish suffixes and clean up
-    return raw.replace(/_/g, ' ');
+    return raw.replace(/_/g, ' ') + gender;
   };
 
   useEffect(() => {
     loadAvailableVoices();
     return () => { Speech.stop(); };
   }, []);
+
+  // Validate persisted voices against what the device actually has — a stale
+  // identifier (SDK migration, device change) makes Speech.speak error silently
+  // and drain the queue → no voice. Fall back to the default engine voice.
+  useEffect(() => {
+    if (availableVoices.length === 0) return;
+    const ids = new Set(availableVoices.map(v => v.identifier));
+    if (speechVoice && !ids.has(speechVoice)) setSpeechVoice(null);
+    if (techniqueVoice && !ids.has(techniqueVoice)) setTechniqueVoice(null);
+  }, [availableVoices, speechVoice, techniqueVoice]);
 
   // ---------- HIIT / Drill timer ----------
   // Refs so the interval callback never closes over stale values
@@ -1389,6 +1410,10 @@ export default function App() {
   // ---------- Learn mode ----------
   const learnMoves = () => {
     if (!learnModal.combo) return [];
+    // Feature-intersection fix: strip the modifier prefix ("Slip, Switch stance - ")
+    // before splitting, so Learn Mode sees the real combo moves — not broken
+    // fragments from comma-separated modifiers (mirrors comboLevelOf's recovery).
+    const baseCombo = learnModal.combo.replace(/^.*? - (?=[A-Za-z])/, '');
     // Build a normalized-key lookup so irregular keys match: "O Goshi (Major Hip Throw)"
     // -> norm "o goshi" -> finds key "ogoshi" or "seoi nage" regardless of spacing.
     // Keys are registered under BOTH the spaced and collapsed forms.
@@ -1409,7 +1434,7 @@ export default function App() {
       return styleLookup[candidate] || sharedLookup[candidate] ||
              styleLookup[candidate.replace(/ /g, '')] || sharedLookup[candidate.replace(/ /g, '')];
     };
-    return splitCombo(learnModal.combo).map(move => {
+    return splitCombo(baseCombo).map(move => {
       const norm = normalizeMove(move);
       let tech = tryMatch(norm);
       // Fallbacks: strip 'double/single' prefixes, or try the first two words
@@ -1489,7 +1514,10 @@ export default function App() {
   // ---------- Visual combo preview strip (move chips flow) ----------
   const ComboPreview = ({ combo, styleName }) => {
     if (!combo) return null;
-    const moves = splitCombo(combo);
+    // Feature-intersection fix: strip modifier prefix before splitting so the
+    // chips show real moves, not "Switch stance - Jab" fragments
+    const baseCombo = combo.replace(/^.*? - (?=[A-Za-z])/, '');
+    const moves = splitCombo(baseCombo);
     if (moves.length < 2) return null;
     return (
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.previewStrip} contentContainerStyle={styles.previewStripContent}>
@@ -1728,6 +1756,12 @@ export default function App() {
             </View>
           )}
           {!arsenalView && <TimerDisplay />}
+          {speechError && (
+            <TouchableOpacity style={[styles.speechErrorBanner, { backgroundColor: theme.danger }]} onPress={() => setSpeechError(false)} accessibilityRole="button" accessibilityLabel="Dismiss voice error">
+              <Ionicons name="volume-mute" size={16} color="#fff" />
+              <Text style={styles.speechErrorText}>Voice unavailable — check your device text-to-speech settings (Settings → Voice → Test)</Text>
+            </TouchableOpacity>
+          )}
           {!arsenalView && sessions.length > 0 && (
             <View style={[styles.kcalStrip, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
               <Ionicons name="flame" size={16} color="#F97316" />
@@ -2397,6 +2431,8 @@ const createStyles = (theme) => StyleSheet.create({
   sectionLabel: { fontSize: 13, fontFamily: FONT.headingSemi, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 1.5 },
   kcalStrip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 12, borderWidth: 1, paddingVertical: 8, paddingHorizontal: 12 },
   kcalStripText: { fontSize: 13, fontFamily: FONT.body },
+  speechErrorBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
+  speechErrorText: { color: '#fff', fontSize: 12, fontFamily: FONT.bodySemi, flexShrink: 1 },
   categoryCard: { borderRadius: 16, overflow: 'hidden', elevation: 5, shadowColor: theme.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, borderWidth: 1, borderColor: theme.border },
   categoryGradient: { padding: 20 },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
