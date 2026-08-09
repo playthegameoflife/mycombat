@@ -833,6 +833,8 @@ export default function App() {
   const [trainingInterval, setTrainingInterval] = useState(null);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  // Help / how-to modal
+  const [helpVisible, setHelpVisible] = useState(false);
   // UX: first-run onboarding — show the "Start my first workout" CTA until a task exists
   const [onboardDismissed, setOnboardDismissed] = usePersistedState('onboardDismissed', false);
   const isFirstRun = !onboardDismissed && Object.keys(generatedTasks).length === 0;
@@ -1014,6 +1016,25 @@ export default function App() {
     } catch (error) {
       console.log('Error loading voices:', error);
     }
+  };
+
+  // Friendly voice label: "en-us-x-tpf-local" → "English (US)", "Google US English" stays as-is
+  const voiceLabel = (voice) => {
+    const raw = (voice.name || voice.identifier || '').trim();
+    if (!raw) return 'Default';
+    // If the name looks like a raw language code (e.g. en-us-x-tpf, en-US-female), decode it
+    if (/^[a-z]{2,3}[-_][a-z]{2,3}([-_][a-z0-9]+)*$/i.test(raw)) {
+      const langMap = { en: 'English', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian', pt: 'Portuguese', ru: 'Russian', ja: 'Japanese', ko: 'Korean', zh: 'Chinese', ar: 'Arabic', hi: 'Hindi' };
+      const parts = raw.split(/[-_]/);
+      const lang = langMap[(parts[0] || '').toLowerCase()] || parts[0];
+      const region = (parts[1] || '').toUpperCase();
+      const variant = parts.length > 2 ? parts[2] : '';
+      let label = region ? `${lang} (${region})` : lang;
+      if (variant && !/^(x|local|female|male)$/i.test(variant)) label += ` — ${variant}`;
+      return label;
+    }
+    // Replace identifier-ish suffixes and clean up
+    return raw.replace(/_/g, ' ');
   };
 
   useEffect(() => {
@@ -1452,9 +1473,6 @@ export default function App() {
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity style={[styles.testButton, { backgroundColor: theme.test }]} onPress={() => { hapticIf('light'); addToSpeechQueue("Test voice announcement", 'timer'); }}>
-          <Text style={styles.testButtonText}>Test Voice</Text>
-        </TouchableOpacity>
       </View>
     );
   };
@@ -1731,6 +1749,10 @@ export default function App() {
                   <Text style={styles.proBannerText}>Unlock MyCombat Pro — premium voices, unlimited combos, no ads</Text>
                 </TouchableOpacity>
               )}
+              <TouchableOpacity style={[styles.helpButton, { backgroundColor: theme.cardBg, borderColor: theme.border }]} onPress={() => setHelpVisible(true)}>
+                <Ionicons name="help-circle-outline" size={18} color={theme.accent} />
+                <Text style={[styles.helpButtonText, { color: theme.text }]}>How to use MyCombat · Free vs Pro</Text>
+              </TouchableOpacity>
               <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={true}>
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Programs</Text>
                 <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Coach templates — tap to load</Text>
@@ -1996,7 +2018,7 @@ export default function App() {
                   </TouchableOpacity>
                   {availableVoices.slice(0, 10).map((voice) => (
                     <TouchableOpacity key={`cmd-${voice.identifier}`} style={[styles.voiceButton, speechVoice === voice.identifier && styles.restButtonActive]} onPress={() => updateSetting(setSpeechVoice, voice.identifier)}>
-                      <Text style={[styles.restButtonText, speechVoice === voice.identifier && styles.restButtonTextActive]} numberOfLines={1}>{voice.name || voice.language}</Text>
+                      <Text style={[styles.restButtonText, speechVoice === voice.identifier && styles.restButtonTextActive]} numberOfLines={1}>{voiceLabel(voice)}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -2008,7 +2030,7 @@ export default function App() {
                   </TouchableOpacity>
                   {availableVoices.slice(0, 10).map((voice) => (
                     <TouchableOpacity key={`tech-${voice.identifier}`} style={[styles.voiceButton, techniqueVoice === voice.identifier && styles.restButtonActive]} onPress={() => updateSetting(setTechniqueVoice, voice.identifier)}>
-                      <Text style={[styles.restButtonText, techniqueVoice === voice.identifier && styles.restButtonTextActive]} numberOfLines={1}>{voice.name || voice.language}</Text>
+                      <Text style={[styles.restButtonText, techniqueVoice === voice.identifier && styles.restButtonTextActive]} numberOfLines={1}>{voiceLabel(voice)}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -2229,6 +2251,61 @@ export default function App() {
         </Modal>
 
         {/* Paywall preview (soft gate) */}
+        {/* How-to / Free vs Pro modal */}
+        <Modal animationType="slide" transparent={true} visible={helpVisible} onRequestClose={() => setHelpVisible(false)}>
+          <BlurView intensity={100} style={styles.modalContainer}>
+            <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
+              <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={true}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>How to use MyCombat</Text>
+
+                <Text style={[styles.modalSubtitle, { color: theme.accent }]}>🎯 Quick start</Text>
+                <Text style={[styles.helpBody, { color: theme.text }]}>
+                  1. Tap a style card (Boxing, Muay Thai…) and hit ▶ to train — the voice coach calls out real combinations.\n
+                  2. Tap 🔄 for a new combo. Tap 🎯 to drill one combo for rounds. Tap the star ⭐ to favorite it.\n
+                  3. Tap "Learn This Combo" for a move-by-move breakdown and a curriculum to follow.\n
+                  4. Use the timer panel: Start/Stop rounds, tap ⚙️ to adjust work/rest/rounds.
+                </Text>
+
+                <Text style={[styles.modalSubtitle, { color: theme.accent }]}>⏱ Timer</Text>
+                <Text style={[styles.helpBody, { color: theme.text }]}>
+                  The round timer announces work/rest transitions with cue sounds. Coach templates (Settings → Programs) load preset round structures for specific training goals — tap one to apply it.
+                </Text>
+
+                <Text style={[styles.modalSubtitle, { color: theme.accent }]}>🖐 Hands-free</Text>
+                <Text style={[styles.helpBody, { color: theme.text }]}>
+                  Settings → Hands-Free → ON, then during a workout thump the phone to stop the session. No buttons needed when your hands are wrapped.
+                </Text>
+
+                <Text style={[styles.modalSubtitle, { color: theme.accent }]}>🤸 Southpaw</Text>
+                <Text style={[styles.helpBody, { color: theme.text }]}>
+                  Switches all combos to the opposite stance — left becomes right, lead becomes rear. For southpaw fighters or to train both sides.
+                </Text>
+
+                <Text style={[styles.modalSubtitle, { color: theme.accent }]}>🔥 Calories</Text>
+                <Text style={[styles.helpBody, { color: theme.text }]}>
+                  Each session estimates calories burned (based on style + your weight in Settings). See totals in the stats section.
+                </Text>
+
+                <Text style={[styles.modalSubtitle, { color: theme.accent }]}>💎 Free vs Pro</Text>
+                <Text style={[styles.helpBody, { color: theme.text }]}>
+                  <Text style={{ fontFamily: FONT.bodyBold }}>Free (forever):</Text> all 725 combinations, voice coach, round timer, drill mode, Learn Mode, favorites, streaks, themes, calorie tracking.
+                </Text>
+                <Text style={[styles.helpBody, { color: theme.text }]}>
+                  <Text style={{ fontFamily: FONT.bodyBold }}>Pro:</Text> custom styles, combo builder saves, premium voice packs, hands-free tap controls, full workout history. Monthly, annual, or one-time lifetime — all 3 tiers unlock the same features.
+                </Text>
+                <Text style={[styles.helpBody, { color: theme.text }]}>
+                  <Text style={{ fontFamily: FONT.bodyBold }}>Free trial:</Text> coming with the in-app purchase update — a free trial period is planned so you can test Pro before paying.
+                </Text>
+
+                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accent, marginTop: 12 }]} onPress={() => setHelpVisible(false)}>
+                  <Text style={styles.closeButtonText}>Got it</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </BlurView>
+        </Modal>
+
+        {/* Paywall modal */}
         <Modal animationType="slide" transparent={true} visible={paywallVisible} onRequestClose={() => setPaywallVisible(false)}>
           <BlurView intensity={100} style={styles.modalContainer}>
             <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
@@ -2373,6 +2450,9 @@ const createStyles = (theme) => StyleSheet.create({
   landscapeScroll: { maxWidth: 900, width: '100%', alignSelf: 'center' },
   proBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 12, width: '100%' },
   proBannerText: { color: '#fff', fontFamily: FONT.bodyBold, fontSize: 13, flex: 1 },
+  helpButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, marginBottom: 12, width: '100%' },
+  helpButtonText: { fontSize: 13, fontFamily: FONT.bodySemi },
+  helpBody: { fontSize: 14, fontFamily: FONT.body, lineHeight: 20, marginBottom: 8, textAlign: 'left' },
   paywallTitle: { fontSize: 30, fontFamily: FONT.heading, marginBottom: 2 },
   paywallSub: { fontSize: 14, fontFamily: FONT.body, marginBottom: 16 },
   paywallFeature: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', marginBottom: 8 },
