@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
+import * as Brightness from 'expo-brightness';
 import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -267,6 +268,70 @@ const TECHNIQUES = {
     'spinning back kick': { how: 'Pivot 180 degrees and drive the heel straight back into the body.', cue: 'Pivot, drive the heel.' },
   },
   'BJJ': {
+    "arm in guillotine": { how: "Wrap the neck with the arm trapped inside and squeeze.", cue: "arm in guillotine" },
+    "arm trap": { how: "Pin the arm against the body to limit defense.", cue: "arm trap" },
+    "back trip": { how: "Trip the opponent backward while taking the back.", cue: "back trip" },
+    "backstep pass": { how: "Step the leg over the guard and take side control.", cue: "backstep pass" },
+    "bear hug defense": { how: "Base out, sit the hips and break the grip.", cue: "bear hug defense" },
+    "body lock takedown": { how: "Lock both arms around the waist and drive to the mat.", cue: "body lock takedown" },
+    "bow and arrow choke": { how: "Pull the collar across and drive the leg into the back.", cue: "bow and arrow choke" },
+    "bull fighter pass": { how: "Push the legs to one side and run around to side control.", cue: "bull fighter pass" },
+    "chest compression": { how: "Crush the ribs with the chest from top position.", cue: "chest compression" },
+    "clock choke": { how: "Pull the collar down over the head from the back.", cue: "clock choke" },
+    "collar grab defense": { how: "Strip the collar grip before it locks.", cue: "collar grab defense" },
+    "cow catcher": { how: "Cross-face and drive the near arm into a choke.", cue: "cow catcher" },
+    "cross collar choke": { how: "Grip both collars and twist the wrists to choke.", cue: "cross collar choke" },
+    "de ashi barai": { how: "Sweep the advancing foot with a forward push.", cue: "de ashi barai" },
+    "double under pass": { how: "Drive both legs down and pass to side control.", cue: "double under pass" },
+    "ezekiel choke": { how: "Thread the arm behind the neck and grip the sleeve.", cue: "ezekiel choke" },
+    "flower sweep": { how: "Grip the collar and pants, kick and roll the opponent over.", cue: "flower sweep" },
+    "foot sweep": { how: "Sweep the opponent's foot while breaking their balance.", cue: "foot sweep" },
+    "forward roll": { how: "Roll forward to escape and reset to standing.", cue: "forward roll" },
+    "half guard pass": { how: "Smash the trapped leg flat and slide to side control.", cue: "half guard pass" },
+    "harai goshi": { how: "Sweep the outer leg while lifting with the hip.", cue: "harai goshi" },
+    "haymaker defense": { how: "Cover up, clinch and take the fight down.", cue: "haymaker defense" },
+    "headlock defense": { how: "Post on the hip, sit out and take the back.", cue: "headlock defense" },
+    "japanese necktie": { how: "Crank the neck across and fold the opponent down.", cue: "japanese necktie" },
+    "kesa gatame": { how: "Hold the head and arm while driving the chest down.", cue: "kesa gatame" },
+    "kimura sweep": { how: "Grip the kimura and roll the opponent over.", cue: "kimura sweep" },
+    "knee on stomach": { how: "Drive the knee into the belly for control.", cue: "knee on stomach" },
+    "knee slice pass": { how: "Slide the knee through the guard to side control.", cue: "knee slice pass" },
+    "kosoto gake": { how: "Hook the outside leg and reap it backward.", cue: "kosoto gake" },
+    "kosoto gari": { how: "Reap the outside leg with a push to the mat.", cue: "kosoto gari" },
+    "kouchi gari": { how: "Reap the inner heel and drive the opponent down.", cue: "kouchi gari" },
+    "lateral drop": { how: "Drop the hips and throw the opponent over the side.", cue: "lateral drop" },
+    "leg drag pass": { how: "Grab the ankle and drag the leg across to pass.", cue: "leg drag pass" },
+    "leg weave pass": { how: "Weave the arms between the legs and drive through.", cue: "leg weave pass" },
+    "limp arm": { how: "Relax the arm and slip out of the grip.", cue: "limp arm" },
+    "modified scarf hold": { how: "Pin the arm and shoulder from a tightened kesa.", cue: "modified scarf hold" },
+    "osoto gari": { how: "Reap the outside leg and drive the opponent over.", cue: "osoto gari" },
+    "ouchi gari": { how: "Reap the inside leg and spin the opponent down.", cue: "ouchi gari" },
+    "over under pass": { how: "Thread the arms over and under, then drive to the side.", cue: "over under pass" },
+    "paper cutter choke": { how: "Grip the collar and the lapel and cut the neck.", cue: "paper cutter choke" },
+    "pressure pass": { how: "Smash the guard with weight and walk around.", cue: "pressure pass" },
+    "russian tie": { how: "Control the elbow and triceps to break posture.", cue: "russian tie" },
+    "sasae tsurikomi ashi": { how: "Block the lead leg and lift into a sweep.", cue: "sasae tsurikomi ashi" },
+    "scarf hold": { how: "Control the head and arm from the side.", cue: "scarf hold" },
+    "seoi nage": { how: "Rotate under the arm and throw over the shoulder.", cue: "seoi nage" },
+    "shoot": { how: "Drop level and drive in for a takedown.", cue: "shoot" },
+    "sit through": { how: "Sit through the hips to escape and take the back.", cue: "sit through" },
+    "smash pass": { how: "Crush the guard flat and step over to side control.", cue: "smash pass" },
+    "spin behind": { how: "Spin around the opponent and take the back.", cue: "spin behind" },
+    "spiral ride": { how: "Spiral down the back to flatten the opponent.", cue: "spiral ride" },
+    "stack pass": { how: "Lift the hips over the head and slide to the side.", cue: "stack pass" },
+    "straight armbar": { how: "Hold the wrist and press the elbow across the hip.", cue: "straight armbar" },
+    "straight armlock": { how: "Hyperextend the elbow with the arm trapped.", cue: "straight armlock" },
+    "sumi gaeshi": { how: "Sit back and throw the opponent over the shoulder.", cue: "sumi gaeshi" },
+    "switch": { how: "Pivot the hips and switch to take the back.", cue: "switch" },
+    "tai otoshi": { how: "Drop the body and throw over the leg.", cue: "tai otoshi" },
+    "tani otoshi": { how: "Drop to the side and drive the opponent over the leg.", cue: "tani otoshi" },
+    "tomoe nage": { how: "Place the foot on the hip and roll backward to throw.", cue: "tomoe nage" },
+    "tripod pass": { how: "Push the hips up and walk around to the side.", cue: "tripod pass" },
+    "tripod sweep": { how: "Lift the leg into a tripod and roll the opponent.", cue: "tripod sweep" },
+    "two on one": { how: "Control the arm with both hands to break posture.", cue: "two on one" },
+    "uchi mata": { how: "Lift the inner thigh and throw over the hip.", cue: "uchi mata" },
+    "ura nage": { how: "Hook behind and throw the opponent backward.", cue: "ura nage" },
+    "x pass": { how: "Push both knees to one side and slide to the back.", cue: "x pass" },
     'guard pull': { how: 'Sit down and wrap your legs around the opponent, controlling distance with grips.', cue: 'Sit, wrap the legs.' },
     'sweep': { how: 'Break the opponent\'s base with grips and momentum, then roll them over you.', cue: 'Break base, roll.' },
     'armbar': { how: 'Isolate the arm, control the wrist and elbow, and extend the joint across your body.', cue: 'Isolate, extend.' },
@@ -281,6 +346,39 @@ const TECHNIQUES = {
     'sweep to mount': { how: 'Execute a sweep and immediately follow through to establish mount.', cue: 'Sweep, follow through.' },
   },
   'Wrestling': {
+    "ankle sweep": { how: "Sweep the ankle while driving the head forward.", cue: "ankle sweep" },
+    "arm bar from guard": { how: "Post on the bicep and pressure from top guard.", cue: "arm bar from guard" },
+    "arm control": { how: "Control the wrist and elbow to steer the opponent.", cue: "arm control" },
+    "arm spin": { how: "Spin the opponent by the arm and take the back.", cue: "arm spin" },
+    "arm triangle from mount": { how: "Thread the arm under the neck and squeeze.", cue: "arm triangle from mount" },
+    "butterfly guard": { how: "Hook the legs inside and lift for sweeps.", cue: "butterfly guard" },
+    "calf crush": { how: "Drive the calf down from the leg ride.", cue: "calf crush" },
+    "calf slicer": { how: "Trap the calf against the shin and squeeze.", cue: "calf slicer" },
+    "collar drag": { how: "Drag the collar down and forward to break posture.", cue: "collar drag" },
+    "crucifix": { how: "Trap both arms and control from the back.", cue: "crucifix" },
+    "double underhooks": { how: "Lock both underhooks to control the body.", cue: "double underhooks" },
+    "front choke": { how: "Drive the forearm across the throat from the front.", cue: "front choke" },
+    "head and arm control": { how: "Lock the head and arm to pin the opponent.", cue: "head and arm control" },
+    "head snap": { how: "Snap the head down to break posture.", cue: "head snap" },
+    "headlock throw": { how: "Lock the head and hip and throw over.", cue: "headlock throw" },
+    "kimura trap": { how: "Use the kimura grip to force a takedown or tap.", cue: "kimura trap" },
+    "knee shield": { how: "Frame the knee against the opponent's hip to defend.", cue: "knee shield" },
+    "leg hook": { how: "Hook the leg to unbalance the opponent.", cue: "leg hook" },
+    "leg lace": { how: "Lace the legs and drive the opponent over.", cue: "leg lace" },
+    "leg lock": { how: "Attack the ankle or knee joint.", cue: "leg lock" },
+    "north south position": { how: "Hold the opponent from the top, head to head.", cue: "north south position" },
+    "russian arm drag": { how: "Drag the arm across and circle to the back.", cue: "russian arm drag" },
+    "sacrifice throw": { how: "Drop and throw the opponent over you.", cue: "sacrifice throw" },
+    "shoulder lock": { how: "Hyperextend the shoulder with a straight grip.", cue: "shoulder lock" },
+    "shoulder throw": { how: "Rotate and throw the opponent over the shoulder.", cue: "shoulder throw" },
+    "single collar tie": { how: "Control the head with one hand on the collar.", cue: "single collar tie" },
+    "single leg x guard": { how: "Hook one leg high into an X-guard sweep.", cue: "single leg x guard" },
+    "standing kimura": { how: "Crank the kimura grip standing to force the mat.", cue: "standing kimura" },
+    "trip takedown": { how: "Trip the opponent and drive them down.", cue: "trip takedown" },
+    "turk": { how: "Cross the legs from the leg ride and roll the hips.", cue: "turk" },
+    "waist lock takedown": { how: "Lock the waist and throw to the mat.", cue: "waist lock takedown" },
+    "wrist lock": { how: "Twist the wrist against the joint.", cue: "wrist lock" },
+    "x guard": { how: "Cross the legs on the opponent's arm and lift.", cue: "x guard" },
     'double leg': { how: 'Drop level, step deep, wrap both legs, and drive forward while lifting.', cue: 'Drop, step, drive.' },
     'single leg': { how: 'Grab one leg, pinch it to your chest, and work the finish with your head inside.', cue: 'Pinch, head inside.' },
     'arm drag': { how: 'Pull the opponent\'s arm across their body to clear their defenses and take the back.', cue: 'Pull across, clear.' },
@@ -456,6 +554,80 @@ const SHARED_TECHNIQUES = {
   'lock': { how: 'Isolate the joint and apply steady pressure against the natural bend.', cue: 'Isolate, apply pressure.' },
   'throw': { how: 'Off-balance the opponent, turn your hips, and throw them to the mat.', cue: 'Off-balance, turn, throw.' },
   'trip': { how: 'Sweep or hook the leg while driving forward to take them down.', cue: 'Hook, drive forward.' },
+
+    "ankle pick": { how: "Grab the ankle, drive the shoulder into the thigh, pull the leg out.", cue: "ankle pick" },
+    "arm drag to back take": { how: "Drag the arm across, step behind and take the back.", cue: "arm drag to back take" },
+    "arm lock": { how: "Hyperextend the elbow in an armbar or straight armlock.", cue: "arm lock" },
+    "bob and weave": { how: "Dip under the punch in a U-shape and come back up in range.", cue: "bob and weave" },
+    "body shot": { how: "Hook or cross to the ribs, under the elbows.", cue: "body shot" },
+    "catch kick": { how: "Catch the incoming kick under the leg and hold it.", cue: "catch the kick" },
+    "catch punch": { how: "Trap the incoming punch with a cupped hand.", cue: "catch the punch" },
+    "clinch knee": { how: "Lock the clinch, pull the head down, drive the knee up the middle.", cue: "clinch knee" },
+    "counter cross": { how: "Slip or parry, then answer with the rear cross.", cue: "counter cross" },
+    "counter elbow": { how: "Block the strike, then answer with an elbow.", cue: "counter elbow" },
+    "counter hook": { how: "Roll off the punch, then answer with a hook.", cue: "counter hook" },
+    "counter knee": { how: "Catch the strike and answer with a knee.", cue: "counter knee" },
+    "counter punch": { how: "Block or slip, then fire a punch back.", cue: "counter punch" },
+    "cross counter": { how: "Counter the jab with a cross over the top.", cue: "cross counter" },
+    "dirty boxing": { how: "Work short punches inside the clinch.", cue: "dirty boxing" },
+    "double hook": { how: "Snap the lead hook, then fire a second hook to the same target.", cue: "double hook" },
+    "double leg takedown": { how: "Drop level, drive through the hips and finish the double leg.", cue: "double leg takedown" },
+    "duck opponents hook": { how: "Bend the knees and duck under the incoming hook.", cue: "duck the hook" },
+    "duck opponents punch": { how: "Dip under the incoming punch, staying in range.", cue: "duck the punch" },
+    "elbow strike": { how: "Drive the elbow into the target with the hips behind it.", cue: "elbow strike" },
+    "fake low kick": { how: "Threaten the low kick, then fire the real strike.", cue: "fake low kick" },
+    "fake takedown": { how: "Threaten the shot to draw the hands down, then strike.", cue: "fake takedown" },
+    "feint jab": { how: "Show the jab to draw a reaction, then attack.", cue: "feint jab" },
+    "feint kick": { how: "Show the kick to draw the guard, then attack.", cue: "feint kick" },
+    "feint takedown": { how: "Show the level change to draw the sprawl, then attack.", cue: "feint takedown" },
+    "flying knee": { how: "Push off the rear leg and drive the knee through the target.", cue: "flying knee" },
+    "front kick": { how: "Push the foot straight forward like a teep.", cue: "front kick" },
+    "front teep to the face": { how: "Push the front foot up through the chin like a spear.", cue: "front teep to the face" },
+    "gator roll": { how: "Roll the hips over to escape and come up on top.", cue: "gator roll" },
+    "ground control": { how: "Hold top position with weight, base and pressure.", cue: "ground control" },
+    "inside leg kick": { how: "Swing the shin from the inside across the lead leg.", cue: "inside low kick" },
+    "inside low kick": { how: "Swing the shin from the inside across the opponent's lead leg.", cue: "inside low kick" },
+    "inside trip": { how: "Step in deep and sweep the opponent's near leg.", cue: "inside trip" },
+    "jumping knee": { how: "Jump and drive the knee into the chin or body.", cue: "jumping knee" },
+    "jumping switch knee": { how: "Switch stance in the air and land a flying knee.", cue: "jumping switch knee" },
+    "level change": { how: "Drop the hips and change levels to shoot or strike.", cue: "level change" },
+    "lift": { how: "Elevate the opponent and drive them down.", cue: "lift" },
+    "liver shot": { how: "Hook the rear hand under the elbow into the liver.", cue: "liver shot" },
+    "outside leg kick": { how: "Swing the shin into the opponent's rear leg.", cue: "outside leg kick" },
+    "outside trip": { how: "Step outside and reap the far leg.", cue: "outside trip" },
+    "overhand punch": { how: "Drop the rear hand and arc it over the guard.", cue: "overhand punch" },
+    "push kick": { how: "Push the foot forward to keep the opponent at range.", cue: "push kick" },
+    "question mark kick": { how: "Raise the knee like a teep, then snap it over the guard like a question mark.", cue: "question mark kick" },
+    "repeated knees": { how: "Lock the clinch and pump the knees into the body.", cue: "repeated knees" },
+    "shift": { how: "Slide the rear foot forward and the lead foot back to switch stances.", cue: "shift your stance" },
+    "shift foot": { how: "Step the feet into the opposite stance.", cue: "shift your feet" },
+    "single leg takedown": { how: "Secure one leg, lift it and drive to the mat.", cue: "single leg takedown" },
+    "slam": { how: "Lift the opponent and drive them to the mat.", cue: "slam" },
+    "slip jab": { how: "Move the head off the line to avoid the jab.", cue: "slip the jab" },
+    "slip opponents jab": { how: "Tilt the head just off the center line to let the jab pass.", cue: "slip the jab" },
+    "slip opponents punch": { how: "Move the head off the line, then counter.", cue: "slip the punch" },
+    "southpaw cross": { how: "From the southpaw stance, throw the rear cross.", cue: "southpaw cross" },
+    "spinning back body kick": { how: "Pivot the base leg and spin the hips into a back kick to the body.", cue: "spinning back body kick" },
+    "spinning back elbow": { how: "Spin the body and drive the elbow around into the face.", cue: "spinning back elbow" },
+    "spinning back kick": { how: "Pivot, look over the shoulder, and drive the heel straight back.", cue: "spinning back kick" },
+    "spinning heel kick": { how: "Spin the whole body and whip the heel around in an arc.", cue: "spinning heel kick" },
+    "spinning hook kick": { how: "Spin and hook the heel around the guard to the head.", cue: "spinning hook kick" },
+    "step": { how: "Take a short, balanced step to close distance.", cue: "step" },
+    "step back": { how: "Step straight back to create distance and draw the attack.", cue: "step back" },
+    "step forward": { how: "Step forward to close the distance before striking.", cue: "step forward" },
+    "step in elbow": { how: "Step forward and drive the elbow horizontally into the target.", cue: "step in elbow" },
+    "submission attempt": { how: "Attack a joint or choke to force the tap.", cue: "submission attempt" },
+    "superman punch": { how: "Fake the front kick, push off the lead leg, and cross over the top.", cue: "superman punch" },
+    "switch kick": { how: "Switch the stance and immediately fire the roundhouse.", cue: "switch kick" },
+    "teep to the face": { how: "Push the front foot up through the chin like a spear.", cue: "teep to the face" },
+
+    "arm trap": { how: "Pin the arm against the body to limit defense.", cue: "arm trap" },
+    "foot sweep": { how: "Sweep the opponent's foot while breaking their balance.", cue: "foot sweep" },
+    "kick": { how: "Drive the shin or foot into the target.", cue: "kick" },
+    "lateral drop": { how: "Drop the hips and throw the opponent over the side.", cue: "lateral drop" },
+    "pivot degrees": { how: "Turn the lead foot and rotate the hips to change angle.", cue: "pivot" },
+    "russian tie": { how: "Control the elbow and triceps to break posture.", cue: "russian tie" },
+    "spin behind": { how: "Spin around the opponent and take the back.", cue: "spin behind" },
 };
 
 // Curriculum: ordered technique names to learn per style
@@ -828,13 +1000,31 @@ function App() {
   // throttles and the session auto-stops. Keep the screen on for the whole
   // session, release the moment training stops.
   const keepAwakeActiveRef = useRef(false);
+  // Dim mode: for long bag sessions, keep the screen awake but drop brightness
+  // to a faint level (battery + less distracting). Restore on stop.
+  const [dimScreen, setDimScreen] = usePersistedState('dimScreen', false);
+  const originalBrightnessRef = useRef(null);
   const setKeepAwake = (active) => {
     if (active === keepAwakeActiveRef.current) return;
     keepAwakeActiveRef.current = active;
     try {
-      if (active) activateKeepAwakeAsync().catch(() => {});
-      else deactivateKeepAwake();
-    } catch (e) { /* keep-awake optional */ }
+      if (active) {
+        activateKeepAwakeAsync().catch(() => {});
+        if (dimScreen) {
+          Brightness.getBrightnessAsync().then(b => {
+            originalBrightnessRef.current = b;
+            return Brightness.setBrightnessAsync(0.12);
+          }).catch(() => {});
+        }
+      } else {
+        deactivateKeepAwake();
+        if (dimScreen && originalBrightnessRef.current != null) {
+          const restore = originalBrightnessRef.current;
+          originalBrightnessRef.current = null;
+          Brightness.setBrightnessAsync(restore).catch(() => {});
+        }
+      }
+    } catch (e) { /* keep-awake / dimming optional */ }
   };
 
   // ---------- Monetization: soft gate + REAL Google Play Billing ----------
@@ -2859,6 +3049,13 @@ function App() {
                     <Text style={styles.toggleText}>{reminderEnabled ? 'ON' : 'OFF'}</Text>
                   </TouchableOpacity>
                 </View>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Dim screen during workouts</Text>
+                  <TouchableOpacity style={[styles.toggleButton, dimScreen && styles.toggleActive]} onPress={() => { hapticIf('light'); setDimScreen(!dimScreen); }}>
+                    <Text style={styles.toggleText}>{dimScreen ? 'ON' : 'OFF'}</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Keeps the screen on but drops brightness for long bag sessions — saves battery, still hear every callout.</Text>
                 <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Weekly goal: {weekRounds}/{WEEKLY_GOAL_ROUNDS} rounds ({weeklyGoalPct}%)</Text>
                 <View style={[styles.goalBar, { backgroundColor: theme.taskContainer, borderColor: theme.border }]}>
                   <View style={[styles.goalBarFill, { width: `${weeklyGoalPct}%`, backgroundColor: theme.accent }]} />
