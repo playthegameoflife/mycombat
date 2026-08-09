@@ -97,6 +97,39 @@ const CADENCES = [
   { id: 'custom', label: 'Custom', gap: null, desc: 'your own interval' },
 ];
 
+// ---------- Analytics: zero-dep PostHog capture (no SDK deps, fire-and-forget) ----------
+// Set POSTHOG_KEY to your project API key (PostHog → Project Settings → API Keys).
+// Events silently no-op when the key is empty, so the app works without setup.
+const POSTHOG_KEY = ''; // TODO: paste project API key
+const ANALYTICS_ENABLED = POSTHOG_KEY.length > 0;
+const track = (event, properties = {}) => {
+  if (!ANALYTICS_ENABLED) return;
+  try {
+    fetch('https://us.i.posthog.com/capture/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: POSTHOG_KEY,
+        event,
+        distinct_id: 'mycombat-user',
+        properties: { ...properties, app: 'mycombat', platform: Platform.OS, ts: new Date().toISOString() },
+      }),
+    }).catch(() => {});
+  } catch (e) { /* analytics never blocks */ }
+};
+
+// ---------- Monetization: entitlements + soft gating ----------
+const PRO_PRICING = {
+  monthly: 4.99, annual: 29.99, lifetime: 34.99,
+};
+const PRO_FEATURES = [
+  'Unlimited custom combos & styles',
+  'Premium voice packs + tempo control',
+  'Hands-free tap controls',
+  'Full workout history & analytics',
+  'Ad-free — always',
+];
+
 // ---------- Typography (Barlow Condensed = sports/athletic headings, Barlow = body) ----------
 const FONT = {
   heading: 'BarlowCondensed_700Bold',
@@ -472,6 +505,10 @@ export default function App() {
   const [tapControls, setTapControls] = usePersistedState('tapControls', false);
   const [landscapeMode, setLandscapeMode] = usePersistedState('landscapeMode', false);
   const [modifiersEnabled, setModifiersEnabled] = usePersistedState('modifiersEnabled', false);
+  // Pro entitlement: persisted; gated features soft-open the paywall preview
+  const [isPro, setIsPro] = usePersistedState('isPro', false);
+  const [paywallVisible, setPaywallVisible] = useState(false);
+  const [pendingProAction, setPendingProAction] = useState(null);
 
   // Difficulty filter: 'all' | 'beginner' | 'intermediate' | 'advanced'
   const [difficultyFilter, setDifficultyFilter] = usePersistedState('difficultyFilter', 'all');
@@ -486,6 +523,30 @@ export default function App() {
   // Haptics toggle
   const [hapticsEnabled, setHapticsEnabled] = usePersistedState('hapticsEnabled', true);
   const hapticIf = (type) => { if (hapticsEnabled) haptic(type); };
+
+  // ---------- Monetization: soft gate + billing stub ----------
+  // Gated feature tap → if not Pro, open the paywall preview instead.
+  // The action name lets us (later) deep-link to the exact feature after purchase.
+  const requirePro = (actionName = 'feature') => {
+    if (isPro) return true;
+    setPendingProAction(actionName);
+    setPaywallVisible(true);
+    track('paywall_shown', { action: actionName });
+    return false;
+  };
+  // Billing stub: native Google Play Billing will replace this when the dev build ships.
+  // For now: unlock Pro directly (test/dev) — a real purchase flow is Phase 2.
+  const purchasePro = (tier) => {
+    track('paywall_purchase_attempt', { tier });
+    // TODO: call Google Play Billing (react-native-billing / Billing Library) here.
+    setIsPro(true);
+    setPaywallVisible(false);
+    setPendingProAction(null);
+    hapticIf('heavy');
+    Alert.alert('Pro unlocked', `MyCombat Pro (${tier}) is active. Billing integration ships with the dev build.`);
+  };
+
+  useEffect(() => { track('app_open', { isPro }); }, []);
 
   // ---------- Audio: cue sounds + music ducking ----------
   const cueSoundRef = useRef(null);
@@ -582,6 +643,7 @@ export default function App() {
       style, type, seconds, rounds: roundsDone, kcal,
     };
     setSessions(prev => [...prev.slice(-199), entry]);
+    track('session_completed', { style, type, seconds, rounds: roundsDone, kcal });
     // Ask for a review after the session lands (only once, after 3+ sessions)
     setTimeout(() => { maybeRequestReview(); }, 2500);
   };
@@ -900,6 +962,7 @@ export default function App() {
   const startDrill = (style, task) => {
     hapticIf('medium');
     if (isTraining) stopTrainingSession();
+    track('drill_started', { style });
     setDrillTask(task);
     setIsDrilling(true);
     timerRef.current = { mode: 'work', round: 1, remaining: workPeriod };
@@ -1016,11 +1079,13 @@ export default function App() {
   const [isCustomStyleModalVisible, setIsCustomStyleModalVisible] = useState(false);
 
   const addCustomStyle = () => {
+    if (!requirePro('custom_style')) return;
     const name = customStyleName.trim();
     const combos = customStyleCombos.split('\n').map(c => c.trim()).filter(Boolean);
     if (!name) { Alert.alert('Style name required'); return; }
     if (combos.length === 0) { Alert.alert('Add at least one combo'); return; }
     hapticIf('medium');
+    track('custom_style_created', { name });
     setCustomStyles(prev => ({ ...prev, [name]: combos }));
     setCustomStyleName('');
     setCustomStyleCombos('');
@@ -1054,11 +1119,13 @@ export default function App() {
   };
   const builderSaveCombo = () => {
     if (builder.sequence.length === 0) return;
+    if (!requirePro('combo_builder')) return;
     const combo = builder.sequence.map(n => {
       const tech = TECHNIQUES[builder.style] && TECHNIQUES[builder.style][n];
       return tech ? n.charAt(0).toUpperCase() + n.slice(1) : n;
     }).join(' > ');
     hapticIf('medium');
+    track('combo_built', { style: builder.style });
     // Save to a "My Combos" custom style
     setCustomStyles(prev => ({
       ...prev,
@@ -1401,6 +1468,12 @@ export default function App() {
           <BlurView intensity={100} style={styles.modalContainer}>
             <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
               <Text style={[styles.modalTitle, { color: theme.text }]}>Training Settings</Text>
+              {!isPro && (
+                <TouchableOpacity style={[styles.proBanner, { backgroundColor: theme.accent }]} onPress={() => requirePro('settings_banner')}>
+                  <Ionicons name="diamond" size={18} color="#fff" />
+                  <Text style={styles.proBannerText}>Unlock MyCombat Pro — premium voices, unlimited combos, no ads</Text>
+                </TouchableOpacity>
+              )}
               <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={true}>
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Programs</Text>
                 <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Coach templates — tap to load</Text>
@@ -1422,8 +1495,15 @@ export default function App() {
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Voice Packs</Text>
                 <View style={styles.restButtons}>
                   {VOICE_PACKS.map((pack) => (
-                    <TouchableOpacity key={pack.id} style={[styles.restButton, voicePack === pack.id && styles.restButtonActive]} onPress={() => updateSetting(setVoicePack, pack.id)}>
+                    <TouchableOpacity key={pack.id} style={[styles.restButton, voicePack === pack.id && styles.restButtonActive]} onPress={() => {
+                      if (pack.id !== 'coach' && !isPro && !requirePro('voice_packs')) return;
+                      hapticIf('light');
+                      updateSetting(setVoicePack, pack.id);
+                    }}>
                       <Text style={[styles.restButtonText, voicePack === pack.id && styles.restButtonTextActive]}>{pack.label}</Text>
+                      {pack.id !== 'coach' && !isPro ? (
+                        <Ionicons name="lock-closed" size={12} color={theme.textMuted} style={{ marginLeft: 4 }} />
+                      ) : null}
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -1470,7 +1550,10 @@ export default function App() {
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Hands-Free</Text>
                 <View style={styles.toggleRow}>
                   <Text style={[styles.toggleLabel, { color: theme.text }]}>Tap-to-stop (accelerometer, gloved hand)</Text>
-                  <TouchableOpacity style={[styles.toggleButton, tapControls && styles.toggleActive]} onPress={() => { hapticIf('light'); setTapControls(!tapControls); }}>
+                  <TouchableOpacity style={[styles.toggleButton, tapControls && styles.toggleActive]} onPress={() => {
+                    if (!tapControls && !isPro && !requirePro('tap_controls')) return;
+                    hapticIf('light'); setTapControls(!tapControls);
+                  }}>
                     <Text style={styles.toggleText}>{tapControls ? 'ON' : 'OFF'}</Text>
                   </TouchableOpacity>
                 </View>
@@ -1617,12 +1700,19 @@ export default function App() {
                 <Text style={[styles.settingLabel, { color: theme.textMuted }]}>
                   {workoutDates.length} workout{workoutDates.length === 1 ? '' : 's'} · {streak} day streak
                 </Text>
-                {workoutDates.slice(-7).reverse().map((d) => (
-                  <View key={d} style={styles.customStyleRow}>
-                    <Text style={[styles.customStyleName, { color: theme.text }]}>{d}</Text>
-                    <Ionicons name="checkmark-circle" size={20} color={theme.success} />
-                  </View>
-                ))}
+                {isPro ? (
+                  workoutDates.slice(-7).reverse().map((d) => (
+                    <View key={d} style={styles.customStyleRow}>
+                      <Text style={[styles.customStyleName, { color: theme.text }]}>{d}</Text>
+                      <Ionicons name="checkmark-circle" size={20} color={theme.success} />
+                    </View>
+                  ))
+                ) : (
+                  <TouchableOpacity style={[styles.programRow, { borderColor: theme.accent }]} onPress={() => requirePro('history')}>
+                    <Ionicons name="lock-closed" size={18} color={theme.accent} style={{ marginRight: 8 }} />
+                    <Text style={[styles.programName, { color: theme.text }]}>Unlock full workout history with Pro</Text>
+                  </TouchableOpacity>
+                )}
 
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Speech Settings</Text>
 
@@ -1876,6 +1966,39 @@ export default function App() {
             </View>
           </View>
         </Modal>
+
+        {/* Paywall preview (soft gate) */}
+        <Modal animationType="slide" transparent={true} visible={paywallVisible} onRequestClose={() => setPaywallVisible(false)}>
+          <BlurView intensity={100} style={styles.modalContainer}>
+            <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
+              <Text style={[styles.paywallTitle, { color: theme.text }]}>MyCombat Pro</Text>
+              <Text style={[styles.paywallSub, { color: theme.textMuted }]}>
+                {pendingProAction ? `Unlock "${pendingProAction.replace(/_/g, ' ')}"` : 'Unlock everything'}
+              </Text>
+              {PRO_FEATURES.map((f) => (
+                <View key={f} style={styles.paywallFeature}>
+                  <Ionicons name="checkmark-circle" size={18} color={theme.success} />
+                  <Text style={[styles.paywallFeatureText, { color: theme.text }]}>{f}</Text>
+                </View>
+              ))}
+              <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.cardBg, borderColor: theme.border }]} onPress={() => purchasePro('monthly')}>
+                <Text style={[styles.paywallTierName, { color: theme.text }]}>Monthly</Text>
+                <Text style={[styles.paywallTierPrice, { color: theme.accent }]}>${PRO_PRICING.monthly}/mo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.accent, borderColor: theme.accent }]} onPress={() => purchasePro('annual')}>
+                <Text style={[styles.paywallTierName, { color: '#fff' }]}>Annual — best value</Text>
+                <Text style={[styles.paywallTierPrice, { color: '#fff' }]}>${PRO_PRICING.annual}/yr (${(PRO_PRICING.annual / 12).toFixed(2)}/mo)</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.cardBg, borderColor: theme.border }]} onPress={() => purchasePro('lifetime')}>
+                <Text style={[styles.paywallTierName, { color: theme.text }]}>Lifetime</Text>
+                <Text style={[styles.paywallTierPrice, { color: theme.accent }]}>${PRO_PRICING.lifetime} once</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.textMuted, marginTop: 12 }]} onPress={() => setPaywallVisible(false)}>
+                <Text style={styles.closeButtonText}>Not now</Text>
+              </TouchableOpacity>
+            </View>
+          </BlurView>
+        </Modal>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -1985,4 +2108,13 @@ const createStyles = (theme) => StyleSheet.create({
   statValue: { fontSize: 22, fontFamily: FONT.heading, marginBottom: 2 },
   statLabel: { fontSize: 11, fontFamily: FONT.body },
   landscapeScroll: { maxWidth: 900, width: '100%', alignSelf: 'center' },
+  proBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 12, width: '100%' },
+  proBannerText: { color: '#fff', fontFamily: FONT.bodyBold, fontSize: 13, flex: 1 },
+  paywallTitle: { fontSize: 30, fontFamily: FONT.heading, marginBottom: 2 },
+  paywallSub: { fontSize: 14, fontFamily: FONT.body, marginBottom: 16 },
+  paywallFeature: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', marginBottom: 8 },
+  paywallFeatureText: { fontSize: 15, fontFamily: FONT.body, flex: 1 },
+  paywallTier: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16, marginBottom: 10, width: '100%' },
+  paywallTierName: { fontSize: 16, fontFamily: FONT.bodyBold },
+  paywallTierPrice: { fontSize: 16, fontFamily: FONT.headingSemi },
 });
