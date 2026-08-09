@@ -2058,30 +2058,32 @@ export default function App() {
         <Modal animationType="slide" transparent={true} visible={isCustomStyleModalVisible} onRequestClose={() => setIsCustomStyleModalVisible(false)}>
           <View style={styles.modalContainer}>
             <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>New Custom Style</Text>
-              <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Style name</Text>
-              <TextInput
-                style={[styles.textInput, { color: theme.text, borderColor: theme.textMuted }]}
-                placeholder="e.g. My Hybrid Style"
-                placeholderTextColor={theme.textMuted}
-                value={customStyleName}
-                onChangeText={setCustomStyleName}
-              />
-              <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Combos (one per line)</Text>
-              <TextInput
-                style={[styles.textInputMultiline, { color: theme.text, borderColor: theme.textMuted }]}
-                placeholder={'Jab > Right cross\nLeft hook > Right cross\n...'}
-                placeholderTextColor={theme.textMuted}
-                value={customStyleCombos}
-                onChangeText={setCustomStyleCombos}
-                multiline
-              />
-              <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.success }]} onPress={addCustomStyle}>
-                <Text style={styles.closeButtonText}>Save Style</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.danger, marginTop: 8 }]} onPress={() => setIsCustomStyleModalVisible(false)}>
-                <Text style={styles.closeButtonText}>Cancel</Text>
-              </TouchableOpacity>
+              <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={true}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>New Custom Style</Text>
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Style name</Text>
+                <TextInput
+                  style={[styles.textInput, { color: theme.text, borderColor: theme.textMuted }]}
+                  placeholder="e.g. My Hybrid Style"
+                  placeholderTextColor={theme.textMuted}
+                  value={customStyleName}
+                  onChangeText={setCustomStyleName}
+                />
+                <Text style={[styles.settingLabel, { color: theme.textMuted }]}>Combos (one per line)</Text>
+                <TextInput
+                  style={[styles.textInputMultiline, { color: theme.text, borderColor: theme.textMuted }]}
+                  placeholder={'Jab > Right cross\nLeft hook > Right cross\n...'}
+                  placeholderTextColor={theme.textMuted}
+                  value={customStyleCombos}
+                  onChangeText={setCustomStyleCombos}
+                  multiline
+                />
+                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.success }]} onPress={addCustomStyle}>
+                  <Text style={styles.closeButtonText}>Save Style</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.danger, marginTop: 8 }]} onPress={() => setIsCustomStyleModalVisible(false)}>
+                  <Text style={styles.closeButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           </View>
         </Modal>
@@ -2197,29 +2199,31 @@ export default function App() {
         <Modal animationType="fade" transparent={true} visible={shareModal.visible} onRequestClose={() => setShareModal({ visible: false, combo: null, styleName: null })}>
           <View style={styles.modalContainer}>
             <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Share Combo</Text>
-              {shareModal.combo ? (
-                <>
-                  <View style={styles.qrWrap}>
-                    <QRCode
-                      value={`MyCombat combo (${shareModal.styleName || 'style'}): ${shareModal.combo}`}
-                      size={180}
-                      backgroundColor="#fff"
-                      color="#0F172A"
-                    />
-                  </View>
-                  <Text style={[styles.qrLabel, { color: theme.textMuted }]}>
-                    {shareModal.styleName} — scan to read this combo on any phone
-                  </Text>
-                  <Text style={[styles.learnComboText, { color: theme.text }]}>{displayText(shareModal.combo)}</Text>
-                  <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accent }]} onPress={() => shareCombo(shareModal.combo, shareModal.styleName)}>
-                    <Text style={styles.closeButtonText}>Share via native sheet</Text>
-                  </TouchableOpacity>
-                </>
-              ) : null}
-              <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.textMuted, marginTop: 8 }]} onPress={() => setShareModal({ visible: false, combo: null, styleName: null })}>
-                <Text style={styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
+              <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={true}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>Share Combo</Text>
+                {shareModal.combo ? (
+                  <>
+                    <View style={styles.qrWrap}>
+                      <QRCode
+                        value={`MyCombat combo (${shareModal.styleName || 'style'}): ${shareModal.combo}`}
+                        size={180}
+                        backgroundColor="#fff"
+                        color="#0F172A"
+                      />
+                    </View>
+                    <Text style={[styles.qrLabel, { color: theme.textMuted }]}>
+                      {shareModal.styleName} — scan to read this combo on any phone
+                    </Text>
+                    <Text style={[styles.learnComboText, { color: theme.text }]}>{displayText(shareModal.combo)}</Text>
+                    <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.accent }]} onPress={() => shareCombo(shareModal.combo, shareModal.styleName)}>
+                      <Text style={styles.closeButtonText}>Share via native sheet</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : null}
+                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.textMuted, marginTop: 8 }]} onPress={() => setShareModal({ visible: false, combo: null, styleName: null })}>
+                  <Text style={styles.closeButtonText}>Close</Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           </View>
         </Modal>
@@ -2228,31 +2232,33 @@ export default function App() {
         <Modal animationType="slide" transparent={true} visible={paywallVisible} onRequestClose={() => setPaywallVisible(false)}>
           <BlurView intensity={100} style={styles.modalContainer}>
             <View style={[styles.modalContent, { backgroundColor: theme.modalBg }]}>
-              <Text style={[styles.paywallTitle, { color: theme.text }]}>MyCombat Pro</Text>
-              <Text style={[styles.paywallSub, { color: theme.textMuted }]}>
-                {pendingProAction ? `Unlock "${pendingProAction.replace(/_/g, ' ')}"` : 'Unlock everything'}
-              </Text>
-              {PRO_FEATURES.map((f) => (
-                <View key={f} style={styles.paywallFeature}>
-                  <Ionicons name="checkmark-circle" size={18} color={theme.success} />
-                  <Text style={[styles.paywallFeatureText, { color: theme.text }]}>{f}</Text>
-                </View>
-              ))}
-              <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.cardBg, borderColor: theme.border }]} onPress={() => purchasePro('monthly')}>
-                <Text style={[styles.paywallTierName, { color: theme.text }]}>Monthly</Text>
-                <Text style={[styles.paywallTierPrice, { color: theme.accent }]}>${PRO_PRICING.monthly}/mo</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.accent, borderColor: theme.accent }]} onPress={() => purchasePro('annual')}>
-                <Text style={[styles.paywallTierName, { color: '#fff' }]}>Annual — best value</Text>
-                <Text style={[styles.paywallTierPrice, { color: '#fff' }]}>${PRO_PRICING.annual}/yr (${(PRO_PRICING.annual / 12).toFixed(2)}/mo)</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.cardBg, borderColor: theme.border }]} onPress={() => purchasePro('lifetime')}>
-                <Text style={[styles.paywallTierName, { color: theme.text }]}>Lifetime</Text>
-                <Text style={[styles.paywallTierPrice, { color: theme.accent }]}>${PRO_PRICING.lifetime} once</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.textMuted, marginTop: 12 }]} onPress={() => setPaywallVisible(false)}>
-                <Text style={styles.closeButtonText}>Not now</Text>
-              </TouchableOpacity>
+              <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={true}>
+                <Text style={[styles.paywallTitle, { color: theme.text }]}>MyCombat Pro</Text>
+                <Text style={[styles.paywallSub, { color: theme.textMuted }]}>
+                  {pendingProAction ? `Unlock "${pendingProAction.replace(/_/g, ' ')}"` : 'Unlock everything'}
+                </Text>
+                {PRO_FEATURES.map((f) => (
+                  <View key={f} style={styles.paywallFeature}>
+                    <Ionicons name="checkmark-circle" size={18} color={theme.success} />
+                    <Text style={[styles.paywallFeatureText, { color: theme.text }]}>{f}</Text>
+                  </View>
+                ))}
+                <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.cardBg, borderColor: theme.border }]} onPress={() => purchasePro('monthly')}>
+                  <Text style={[styles.paywallTierName, { color: theme.text }]}>Monthly</Text>
+                  <Text style={[styles.paywallTierPrice, { color: theme.accent }]}>${PRO_PRICING.monthly}/mo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.accent, borderColor: theme.accent }]} onPress={() => purchasePro('annual')}>
+                  <Text style={[styles.paywallTierName, { color: '#fff' }]}>Annual — best value</Text>
+                  <Text style={[styles.paywallTierPrice, { color: '#fff' }]}>${PRO_PRICING.annual}/yr (${(PRO_PRICING.annual / 12).toFixed(2)}/mo)</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.paywallTier, { backgroundColor: theme.cardBg, borderColor: theme.border }]} onPress={() => purchasePro('lifetime')}>
+                  <Text style={[styles.paywallTierName, { color: theme.text }]}>Lifetime</Text>
+                  <Text style={[styles.paywallTierPrice, { color: theme.accent }]}>${PRO_PRICING.lifetime} once</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.textMuted, marginTop: 12 }]} onPress={() => setPaywallVisible(false)}>
+                  <Text style={styles.closeButtonText}>Not now</Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           </BlurView>
         </Modal>
@@ -2295,7 +2301,7 @@ const createStyles = (theme) => StyleSheet.create({
   diffRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 6 },
   diffDot: { width: 8, height: 8, borderRadius: 4 },
   diffLabel: { fontSize: 12, fontFamily: FONT.bodySemi, color: theme.textMuted },
-  cardControls: { flexDirection: 'row', justifyContent: 'center', gap: 12 },
+  cardControls: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12, maxWidth: '100%' },
   controlButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: theme.buttonDefault, justifyContent: 'center', alignItems: 'center' },
   learnButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderRadius: 20, paddingVertical: 8, marginTop: 12, borderColor: theme.accent },
   learnButtonText: { fontSize: 14, fontFamily: FONT.bodySemi, color: theme.accent },
