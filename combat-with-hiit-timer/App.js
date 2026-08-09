@@ -1276,6 +1276,15 @@ export default function App() {
     }
     const task = applyModifiers(rawTask);
     setGeneratedTasks(prev => ({ ...prev, [stat]: task }));
+    // Sync fix: if the user refreshes while training THIS style, the voice must
+    // announce the new combo (not keep saying the stale one). Reset the repeat
+    // counter so the next interval tick speaks the refreshed combo.
+    if (isTraining && currentStyle === stat) {
+      currentTaskRef.current = task;
+      repeatCounterRef.current = 0;
+      sessionRoundsRef.current += 1;
+      speakCombinationRef.current(displayText(task));
+    }
     animateTaskGeneration();
   };
 
@@ -1700,12 +1709,6 @@ export default function App() {
             <TouchableOpacity style={styles.iconButton} accessibilityRole="button" accessibilityLabel="Toggle light or dark theme" onPress={() => { hapticIf('light'); setThemeName(themeName === 'dark' ? 'light' : 'dark'); }}>
               <Ionicons name={themeName === 'dark' ? 'sunny-outline' : 'moon-outline'} size={24} color={theme.text} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} accessibilityRole="button" accessibilityLabel="Decrease text size" onPress={handleZoomOut}>
-              <Ionicons name="remove-outline" size={24} color={theme.text} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} accessibilityRole="button" accessibilityLabel="Increase text size" onPress={handleZoomIn}>
-              <Ionicons name="add-outline" size={24} color={theme.text} />
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -1725,6 +1728,14 @@ export default function App() {
             </View>
           )}
           {!arsenalView && <TimerDisplay />}
+          {!arsenalView && sessions.length > 0 && (
+            <View style={[styles.kcalStrip, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+              <Ionicons name="flame" size={16} color="#F97316" />
+              <Text style={[styles.kcalStripText, { color: theme.text }]}>
+                <Text style={{ fontFamily: FONT.bodyBold, color: theme.accent }}>{totalKcal}</Text> kcal burned · {workoutDates.length} workout{workoutDates.length === 1 ? '' : 's'} · {streak} day streak
+              </Text>
+            </View>
+          )}
           <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
             {arsenalView ? 'My Arsenal' : (difficultyFilter !== 'all' ? `Showing ${DIFFICULTY_LABELS[difficultyFilter].toLowerCase()} combos` : 'All Styles')}
           </Text>
@@ -1770,6 +1781,26 @@ export default function App() {
                     </View>
                   </TouchableOpacity>
                 ))}
+
+                <Text style={[styles.modalSubtitle, { color: theme.text }]}>Display</Text>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Dark theme</Text>
+                  <TouchableOpacity style={[styles.toggleButton, themeName === 'dark' && styles.toggleActive]} onPress={() => { hapticIf('light'); setThemeName(themeName === 'dark' ? 'light' : 'dark'); }}>
+                    <Text style={styles.toggleText}>{themeName === 'dark' ? 'ON' : 'OFF'}</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.toggleRow}>
+                  <Text style={[styles.toggleLabel, { color: theme.text }]}>Text size</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <TouchableOpacity style={[styles.zoomButton, { backgroundColor: theme.buttonDefault }]} onPress={handleZoomOut} accessibilityLabel="Decrease text size">
+                      <Ionicons name="remove-outline" size={20} color={theme.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.toggleLabel, { color: theme.textMuted }]}>{Math.round(fontSize)}px</Text>
+                    <TouchableOpacity style={[styles.zoomButton, { backgroundColor: theme.buttonDefault }]} onPress={handleZoomIn} accessibilityLabel="Increase text size">
+                      <Ionicons name="add-outline" size={20} color={theme.text} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
 
                 <Text style={[styles.modalSubtitle, { color: theme.text }]}>Voice Packs</Text>
                 <View style={styles.restButtons}>
@@ -2360,12 +2391,12 @@ const createStyles = (theme) => StyleSheet.create({
   streakText: { fontSize: 14, fontFamily: FONT.bodySemi, color: '#F97316' },
   filterBadge: { fontSize: 12, fontFamily: FONT.bodySemi, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: theme.buttonDefault },
   headerControls: { flexDirection: 'row', gap: 8 },
-  iconButton: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: theme.iconButton,
-    justifyContent: 'center', alignItems: 'center',
-  },
+  iconButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.iconButton, justifyContent: 'center', alignItems: 'center' },
+  zoomButton: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   scrollContent: { padding: 20, gap: 20 },
   sectionLabel: { fontSize: 13, fontFamily: FONT.headingSemi, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 1.5 },
+  kcalStrip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 12, borderWidth: 1, paddingVertical: 8, paddingHorizontal: 12 },
+  kcalStripText: { fontSize: 13, fontFamily: FONT.body },
   categoryCard: { borderRadius: 16, overflow: 'hidden', elevation: 5, shadowColor: theme.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, borderWidth: 1, borderColor: theme.border },
   categoryGradient: { padding: 20 },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
