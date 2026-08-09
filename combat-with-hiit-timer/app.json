@@ -28,7 +28,7 @@
     "plugins": [
       "expo-av",
       "expo-sensors",
-      "expo-store-review"
+      "expo-asset"
     ],
     "web": {
       "favicon": "./assets/favicon.png"

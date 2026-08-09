@@ -12,7 +12,9 @@ import {
   Modal,
   StatusBar,
   TextInput,
-  Alert
+  Alert,
+  AppState,
+  BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
@@ -448,7 +450,10 @@ const pickRandomTask = (style, styles, difficultyFilter) => {
   let taskLevels = Object.keys(tasks).map(Number);
   if (difficultyFilter && difficultyFilter !== 'all') {
     const filtered = taskLevels.filter(lv => difficultyOf(style, lv) === difficultyFilter);
+    // BUG9: don't silently fall back to all levels when the filter matches nothing —
+    // return null so the caller can tell the user instead of showing wrong-difficulty combos
     if (filtered.length > 0) taskLevels = filtered;
+    else return null;
   }
   if (taskLevels.length === 0) return null;
   const basicCount = basicLevels[style] || 0;
@@ -594,7 +599,8 @@ export default function App() {
     stopTrainingRef.current = stopTrainingSession;
   });
   useEffect(() => {
-    if (!tapControls) return;
+    // BUG7: only listen while a session is active — no idle 10Hz polling / battery drain
+    if (!tapControls || (!timerActive && !isTraining)) return;
     let lastTap = 0;
     const sub = Accelerometer.addListener(({ x, y, z }) => {
       const mag = Math.sqrt(x * x + y * y + z * z);
@@ -626,20 +632,31 @@ export default function App() {
   }, [voicePack, speechPitch]);
 
   const [reviewRequested, setReviewRequested] = usePersistedState('reviewRequested', false);
+  // BUG3: ref mirrors session count so the review gate reads the POST-update count,
+  // and a pending flag prevents double requestReview when sessions land close together
+  const sessionsCountRef = useRef(0);
+  const reviewPendingRef = useRef(false);
+  useEffect(() => { sessionsCountRef.current = sessions.length; }, [sessions]);
   // Native Play Store review sheet — ask once, after 3+ completed sessions
   const maybeRequestReview = async () => {
     if (reviewRequested) return;
-    if (sessions.length < 3) return;
+    if (reviewPendingRef.current) return;
+    if (sessionsCountRef.current < 3) return;
+    reviewPendingRef.current = true;
     try {
       if (await StoreReview.isAvailableAsync()) {
         await StoreReview.requestReview();
         setReviewRequested(true);
       }
     } catch (e) { console.log('review request error', e); }
+    finally { reviewPendingRef.current = false; }
   };
 
   // ---------- Session logging + calories (MET-based) ----------
-  const todayStr = () => new Date().toISOString().slice(0, 10);
+  // BUG10: local-date strings, not UTC (toISOString shifts late-evening workouts
+  // to the next day in the Americas, breaking streaks + monthly stats)
+  const localDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const todayStr = () => localDateStr(new Date());
   const METS = { 'Boxing': 8, 'Kickboxing': 9, 'Muay Thai': 10, 'MMA': 9, 'Combat Sambo': 9, 'BJJ': 8, 'Wrestling': 8, 'Judo': 8 };
   const logSession = (style, type, seconds, roundsDone) => {
     const met = METS[style] || 8;
@@ -700,6 +717,9 @@ export default function App() {
   const [trainingInterval, setTrainingInterval] = useState(null);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  // UX: first-run onboarding — show the "Start my first workout" CTA until a task exists
+  const [onboardDismissed, setOnboardDismissed] = usePersistedState('onboardDismissed', false);
+  const isFirstRun = !onboardDismissed && Object.keys(generatedTasks).length === 0;
   // Arsenal view: only show favorites
   const [arsenalView, setArsenalView] = usePersistedState('arsenalView', false);
   // Learn mode: { style, combo, visible }
@@ -758,7 +778,7 @@ export default function App() {
 
   // ---------- Streak ----------
   const yesterdayStr = () => {
-    const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10);
+    const d = new Date(); d.setDate(d.getDate() - 1); return localDateStr(d);
   };
   const streak = useMemo(() => {
     const dates = new Set(workoutDates);
@@ -767,8 +787,12 @@ export default function App() {
     if (!dates.has(cursor)) cursor = yesterdayStr();
     while (dates.has(cursor)) {
       count += 1;
-      const d = new Date(cursor); d.setDate(d.getDate() - 1);
-      cursor = d.toISOString().slice(0, 10);
+      // BUG10: parse YYYY-MM-DD as LOCAL midnight (new Date('YYYY-MM-DD') is UTC
+      // midnight — in the Americas it's already the previous day, breaking the count)
+      const [y, m, d] = cursor.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      dt.setDate(dt.getDate() - 1);
+      cursor = localDateStr(dt);
     }
     return count;
   }, [workoutDates]);
@@ -837,6 +861,13 @@ export default function App() {
     addToSpeechQueue(combination, 'combo');
     return true;
   }, [addToSpeechQueue]);
+
+  // BUG4: ref mirrors speakCombination so the training interval always calls the
+  // LATEST closure (mid-session pause toggles take effect immediately, not next session)
+  const speakCombinationRef = useRef(speakCombination);
+  useEffect(() => { speakCombinationRef.current = speakCombination; }, [speakCombination]);
+  const speakFormCueRef = useRef(null);
+  useEffect(() => { speakFormCueRef.current = speakFormCue; });
 
   // Form cue between sets: speak a random technique cue for the current style
   const speakFormCue = (style) => {
@@ -969,6 +1000,7 @@ export default function App() {
   const startDrill = (style, task) => {
     hapticIf('medium');
     if (isTraining) stopTrainingSession();
+    if (timerActive) stopHiitTimer();  // BUG1: don't silently kill an active HIIT session
     track('drill_started', { style });
     setDrillTask(task);
     setIsDrilling(true);
@@ -985,6 +1017,11 @@ export default function App() {
   const startTrainingSession = (style) => {
     hapticIf('medium');
     if (timerActive) stopHiitTimer();
+    // BUG2: clear any orphaned interval from a prior double-tap before arming a new one
+    if (trainingInterval) {
+      clearInterval(trainingInterval);
+      setTrainingInterval(null);
+    }
     setIsTraining(true);
     setCurrentStyle(style);
     currentTaskRef.current = null;
@@ -995,19 +1032,25 @@ export default function App() {
     const generateAndSpeak = () => {
       if (!currentTaskRef.current || repeatCounterRef.current >= comboRepeatCount) {
         const rawTask = pickRandomTask(style, allStyles, difficultyFilter);
+        if (!rawTask) {
+          // BUG9/11: style deleted mid-session or no combos at this difficulty — stop cleanly
+          Alert.alert('No combos available', `No ${difficultyFilter === 'all' ? '' : difficultyFilter + ' '}combos for ${style}. Stopping the session.`);
+          stopTrainingSession();
+          return;
+        }
         const task = applyModifiers(rawTask);
         currentTaskRef.current = task;
         repeatCounterRef.current = 1;
         sessionRoundsRef.current += 1;
         setGeneratedTasks(prev => ({ ...prev, [style]: task }));
         animateTaskGeneration();
-        speakCombination(displayText(task));
+        speakCombinationRef.current(displayText(task));
       } else {
         repeatCounterRef.current += 1;
         sessionRoundsRef.current += 1;
-        speakCombination(displayText(currentTaskRef.current));
+        speakCombinationRef.current(displayText(currentTaskRef.current));
         // Form cue on every 3rd repeat of the same combo
-        if (repeatCounterRef.current % 3 === 0) speakFormCue(style);
+        if (repeatCounterRef.current % 3 === 0 && speakFormCueRef.current) speakFormCueRef.current(style);
       }
     };
 
@@ -1027,18 +1070,24 @@ export default function App() {
     const generateAndSpeak = () => {
       if (!currentTaskRef.current || repeatCounterRef.current >= comboRepeatCount) {
         const rawTask = pickRandomTask(style, allStyles, difficultyFilter);
+        if (!rawTask) {
+          // BUG9/11: same guard as the main training loop
+          Alert.alert('No combos available', `No ${difficultyFilter === 'all' ? '' : difficultyFilter + ' '}combos for ${style}. Stopping the session.`);
+          stopTrainingSession();
+          return;
+        }
         const task = applyModifiers(rawTask);
         currentTaskRef.current = task;
         repeatCounterRef.current = 1;
         sessionRoundsRef.current += 1;
         setGeneratedTasks(prev => ({ ...prev, [style]: task }));
         animateTaskGeneration();
-        speakCombination(displayText(task));
+        speakCombinationRef.current(displayText(task));
       } else {
         repeatCounterRef.current += 1;
         sessionRoundsRef.current += 1;
-        speakCombination(displayText(currentTaskRef.current));
-        if (repeatCounterRef.current % 3 === 0) speakFormCue(style);
+        speakCombinationRef.current(displayText(currentTaskRef.current));
+        if (repeatCounterRef.current % 3 === 0 && speakFormCueRef.current) speakFormCueRef.current(style);
       }
     };
     const interval = setInterval(generateAndSpeak, effectiveComboRest * 1000);
@@ -1046,6 +1095,7 @@ export default function App() {
   }, [effectiveComboRest, isTraining, trainingInterval, allStyles, difficultyFilter]);
 
   const stopTrainingSession = () => {
+    if (!isTraining && !trainingInterval) return;  // BUG2: reentrancy guard — double-Stop must not double-log
     setIsTraining(false);
     recordWorkout();
     logSession(currentStyle || 'Training', 'combo', Math.round((Date.now() - (sessionStartRef.current || Date.now())) / 1000), sessionRoundsRef.current || 0);
@@ -1056,9 +1106,37 @@ export default function App() {
     }
   };
 
+  // BUG5: AppState — backgrounding mid-workout must stop sessions (JS timers throttle
+  // in background → silent drift + stale workout on return). Auto-stop instead.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') {
+        if (timerActive && stopTimerRef.current) stopTimerRef.current();
+        if (isTraining && stopTrainingRef.current) stopTrainingRef.current();
+      }
+    });
+    return () => sub.remove();
+  }, [timerActive, isTraining]);
+
+  // BUG6: Android back during an active session — consume it and stop cleanly
+  // (otherwise user exits/stalls silently with a running interval).
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (timerActive) { stopTimerRef.current && stopTimerRef.current(); return true; }
+      if (isTraining) { stopTrainingRef.current && stopTrainingRef.current(); return true; }
+      return false; // let default (exit) happen when idle
+    });
+    return () => sub.remove();
+  }, [timerActive, isTraining]);
+
   const generateTask = (stat) => {
     hapticIf('light');
     const rawTask = pickRandomTask(stat, allStyles, difficultyFilter);
+    if (!rawTask) {
+      // BUG9/11: no combo matches the filter (or style was deleted mid-session)
+      Alert.alert('No combos available', `No ${difficultyFilter === 'all' ? '' : difficultyFilter + ' '}combos for ${stat}. Try a different difficulty or style.`);
+      return;
+    }
     const task = applyModifiers(rawTask);
     setGeneratedTasks(prev => ({ ...prev, [stat]: task }));
     animateTaskGeneration();
@@ -1078,6 +1156,23 @@ export default function App() {
     hapticIf('light');
     const newFontSize = Math.max(fontSize - (fontSize * 0.1), 12);
     setFontSize(newFontSize);
+  };
+
+  // UX: first-run CTA — start the user with a Beginner Boxing combo: generate it,
+  // voice it, open Learn mode, and mark onboarding done.
+  const startFirstWorkout = () => {
+    hapticIf('medium');
+    setOnboardDismissed(true);
+    setDifficultyFilter('beginner');
+    setSelectedCategory('Boxing');
+    const raw = pickRandomTask('Boxing', allStyles, 'beginner');
+    if (!raw) { setDifficultyFilter('all'); return; }
+    const task = applyModifiers(raw);
+    setGeneratedTasks(prev => ({ ...prev, 'Boxing': task }));
+    animateTaskGeneration();
+    speakCombination(displayText(task));
+    setLearnModal({ visible: true, style: 'Boxing', combo: task });
+    track('onboarding_started', { style: 'Boxing' });
   };
 
   // ---------- Custom styles ----------
@@ -1101,6 +1196,8 @@ export default function App() {
 
   const deleteCustomStyle = (name) => {
     hapticIf('medium');
+    // BUG8: deleting a custom style must not orphan its favorites
+    setFavorites(prev => prev.filter(f => !f.startsWith(name + '::')));
     setCustomStyles(prev => {
       const next = { ...prev };
       delete next[name];
@@ -1298,7 +1395,11 @@ export default function App() {
     const fav = isFavorite(category, task);
     const learnCount = learnedCount(category);
     const total = curriculumTotal(category);
-    const showCard = arsenalView ? (task && isFavorite(category, task)) : true;
+    // BUG8: arsenal shows the card if the STYLE has any favorites (not just the
+    // current random task) — otherwise refresh hides favorited cards and "No favorites"
+    // displays while favorites exist.
+    const categoryHasFavorites = favorites.some(f => f.startsWith(category + '::'));
+    const showCard = arsenalView ? categoryHasFavorites : true;
 
     useEffect(() => {
       Animated.spring(cardScale, { toValue: isSelected ? 1.05 : 1, friction: 3, useNativeDriver: true }).start();
@@ -1456,6 +1557,20 @@ export default function App() {
         </View>
 
         <ScrollView contentContainerStyle={[styles.scrollContent, landscapeMode && styles.landscapeScroll]} showsVerticalScrollIndicator={false}>
+          {isFirstRun && !arsenalView && (
+            <View style={[styles.onboardCard, { backgroundColor: theme.cardBg, borderColor: theme.accent }]}>
+              <Text style={[styles.onboardTitle, { color: theme.text }]}>Your voice-guided fight coach</Text>
+              <Text style={[styles.onboardBody, { color: theme.textMuted }]}>
+                MyCombat calls out real combinations for 8 martial arts with a round timer, drills, and a technique library. No gym needed.
+              </Text>
+              <TouchableOpacity style={[styles.onboardButton, { backgroundColor: theme.accent }]} onPress={startFirstWorkout} accessibilityRole="button" accessibilityLabel="Start my first workout">
+                <Text style={styles.onboardButtonText}>Start my first workout — Boxing</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setOnboardDismissed(true)} accessibilityRole="button" accessibilityLabel="Skip onboarding">
+                <Text style={[styles.onboardSkip, { color: theme.textMuted }]}>Skip, just show me the app</Text>
+              </TouchableOpacity>
+            </View>
+          )}
           {!arsenalView && <TimerDisplay />}
           <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
             {arsenalView ? 'My Arsenal' : (difficultyFilter !== 'all' ? `Showing ${DIFFICULTY_LABELS[difficultyFilter].toLowerCase()} combos` : 'All Styles')}
@@ -2124,4 +2239,10 @@ const createStyles = (theme) => StyleSheet.create({
   paywallTier: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16, marginBottom: 10, width: '100%' },
   paywallTierName: { fontSize: 16, fontFamily: FONT.bodyBold },
   paywallTierPrice: { fontSize: 16, fontFamily: FONT.headingSemi },
+  onboardCard: { borderRadius: 16, borderWidth: 1, padding: 20, alignItems: 'center', marginBottom: 4 },
+  onboardTitle: { fontSize: 22, fontFamily: FONT.heading, textAlign: 'center', marginBottom: 8 },
+  onboardBody: { fontSize: 14, fontFamily: FONT.body, textAlign: 'center', lineHeight: 20, marginBottom: 16 },
+  onboardButton: { paddingVertical: 14, paddingHorizontal: 24, borderRadius: 25, marginBottom: 10, width: '100%', alignItems: 'center' },
+  onboardButtonText: { color: '#fff', fontSize: 16, fontFamily: FONT.bodyBold },
+  onboardSkip: { fontSize: 13, fontFamily: FONT.body, padding: 8 },
 });
