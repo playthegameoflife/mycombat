@@ -54,8 +54,9 @@ const VOICE_PACKS = [
 
 // ---------- Combo modifiers (defensive / stance / target zones) ----------
 const COMBO_MODIFIERS = {
-  defensive: ['Slip', 'Roll', 'Duck', 'Pivot', 'Shoulder roll', 'Pull counter', 'Parry', 'Step back'],
-  stance: ['Switch stance', 'Southpaw switch', 'Shift lead foot'],
+  // Only target suffixes are applied — defensive/stance modifiers prepended as active chain
+  // steps create reflexively incorrect combos (e.g. "Slip > Jab > Cross" — slipping after
+  // your own jab is reflexively wrong). Target suffixes (e.g. "to the body") are safe.
   target: ['to the body', 'to the head', 'to the liver', 'to the chin', 'to the solar plexus'],
 };
 
