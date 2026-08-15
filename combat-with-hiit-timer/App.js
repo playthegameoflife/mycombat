@@ -1591,7 +1591,9 @@ function App() {
   const [helpVisible, setHelpVisible] = useState(false);
   // UX: first-run onboarding — show the "Start my first workout" CTA until a task exists
   const [onboardDismissed, setOnboardDismissed] = usePersistedState('onboardDismissed', false);
-  const isFirstRun = !onboardDismissed && Object.keys(generatedTasks).length === 0;
+  const [quizComplete, setQuizComplete] = usePersistedState('quizComplete', false);
+  const [quizStep, setQuizStep] = useState(0);
+  const isFirstRun = (!onboardDismissed || !quizComplete) && Object.keys(generatedTasks).length === 0;
   // Arsenal view: only show favorites
   const [arsenalView, setArsenalView] = usePersistedState('arsenalView', false);
   // Learn mode: { style, combo, visible }
@@ -2703,66 +2705,186 @@ function App() {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={[styles.scrollContent, landscapeMode && styles.landscapeScroll]} showsVerticalScrollIndicator={false}>
-          {isFirstRun && !arsenalView && (
-            <View style={[styles.onboardCard, { backgroundColor: theme.cardBg, borderColor: theme.accent }]}>
-              <Text style={[styles.onboardTitle, { color: theme.text }]}>Your voice-guided fight coach</Text>
-              <Text style={[styles.onboardBody, { color: theme.textMuted }]}>
-                MyCombat calls out real combinations for 10 martial arts with a round timer, drills, and a technique library. No gym needed. Start free with Boxing, Muay Thai & Karate.
-              </Text>
-              <TouchableOpacity style={[styles.onboardButton, { backgroundColor: theme.accentBg }]} onPress={startFirstWorkout} accessibilityRole="button" accessibilityLabel="Start my first workout">
-                <Text style={styles.onboardButtonText}>Start my first workout — Boxing</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setOnboardDismissed(true)} accessibilityRole="button" accessibilityLabel="Skip onboarding">
-                <Text style={[styles.onboardSkip, { color: theme.textMuted }]}>Skip, just show me the app</Text>
-              </TouchableOpacity>
+        {/* --- Quiz onboarding (replaces the old card) --- */}
+        {isFirstRun && !arsenalView && !quizComplete && (
+          <View style={styles.quizContainer}>
+            {/* Progress dots */}
+            <View style={styles.quizProgress}>
+              {[0,1,2,3,4].map(i => (
+                <View key={i} style={[styles.quizDot, i === quizStep && styles.quizDotActive, i < quizStep && styles.quizDotDone]} />
+              ))}
             </View>
-          )}
-          {!arsenalView && <TimerDisplay />}
-          {speechError && (
-            <TouchableOpacity style={[styles.speechErrorBanner, { backgroundColor: theme.danger }]} onPress={() => setSpeechError(false)} accessibilityRole="button" accessibilityLabel="Dismiss voice error">
-              <Ionicons name="volume-mute" size={16} color="#fff" />
-              <Text style={styles.speechErrorText}>Voice unavailable — check your device text-to-speech settings (Settings → Voice → Test)</Text>
+
+            {/* Step 0 — Welcome */}
+            {quizStep === 0 && (
+              <View style={styles.quizStepContent}>
+                <View style={[styles.quizIconWrap, { backgroundColor: theme.accent + '22' }]}>
+                  <Ionicons name="fitness" size={40} color={theme.accent} />
+                </View>
+                <Text style={[styles.quizTitle, { color: theme.text }]}>What's your training goal?</Text>
+                <Text style={[styles.quizSubtitle, { color: theme.textMuted }]}>We'll build your personalized plan in 30 seconds</Text>
+                <TouchableOpacity style={[styles.quizBigButton, { backgroundColor: theme.accentBg }]} onPress={() => { hapticIf('light'); setQuizStep(1); }} accessibilityRole="button">
+                  <Text style={styles.quizBigButtonText}>Let's go</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Step 1 — Experience */}
+            {quizStep === 1 && (
+              <View style={styles.quizStepContent}>
+                <Text style={[styles.quizQuestion, { color: theme.text }]}>How long have you been training?</Text>
+                {[
+                  { label: 'Just started', sub: 'Beginner', icon: 'sunny-outline' },
+                  { label: '1–6 months', sub: 'Some experience', icon: 'trending-up-outline' },
+                  { label: '6+ months', sub: 'Intermediate +', icon: 'barbell-outline' },
+                ].map(opt => (
+                  <TouchableOpacity key={opt.label} style={[styles.quizOption, { borderColor: theme.border, backgroundColor: theme.cardBg }]} onPress={() => { hapticIf('light'); setDifficultyFilter(opt.sub.toLowerCase().includes('beginner') ? 'beginner' : opt.sub.toLowerCase().includes('intermediate') ? 'intermediate' : 'advanced'); setQuizStep(2); }} accessibilityRole="button">
+                    <Ionicons name={opt.icon} size={22} color={theme.accent} style={{ marginRight: 12 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.quizOptionLabel, { color: theme.text }]}>{opt.label}</Text>
+                      <Text style={[styles.quizOptionSub, { color: theme.textMuted }]}>{opt.sub}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity onPress={() => setQuizStep(0)} style={styles.quizBack}>
+                  <Ionicons name="arrow-back" size={16} color={theme.textMuted} />
+                  <Text style={[styles.quizBackText, { color: theme.textMuted }]}> Back</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Step 2 — Primary style */}
+            {quizStep === 2 && (
+              <View style={styles.quizStepContent}>
+                <Text style={[styles.quizQuestion, { color: theme.text }]}>Which discipline interests you most?</Text>
+                {[
+                  { label: 'Boxing', icon: 'hand-right-outline', free: true },
+                  { label: 'Muay Thai', icon: 'flash-outline', free: true },
+                  { label: 'BJJ', icon: 'body-outline', free: false },
+                  { label: 'MMA', icon: 'shield-outline', free: false },
+                  { label: 'Kickboxing', icon: 'football-outline', free: false },
+                ].map(opt => (
+                  <TouchableOpacity key={opt.label} style={[styles.quizOption, { borderColor: theme.border, backgroundColor: theme.cardBg }]} onPress={() => { hapticIf('light'); setSelectedCategory(opt.label); setQuizStep(3); }} accessibilityRole="button">
+                    <Ionicons name={opt.icon} size={22} color={theme.accent} style={{ marginRight: 12 }} />
+                    <Text style={[styles.quizOptionLabel, { color: theme.text }]}>{opt.label}</Text>
+                    {!opt.free && <View style={[styles.quizProBadge]}><Text style={styles.quizProBadgeText}>Pro</Text></View>}
+                    <Ionicons name="chevron-forward" size={18} color={theme.textMuted} style={{ marginLeft: 'auto' }} />
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity onPress={() => setQuizStep(1)} style={styles.quizBack}>
+                  <Ionicons name="arrow-back" size={16} color={theme.textMuted} />
+                  <Text style={[styles.quizBackText, { color: theme.textMuted }]}> Back</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Step 3 — Goal */}
+            {quizStep === 3 && (
+              <View style={styles.quizStepContent}>
+                <Text style={[styles.quizQuestion, { color: theme.text }]}>What do you want to achieve?</Text>
+                {[
+                  { label: 'Learn real combos', sub: 'Sound technique, not just swinging', icon: 'school-outline' },
+                  { label: 'Improve my cardio', sub: 'High-intensity interval training', icon: 'flame-outline' },
+                  { label: 'Prepare for sparring', sub: 'Reaction, timing, combos under fire', icon: 'ribbon-outline' },
+                ].map(opt => (
+                  <TouchableOpacity key={opt.label} style={[styles.quizOption, { borderColor: theme.border, backgroundColor: theme.cardBg }]} onPress={() => { hapticIf('medium'); setQuizStep(4); }} accessibilityRole="button">
+                    <Ionicons name={opt.icon} size={22} color={theme.accent} style={{ marginRight: 12 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.quizOptionLabel, { color: theme.text }]}>{opt.label}</Text>
+                      <Text style={[styles.quizOptionSub, { color: theme.textMuted }]}>{opt.sub}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity onPress={() => setQuizStep(2)} style={styles.quizBack}>
+                  <Ionicons name="arrow-back" size={16} color={theme.textMuted} />
+                  <Text style={[styles.quizBackText, { color: theme.textMuted }]}> Back</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Step 4 — Ready / start workout */}
+            {quizStep === 4 && (
+              <View style={styles.quizStepContent}>
+                <View style={[styles.quizIconWrap, { backgroundColor: theme.success + '22' }]}>
+                  <Ionicons name="checkmark-circle" size={40} color={theme.success} />
+                </View>
+                <Text style={[styles.quizTitle, { color: theme.text }]}>You're ready to train</Text>
+                <Text style={[styles.quizSubtitle, { color: theme.textMuted }]}>Your first session is prepped with combos matched to your level and style.</Text>
+                <TouchableOpacity style={[styles.quizBigButton, { backgroundColor: theme.accentBg }]} onPress={() => { hapticIf('medium'); setQuizComplete(true); startFirstWorkout(); }} accessibilityRole="button">
+                  <Text style={styles.quizBigButtonText}>Start my first workout</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { setQuizComplete(true); setOnboardDismissed(true); }} style={styles.quizBack}>
+                  <Text style={[styles.quizBackText, { color: theme.textMuted }]}>Just show me the app</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Legacy onboarding card — shown only after quizComplete but before first workout */}
+        {isFirstRun && !arsenalView && quizComplete && !Object.keys(generatedTasks).length && (
+          <View style={[styles.onboardCard, { backgroundColor: theme.cardBg, borderColor: theme.accent }]}>
+            <Text style={[styles.onboardTitle, { color: theme.text }]}>Your voice-guided fight coach</Text>
+            <Text style={[styles.onboardBody, { color: theme.textMuted }]}>
+              MyCombat calls out real combinations for 10 martial arts with a round timer, drills, and a technique library. No gym needed.
+            </Text>
+            <TouchableOpacity style={[styles.onboardButton, { backgroundColor: theme.accentBg }]} onPress={startFirstWorkout} accessibilityRole="button" accessibilityLabel="Start your first workout">
+              <Text style={styles.onboardButtonText}>Start my first workout</Text>
             </TouchableOpacity>
-          )}
-          {!arsenalView && sessions.length > 0 && (
-            <View style={[styles.kcalStrip, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-              <Ionicons name="flame" size={16} color="#F97316" />
-              <Text style={[styles.kcalStripText, { color: theme.text }]}>
-                <Text style={{ fontFamily: FONT.bodyBold, color: theme.accent }}>{totalKcal}</Text> kcal burned · {workoutDates.length} workout{workoutDates.length === 1 ? '' : 's'} · {streak} day streak
-              </Text>
-            </View>
-          )}
-          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
-            {arsenalView ? 'My Arsenal' : (difficultyFilter !== 'all' ? `Showing ${DIFFICULTY_LABELS[difficultyFilter].toLowerCase()} combos` : 'All Styles')}
-          </Text>
-          {!arsenalView && (
-            <Text style={[styles.dragHint, { color: theme.textMuted }]}>Hold & drag a card to reorder</Text>
-          )}
-          {orderedStyles.map((category, cardIndex) => (
-            <DraggableCard
-              key={category}
-              category={category}
-              index={cardIndex}
-              onReorder={(from, to) => {
-                const list = [...orderedStyles];
-                const [moved] = list.splice(from, 1);
-                const clamped = Math.max(0, Math.min(to, list.length));
-                list.splice(clamped, 0, moved);
-                setStyleOrder(list);
-              }}
-            >
-              {({ onLongPress, onPressOut }) => (
-                <CategoryCard category={category} dragHandlers={{ onLongPress, onPressOut }} />
-              )}
-            </DraggableCard>
-          ))}
-          {arsenalView && favorites.length === 0 && (
-            <Text style={styles.emptyText}>No favorites yet. Tap the star on any combo.</Text>
-          )}
-          {orderedStyles.length === 0 && (
-            <Text style={styles.emptyText}>No styles. Create one in Settings.</Text>
-          )}
+          </View>
+        )}
+
+        <ScrollView contentContainerStyle={[styles.scrollContent, landscapeMode && styles.landscapeScroll]} showsVerticalScrollIndicator={false}>
+          {!quizComplete || Object.keys(generatedTasks).length === 0 ? (
+            <>{!arsenalView && <TimerDisplay />}
+            {speechError && (
+              <TouchableOpacity style={[styles.speechErrorBanner, { backgroundColor: theme.danger }]} onPress={() => setSpeechError(false)} accessibilityRole="button" accessibilityLabel="Dismiss voice error">
+                <Ionicons name="volume-mute" size={16} color="#fff" />
+                <Text style={styles.speechErrorText}>Voice unavailable — check your device text-to-speech settings (Settings → Voice → Test)</Text>
+              </TouchableOpacity>
+            )}
+            {!arsenalView && sessions.length > 0 && (
+              <View style={[styles.kcalStrip, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+                <Ionicons name="flame" size={16} color="#F97316" />
+                <Text style={[styles.kcalStripText, { color: theme.text }]}>
+                  <Text style={{ fontFamily: FONT.bodyBold, color: theme.accent }}>{totalKcal}</Text> kcal burned · {workoutDates.length} workout{workoutDates.length === 1 ? '' : 's'} · {streak} day streak
+                </Text>
+              </View>
+            )}
+            <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
+              {arsenalView ? 'My Arsenal' : (difficultyFilter !== 'all' ? `Showing ${DIFFICULTY_LABELS[difficultyFilter].toLowerCase()} combos` : 'All Styles')}
+            </Text>
+            {!arsenalView && (
+              <Text style={[styles.dragHint, { color: theme.textMuted }]}>Hold & drag a card to reorder</Text>
+            )}
+            {orderedStyles.map((category, cardIndex) => (
+              <DraggableCard
+                key={category}
+                category={category}
+                index={cardIndex}
+                onReorder={(from, to) => {
+                  const list = [...orderedStyles];
+                  const [moved] = list.splice(from, 1);
+                  const clamped = Math.max(0, Math.min(to, list.length));
+                  list.splice(clamped, 0, moved);
+                  setStyleOrder(list);
+                }}
+              >
+                {({ onLongPress, onPressOut }) => (
+                  <CategoryCard category={category} dragHandlers={{ onLongPress, onPressOut }} />
+                )}
+              </DraggableCard>
+            ))}
+            {arsenalView && favorites.length === 0 && (
+              <Text style={styles.emptyText}>No favorites yet. Tap the star on any combo.</Text>
+            )}
+            {orderedStyles.length === 0 && (
+              <Text style={styles.emptyText}>No styles. Create one in Settings.</Text>
+            )}
+            </>
+          ) : null}
         </ScrollView>
 
         <Modal animationType="slide" transparent={true} visible={isSettingsVisible} onRequestClose={() => setIsSettingsVisible(false)}>
@@ -3578,6 +3700,26 @@ const createStyles = (theme) => StyleSheet.create({
   onboardButton: { paddingVertical: 14, paddingHorizontal: 24, borderRadius: 25, marginBottom: 10, width: '100%', alignItems: 'center' },
   onboardButtonText: { color: '#fff', fontSize: 16, fontFamily: FONT.bodyBold },
   onboardSkip: { fontSize: 13, fontFamily: FONT.body, padding: 8 },
+  // Quiz onboarding styles
+  quizContainer: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24, flex: 1 },
+  quizProgress: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 32 },
+  quizDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.border },
+  quizDotActive: { backgroundColor: theme.accent, width: 24 },
+  quizDotDone: { backgroundColor: theme.success },
+  quizStepContent: { flex: 1, alignItems: 'stretch' },
+  quizIconWrap: { width: 80, height: 80, borderRadius: 40, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  quizTitle: { fontSize: 28, fontFamily: FONT.heading, textAlign: 'center', marginBottom: 10 },
+  quizSubtitle: { fontSize: 15, fontFamily: FONT.body, textAlign: 'center', marginBottom: 32, lineHeight: 22 },
+  quizQuestion: { fontSize: 22, fontFamily: FONT.heading, textAlign: 'center', marginBottom: 20 },
+  quizOption: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 14, padding: 16, marginBottom: 10 },
+  quizOptionLabel: { fontSize: 16, fontFamily: FONT.bodySemi },
+  quizOptionSub: { fontSize: 13, fontFamily: FONT.body, marginTop: 2 },
+  quizProBadge: { backgroundColor: theme.accentBg, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, marginLeft: 8 },
+  quizProBadgeText: { color: '#fff', fontSize: 10, fontFamily: FONT.bodyBold },
+  quizBigButton: { borderRadius: 30, paddingVertical: 18, alignItems: 'center', marginTop: 8 },
+  quizBigButtonText: { color: '#fff', fontSize: 18, fontFamily: FONT.bodyBold },
+  quizBack: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, marginTop: 8 },
+  quizBackText: { fontSize: 14, fontFamily: FONT.body },
 });
 
 // Wrap the root in the error boundary — a runtime JS error must show the
