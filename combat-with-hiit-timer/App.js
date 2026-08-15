@@ -60,6 +60,33 @@ const COMBO_MODIFIERS = {
   target: ['to the body', 'to the head', 'to the liver', 'to the chin', 'to the solar plexus'],
 };
 
+// ---------- Belt rank system ----------
+// Belts are tied to curriculumProgress[style] — the count of techniques marked learned.
+// { color (hex), label, minTechniques }
+const BELTS = {
+  white:   { color: '#E8E8E8', label: 'White',   min: 0  },
+  yellow:  { color: '#F5D800', label: 'Yellow',  min: 5  },
+  orange:  { color: '#FF8C00', label: 'Orange',  min: 12 },
+  green:   { color: '#008C00', label: 'Green',   min: 25 },
+  blue:    { color: '#0047AB', label: 'Blue',    min: 40 },
+  black:   { color: '#1A1A1A', label: 'Black',  min: 60 },
+};
+const BELT_ORDER = ['white', 'yellow', 'orange', 'green', 'blue', 'black'];
+// Styles that use full curriculum for black belt
+const FULL_CURRICULUM_STYLES = ['BJJ', 'Judo'];
+
+const getBelt = (style, curriculumCount) => {
+  // BJJ/Judo have larger curricula — use percentage of total
+  const isFull = FULL_CURRICULUM_STYLES.includes(style);
+  const total = (CURRICULUM[style] || []).length;
+  const threshold = isFull ? Math.round((curriculumCount / Math.max(total, 1)) * 60) : curriculumCount;
+  let belt = BELTS.white;
+  for (const key of BELT_ORDER) {
+    if (BELTS[key].min <= threshold) belt = BELTS[key];
+  }
+  return belt;
+};
+
 // ---------- Pre-set workout programs (coach templates) ----------
 const PROGRAMS = [
   {
@@ -1843,6 +1870,17 @@ function App() {
     setCurriculumProgress(prev => {
       const list = CURRICULUM[style] || [];
       const next = Math.min((prev[style] || 0) + 1, list.length);
+      const oldBelt = getBelt(style, prev[style] || 0);
+      const newBelt = getBelt(style, next);
+      if (newBelt.label !== oldBelt.label) {
+        setTimeout(() => {
+          Alert.alert(
+            `${newBelt.label} Belt Earned`,
+            `You've reached ${newBelt.label} Belt in ${style}!`,
+            [{ text: 'Keep Training', style: 'default' }]
+          );
+        }, 300);
+      }
       return { ...prev, [style]: next };
     });
   };
@@ -2558,10 +2596,18 @@ function App() {
                     <Ionicons name="lock-closed" size={13} color={theme.accent} />
                     <Text style={[styles.lockedBadgeText, { color: theme.accent }]}>PRO</Text>
                   </View>
-                ) : total > 0 && (
-                  <Text style={[styles.progressText, { color: theme.textMuted }]}>
-                    Learned {learnCount}/{total}
-                  </Text>
+                ) : total > 0 ? (
+                  <View style={styles.beltProgressRow}>
+                    <View style={[styles.beltDot, { backgroundColor: getBelt(category, learnCount).color }]} />
+                    <Text style={[styles.beltProgressLabel, { color: theme.textMuted }]}>
+                      {getBelt(category, learnCount).label} · {learnCount}/{total}
+                    </Text>
+                    <View style={[styles.beltProgressBar, { backgroundColor: theme.border }]}>
+                      <View style={[styles.beltProgressFill, { width: `${Math.min(100, (learnCount / total) * 100)}%`, backgroundColor: getBelt(category, learnCount).color }]} />
+                    </View>
+                  </View>
+                ) : (
+                  <Text style={[styles.progressText, { color: theme.textMuted }]}>Tap ▶ to start training</Text>
                 )}
               </View>
               <TouchableOpacity
@@ -2684,6 +2730,13 @@ function App() {
                 <View style={styles.streakRow}>
                   <Ionicons name="flame" size={16} color="#F97316" />
                   <Text style={[styles.streakText, { color: '#F97316' }]}>{streak} day{streak > 1 ? 's' : ''}</Text>
+                </View>
+              )}
+              {selectedCategory && (
+                <View style={[styles.beltRow, { borderColor: getBelt(selectedCategory, curriculumProgress[selectedCategory] || 0).color }]}>
+                  <Text style={[styles.beltText, { color: getBelt(selectedCategory, curriculumProgress[selectedCategory] || 0).color }]}>
+                    {getBelt(selectedCategory, curriculumProgress[selectedCategory] || 0).label}
+                  </Text>
                 </View>
               )}
               {difficultyFilter !== 'all' && (
@@ -3661,6 +3714,13 @@ const createStyles = (theme) => StyleSheet.create({
   builderChipText: { fontSize: 14, fontFamily: FONT.bodySemi, color: theme.text },
   builderControls: { flexDirection: 'row', gap: 10, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' },
   streakRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  beltRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 },
+  beltText: { fontSize: 12, fontFamily: FONT.bodyBold, letterSpacing: 0.5 },
+  beltProgressRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+  beltDot: { width: 8, height: 8, borderRadius: 4 },
+  beltProgressLabel: { fontSize: 11, fontFamily: FONT.body },
+  beltProgressBar: { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden' },
+  beltProgressFill: { height: '100%', borderRadius: 2 },
   completeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   previewStrip: { marginTop: 10, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 6 },
   previewStep: { flexDirection: 'row', alignItems: 'center', gap: 6 },
