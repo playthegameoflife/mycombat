@@ -741,18 +741,73 @@ const SHARED_TECHNIQUES = {
 };
 
 // Curriculum: ordered technique names to learn per style
+// ---------- Tiered curriculum system ----------
+// Each style has ordered tiers. Techniques within a tier must be learned in order.
+// All techniques across all tiers are flattened for belt/XP progress tracking.
+// Tier 1 = beginner fundamentals. Combo difficulty is gated by tier unlock.
 const CURRICULUM = {
-  'Boxing': ['jab', 'cross', 'hook', 'slip', 'uppercut', 'roll', 'footwork', 'feint', 'pivot', 'body shot', 'pull counter', 'shoulder roll', 'duck', 'overhand'],
-  'Kickboxing': ['jab', 'cross', 'low kick', 'hook', 'roundhouse', 'body kick', 'teep', 'uppercut', 'knee', 'elbow', 'head kick', 'spinning backfist'],
-  'Muay Thai': ['jab', 'cross', 'roundhouse', 'teep', 'low kick', 'knee', 'clinch', 'elbow', 'plum clinch', 'lead uppercut', 'switch kick', 'superman punch'],
-  'MMA': ['jab', 'cross', 'takedown', 'double leg', 'single leg', 'rear naked choke', 'body kick', 'head kick', 'guillotine', 'kimura', 'teep', 'clinch'],
-  'Combat Sambo': ['jab', 'cross', 'double leg', 'hip throw', 'knee', 'rear naked choke', 'armbar', 'foot sweep', 'clinch', 'guillotine', 'ground and pound', 'spinning back kick'],
-  'BJJ': ['guard pull', 'sweep', 'mount', 'side control', 'guard pass', 'armbar', 'rear naked choke', 'kimura', 'triangle', 'back take', 'omoplata', 'sweep to mount'],
-  'Wrestling': ['double leg', 'single leg', 'arm drag', 'sprawl', 'front headlock', 'takedown', 'trip', 'hip toss', 'ankle pick', 'cradle', 'sit out', 'mat return'],
-  'Judo': ['ogoshi', 'seoi nage', 'osoto gari', 'harai goshi', 'uchi mata', 'tai otoshi', 'ippon seoi nage', 'foot sweep', 'tomoe nage', 'kesa gatame', 'juji gatame', 'hold down'],
-  'Taekwondo': ['jab', 'cross', 'front kick', 'roundhouse kick', 'side kick', 'back kick', 'hook kick', 'axe kick', 'crescent kick', 'spinning back kick', 'push kick', 'knee'],
-  'Karate': ['jab', 'cross', 'reverse punch', 'front kick', 'side kick', 'roundhouse kick', 'backfist', 'ridge hand', 'knife hand', 'elbow', 'knee', 'push kick'],
+  'Boxing': {
+    1: ['jab', 'cross', 'slip', 'guard', 'jab-cross'],       // foundation — learn these first
+    2: ['hook', 'uppercut', 'roll', 'hook-to-body'],
+    3: ['footwork', 'pivot', 'feint', 'body-shot'],
+    4: ['pull-counter', 'shoulder-roll', 'duck', 'overhand', '1-2-hook'],
+  },
+  'Kickboxing': {
+    1: ['jab', 'cross', 'low kick', 'teep', 'jab-cross'],
+    2: ['hook', 'roundhouse', 'body kick', 'knee'],
+    3: ['uppercut', 'elbow', 'head kick', 'spinning backfist'],
+  },
+  'Muay Thai': {
+    1: ['jab', 'cross', 'low kick', 'teep', 'roundhouse'],
+    2: ['knee', 'clinch', 'elbow', 'body kick'],
+    3: ['plum clinch', 'lead uppercut', 'switch kick', 'superman punch'],
+  },
+  'MMA': {
+    1: ['jab', 'cross', 'sprawl', 'underhook', 'guillotine'],
+    2: ['takedown', 'double leg', 'single leg', 'body lock'],
+    3: ['head kick', 'body kick', 'teep', 'clinch'],
+    4: ['rear naked choke', 'kimura', 'guillotine from guard'],
+  },
+  'Combat Sambo': {
+    1: ['jab', 'cross', 'sprawl', 'underhook', 'guillotine'],
+    2: ['double leg', 'hip throw', 'knee', 'foot sweep'],
+    3: ['clinch', 'rear naked choke', 'armbar', 'ground and pound'],
+    4: ['spinning back kick', 'guillotine'],
+  },
+  'BJJ': {
+    1: ['guard pull', 'sweep', 'mount', 'side control'],       // positions before submissions
+    2: ['guard pass', 'armbar', 'rear naked choke', 'kimura'],
+    3: ['triangle', 'back take', 'omoplata', 'armbar from guard'],
+  },
+  'Wrestling': {
+    1: ['sprawl', 'underhook', 'double leg', 'single leg'],
+    2: ['arm drag', 'front headlock', 'takedown', 'trip'],
+    3: ['hip toss', 'ankle pick', 'cradle', 'sit out'],
+    4: ['mat return', 'body lock', 'high crotch'],
+  },
+  'Judo': {
+    1: ['ogoshi', 'seoi nage', 'osoto gari', 'harai goshi'],  // hip + foot sweep foundation
+    2: ['uchi mata', 'tai otoshi', 'foot sweep', 'tomoe nage'],
+    3: ['ippon seoi nage', 'kesa gatame', 'juji gatame', 'hold down'],
+  },
+  'Taekwondo': {
+    1: ['jab', 'front kick', 'side kick', 'roundhouse'],
+    2: ['cross', 'back kick', 'hook kick', 'axe kick'],
+    3: ['crescent kick', 'spinning back kick', 'push kick', 'crescent kick to knee'],
+  },
+  'Karate': {
+    1: ['jab', 'reverse punch', 'front kick', 'side kick'],
+    2: ['roundhouse kick', 'backfist', 'ridge hand', 'knife hand'],
+    3: ['elbow', 'knee', 'push kick', 'spinning backfist'],
+  },
 };
+
+// Flatten all tiers into a single ordered array per style (for progress tracking)
+const CURRICULUM_FLAT = {};
+Object.entries(CURRICULUM).forEach(([style, tiers]) => {
+  CURRICULUM_FLAT[style] = Object.values(tiers).flat();
+});
+
 
 // Normalize a combo move name to look up in the technique library
 const normalizeMove = (move) => {
@@ -892,7 +947,7 @@ const haptic = (type = 'light') => {
 };
 
 // ---------- Weighted random task picker (respects difficulty filter) ----------
-const basicLevels = { 'Boxing': 12 };
+const basicLevels = { 'Boxing': 5 };
 // A real coach never calls the SAME combo twice in a row. Track the last pick
 // per style (module-level; survives across renders) and re-roll once if the
 // random pick matches it — keeps sessions feeling coached, not robotic.
